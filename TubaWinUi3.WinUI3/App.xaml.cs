@@ -20,6 +20,16 @@ public partial class App : Application
     public App()
     {
         Environment.SetEnvironmentVariable("MICROSOFT_WINDOWSAPPRUNTIME_BASE_DIRECTORY", AppContext.BaseDirectory);
+
+        // WebView2 用户数据目录固定到 %LocalAppData%\TubaWinUi3\WebView2。该环境变量优先级
+        // 高于 CreateWithOptionsAsync 的 userDataFolder 参数，能兜住三方库内部不传环境直接
+        // 初始化 WebView2 的情况（如 FieldCure ChatPanel）——否则装在 Program Files 等受保护
+        // 目录时，默认目录（exe 旁 *.exe.WebView2）创建失败会弹「无法读取和写入其数据目录」。
+        Environment.SetEnvironmentVariable("WEBVIEW2_USER_DATA_FOLDER",
+            Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "TubaWinUi3", "WebView2"));
+
         InitializeComponent();
 
         // LiveCharts/SkiaSharp 不再于启动时初始化：首个图表页面首次访问时才配置（ChartInitializer）。

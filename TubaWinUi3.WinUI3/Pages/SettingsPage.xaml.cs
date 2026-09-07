@@ -1094,7 +1094,7 @@ public sealed partial class SettingsPage : Page
     private void InitHardwareMultiDeviceNewLineToggle()
     {
         _hardwareMultiDeviceNewLineInitializing = true;
-        HardwareMultiDeviceNewLineToggle.IsOn = AppSettings.GetBool("HardwareMultiDeviceNewLine", false);
+        HardwareMultiDeviceNewLineToggle.IsOn = AppSettings.GetBool("HardwareMultiDeviceNewLine", true);
         _hardwareMultiDeviceNewLineInitializing = false;
     }
 

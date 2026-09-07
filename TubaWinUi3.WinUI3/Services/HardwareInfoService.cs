@@ -151,7 +151,7 @@ public static class HardwareInfoService
 
     private static string GetSeparator()
     {
-        return AppSettings.GetBool("HardwareMultiDeviceNewLine", false) ? Environment.NewLine : " / ";
+        return AppSettings.GetBool("HardwareMultiDeviceNewLine", true) ? Environment.NewLine : " / ";
     }
 
     public static bool HasCache

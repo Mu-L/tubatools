@@ -39,7 +39,7 @@ public sealed class DocumentEngineService
         {
             if (_initialized) return;
             if (_webView.CoreWebView2 is null)
-                await _webView.EnsureCoreWebView2Async();
+                await _webView.EnsureCoreWebView2Async(await WebView2EnvironmentService.GetAsync());
 
             _webView.CoreWebView2!.SetVirtualHostNameToFolderMapping(
                 "doceng", HostFolder, CoreWebView2HostResourceAccessKind.Allow);
