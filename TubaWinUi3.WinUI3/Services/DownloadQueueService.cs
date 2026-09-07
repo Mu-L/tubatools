@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Net.Http;
 using System.Text.Json;
 using Downloader;
 using Microsoft.UI.Dispatching;
@@ -27,6 +28,8 @@ public static class DownloadQueueService
     private static readonly SemaphoreSlim _semaphore = new(MaxConcurrentDownloads);
     private static readonly ObservableCollection<DownloadItem> _queue = [];
     private static readonly Dictionary<string, Task> _activeTasks = [];
+    private static readonly Dictionary<string, int> _multiFileAutoRetries = [];
+    private const int MaxMultiFileAutoRetries = 6;
     private static int _pendingCount;
     private static DispatcherQueue? _dispatcherQueue;
 #pragma warning disable CS0414
@@ -120,6 +123,7 @@ public static class DownloadQueueService
         item.Cts?.Cancel();
         if (item.State is DownloadItemState.Queued or DownloadItemState.Resolving)
         {
+            _multiFileAutoRetries.Remove(itemId);
             DispatchState(item, DownloadItemState.Cancelled);
             DecrementPending();
             CleanupPartialFile(item);
@@ -127,6 +131,7 @@ public static class DownloadQueueService
         }
         else if (item.State is DownloadItemState.Paused)
         {
+            _multiFileAutoRetries.Remove(itemId);
             DispatchState(item, DownloadItemState.Cancelled);
             CleanupPartialFile(item);
             MarkDirty();
@@ -139,6 +144,7 @@ public static class DownloadQueueService
         if (item is null) return;
         if (item.State is not (DownloadItemState.Failed or DownloadItemState.Cancelled)) return;
 
+        _multiFileAutoRetries.Remove(itemId);
         item.Reset();
         IncrementPending();
         StartItemAsync(item);
@@ -157,6 +163,7 @@ public static class DownloadQueueService
         var wasPending = item.State is DownloadItemState.Queued or DownloadItemState.Resolving
             or DownloadItemState.Downloading or DownloadItemState.Processing or DownloadItemState.Paused;
         _queue.Remove(item);
+        _multiFileAutoRetries.Remove(itemId);
         if (wasPending) DecrementPending();
         CleanupPartialFile(item);
         MarkDirty();
@@ -422,11 +429,13 @@ public static class DownloadQueueService
     private static async Task ProcessItemAsync(DownloadItem item)
     {
         var ct = item.Cts?.Token ?? CancellationToken.None;
+        var newFilesThisPass = 0;
         try
         {
             if (item.MultiFileResolver is not null)
             {
-                await ProcessMultiFileAsync(item, ct);
+                newFilesThisPass = await ProcessMultiFileAsync(item, ct);
+                _multiFileAutoRetries.Remove(item.Id);
             }
             else
             {
@@ -459,6 +468,28 @@ public static class DownloadQueueService
         }
         catch (Exception ex)
         {
+            // 多文件任务（UUP 文件集等）：微软 CDN 直链有效期只有约 15 分钟，长任务中
+            // 后续文件的链接可能已过期。与官方 aria2 脚本的做法一致：重新解析文件列表
+            // 换新链接再跑一遍，已按大小校验完成的文件会自动跳过。本轮有进展时重新计数，
+            // 避免同一处反复失败造成死循环。
+            if (item.MultiFileResolver is not null)
+            {
+                if (newFilesThisPass > 0)
+                    _multiFileAutoRetries.Remove(item.Id);
+
+                if (CanAutoRetryMultiFile(item))
+                {
+                    var reason = ex.InnerException?.Message ?? ex.Message;
+                    if (reason.Length > 120) reason = reason[..120] + "...";
+                    DispatchProcessingStatus(item, $"下载中断（{reason}），正在刷新下载列表并自动重试...");
+                    await Task.Delay(3000).ConfigureAwait(false);
+                    StartItemAsync(item);
+                    return;
+                }
+
+                _multiFileAutoRetries.Remove(item.Id);
+            }
+
             var errorMsg = ex.InnerException?.Message ?? ex.Message;
             DispatchError(item, errorMsg);
             DispatchState(item, DownloadItemState.Failed);
@@ -476,7 +507,19 @@ public static class DownloadQueueService
         }
     }
 
-    private static async Task ProcessMultiFileAsync(DownloadItem item, CancellationToken ct)
+    private static bool CanAutoRetryMultiFile(DownloadItem item)
+    {
+        lock (_activeTasks)
+        {
+            _multiFileAutoRetries.TryGetValue(item.Id, out var count);
+            if (count >= MaxMultiFileAutoRetries) return false;
+            _multiFileAutoRetries[item.Id] = count + 1;
+            return true;
+        }
+    }
+
+    /// <summary>逐个下载文件清单；返回本轮实际新下载的文件数（已存在且大小一致的文件直接跳过）。</summary>
+    private static async Task<int> ProcessMultiFileAsync(DownloadItem item, CancellationToken ct)
     {
         DispatchState(item, DownloadItemState.Resolving);
         var files = await item.MultiFileResolver!(ct);
@@ -490,11 +533,12 @@ public static class DownloadQueueService
                 var progress = new Progress<string>(status => DispatchProcessingStatus(item, status));
                 await item.PostProcessor.ExecuteAsync(item.DestinationPath, item.DestinationPath, progress, ct);
             }
-            return;
+            return 0;
         }
 
         DispatchState(item, DownloadItemState.Downloading);
 
+        var newFiles = 0;
         long completedBytes = 0;   // 已完成文件的累计字节
         long knownTotal = 0;       // 已知文件的累计总字节
 
@@ -533,6 +577,7 @@ public static class DownloadQueueService
             var actualSize = File.Exists(localPath) ? new FileInfo(localPath).Length : fileTotal;
             completedBytes += actualSize;
             knownTotal += actualSize;
+            newFiles++;
         }
 
         ReportAggregatedProgress(item, completedBytes, completedBytes, 0);
@@ -546,6 +591,8 @@ public static class DownloadQueueService
             var progress = new Progress<string>(status => DispatchProcessingStatus(item, status));
             await item.PostProcessor.ExecuteAsync(item.DestinationPath, item.DestinationPath, progress, ct);
         }
+
+        return newFiles;
     }
 
     private static void DeleteLegacyPartial(string finalPath)
@@ -716,12 +763,28 @@ public static class DownloadQueueService
         DownloadFileExtension = DownloaderPartialSuffix,
         HttpClientTimeout = 2 * 60 * 60 * 1000,         // 默认 100s 会误杀慢速大文件流
         MaximumMemoryBufferBytes = 64 * 1024 * 1024,
+        // 下载链路同样走 IPv4 优先连接：CDN 域名若解析出不可达的 IPv6 地址，
+        // 默认 handler 会顺序尝试并挂起整个超时周期（见 HttpClientFactory 说明）
+        CustomHttpMessageHandlerFactory = CreateDownloadHandler,
         RequestConfiguration = new RequestConfiguration
         {
             UserAgent = "TubaWinUi3-DownloadQueue",
             Proxy = ProxyService.GetWebProxy(),
         }
     };
+
+    private static SocketsHttpHandler CreateDownloadHandler()
+    {
+        var handler = HttpClientFactory.CreateIpv4PreferredHandler();
+        // 注入自定义 handler 后 RequestConfiguration.Proxy 不再由库自动施加，手动保留用户配置的代理
+        var proxy = ProxyService.GetWebProxy();
+        if (proxy is not null)
+        {
+            handler.Proxy = proxy;
+            handler.UseProxy = true;
+        }
+        return handler;
+    }
 
     private static void HandleSingleFileProgress(DownloadItem item, DownloadProgressChangedEventArgs e)
         => ReportAggregatedProgress(item, e.ReceivedBytesSize, e.TotalBytesToReceive, e.BytesPerSecondSpeed);

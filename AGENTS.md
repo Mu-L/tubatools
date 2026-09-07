@@ -82,6 +82,16 @@ dotnet test --filter "FullyQualifiedName~ToolCatalogTests"        # one class / 
 - 图片→MP4/WebM 借用 FFmpeg（`BuildImageVideoArgs`：静态图 -loop 1 + 时长，GIF 直接转码）；OCR/ZIP/合并/拆分等非普通目标是 `ConvertSpecial`，由页面专门调度。
 - Win32 拖放复用 `Win32DropHelper`（管理员 UIPI 绕过）；文件多选用 `Win32Dialogs.PickOpenMultiple`。
 
+### Windows 镜像下载（WindowsImagePage）— UUP Dump JSON API 管线
+- 「UUP Dump」标签页是**三步向导**（选版本 → 选语言/版本 → 下载转 ISO），数据全部来自官方 JSON API（`https://api.uupdump.net`，仓库 uup-dump/json-api）。`UupDumpService` 内的解析方法（`ParseBuildsJson` 等）为 internal，单测在 `UupDumpApiTests`。
+- **不再抓取 HTML 页面**（旧版对 selectlang/selectedition/known.php 的正则解析已删除）；`fetchupd.php` 未用（实测 Retail 渠道恒返 NO_UPDATE_FOUND 且限流严格），构建列表只用 `listid.php`（无限流）。API 限流规则：同 IP 切换不同资源 10 秒 1 次、同资源 1 秒 1 次；`get.php` 的 `noLinks=1` 不限流（用于大小预览）。
+- **网络连接层（全链路共享 `HttpClientFactory`）**：`CreateIpv4PreferredHandler()` 只查 A 记录建 IPv4 连接（无 A 记录回退全家族），同一域名多个 IP 逐个尝试（每 IP 3 秒预算、整体 9 秒封顶）——国内到 Cloudflare/微软 CDN 的 IPv6 路径常被静默丢弃，默认 handler 顺序连 IPv6 会挂满超时周期（「正在获取构建列表」卡死的根因）。`UupDumpService`（60s）、`MicrosoftOfficialService`/`WindowsImageService`（30s）共用；**Downloader 队列下载**通过 `CustomHttpMessageHandlerFactory` 注入同一 handler（自定义 handler 下 `RequestConfiguration.Proxy` 不再自动施加，需手动 `ProxyService.GetWebProxy()` 回填）。
+- **API 调用韧性**：`GetJsonOnceAsync` 每次请求独立 30 秒上限（连接层另有 9 秒预算）；`GetJsonAsync` 最多 3 次尝试，网络抖动等 2 秒、`HTTP_429` 等 10 秒（对应官方「切资源 10 秒 1 次」限流窗口）；错误码→中文提示走 `GetFriendlyErrorMessage`（NETWORK 类附 `api.uupdump.net` 与代理/VPN 排障建议），页面兜底异常统一走 `FriendlyTimeoutMessage`。
+- **CDN 直链仅约 15 分钟有效**（`tlu.dl.delivery.mp.microsoft.com`，`expire` 字段）：文件集下载走 `DownloadQueueService.EnqueueMultiFile`，每次重试会重新调用 `get.php` 换新链接；queue 在 `ProcessItemAsync` 的 catch 里做多文件自动重试（本轮有新文件完成则重置计数，上限 6 次），与官方 aria2 脚本「失败重拉列表」语义一致。已按大小校验的文件自动跳过 → 包目录可跨会话续传。
+- **转换**：不用网站生成的 ZIP。入队时按 UI 转换选项生成官方格式 `ConvertConfig.ini` 到包根目录（下载期间可手动编辑，转换时**不覆盖**）；下载完成后 post-processor 先拉官方清单 `git.uupdump.net/uup-dump/misc` 的 `autodl_files/converter_windows`（aria2 格式：url/out=/checksum=sha-256=，官网打包同源，转换器升级自动跟随；失败用代码内兜底值）得到 `7zr.exe` + `uup-converter-wimlib-v*.7z` 的地址与 SHA-256，从清单 URL 下载（镜像 = git raw + **远端版本化文件名**——`uupdump.net/misc/` 上没有不带版本的 `uup-converter-wimlib.7z`，404！本地保存名用清单 `out=`）→ 7zr 解压（排除 ConvertConfig.ini，转换器包名用 `uup-converter-wimlib*.7z` 通配查找）→ `ScriptRunnerWindow` 跑 `convert-UUP.cmd`（AutoExit=1）。
+- **转换选项 ↔ ConvertConfig 键**（已实测官网 POST 参数对照）：`updates→AddUpdates`、`cleanup→Cleanup`、`netfx→NetFx3`、`esd→wim2esd+vwim2esd`（两处同时置 1）、`SkipApps` 默认 1（更快）。**附加版本（虚拟版本）**：JSON API 不提供列表，映射写死在 `GetVirtualEditionsForBase`（Pro→Enterprise/Education/ServerRdsh/IoTEnterprise…，Core→CoreSingleLanguage，N 版同理，来自官网 Required edition 表）；仅改写 `StartVirtual=1` + `vAutoEditions`，下载文件集仍是基础版本的。
+- 包目录：`Downloads\UUPDump\<build>_<lang>_<edition>\`（`UUPs/` 子目录放文件集，ISO 与 ConvertConfig.ini 在包根），同名目录复用实现断点续传。
+
 ### 垃圾清理（JunkCleanerTool）— FluentCleaner.Core 引擎架构
 - 「垃圾清理」内置工具已完全重构为 **Winapp2.ini 规则库驱动**，引擎移植自 builtbybel/FluentCleaner（MIT）的 `FluentCleaner.Core`，代码在 `Services/JunkCleaner/`，保留上游命名空间 `FluentCleaner.Models` / `FluentCleaner.Services` 以便对照上游更新。
 - 管线：`Winapp2Parser`（FileKeyN/RegKeyN/ExcludeKeyN/Detect/DetectFile/SpecialDetect 多值键解析）→ `DetectionService`（注册表/文件/SpecialDetect 检测已安装应用，OR 逻辑）→ `CleaningService`（两阶段：Analyze 只读构建删除清单 + Clean 真删；CreateFileW 探测锁定文件、跳过 reparse point、REMOVESELF 剪除空目录、注册表排除分支保护）→ `PathExpander`（%EnvVar% 展开 + 通配符路径段递归解析）。
