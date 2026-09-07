@@ -22,7 +22,7 @@ public sealed partial class ErrorWindow : Window
     {
         InitializeComponent();
 
-        AppWindow.Title = "图吧工具箱 - 错误报告";
+        AppWindow.Title = "图吧工具箱CE - 错误报告";
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico"));
 
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);

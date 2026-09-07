@@ -211,7 +211,7 @@ public sealed partial class ToolsBundleDownloadDialog : ContentDialog
             urlResolver: resolver,
             destinationPath: toolsDir,
             postProcessor: new ToolsBundleExtractProcessor(version, kind),
-            description: lite ? "图吧工具箱精简版内核" : "图吧工具箱完整内核",
+            description: lite ? "图吧工具箱CE精简版内核" : "图吧工具箱CE完整内核",
             glyph: "\uE896",
             fallbackUrl: _updateInfo.FallbackUrl(lite));
 

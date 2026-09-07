@@ -4,9 +4,9 @@
 
 <img src=".github/social-preview.png" alt="TubaWinUi3 Banner" width="100%"/>
 
-# 图吧工具箱 TubaWinUi3
+# 图吧工具箱CE TubaWinUi3
 
-**图吧工具箱的重构版** -- 基于 WinUI 3 / .NET 10 全新打造
+**图吧工具箱的社区重构版（Community Edition）** -- 基于 WinUI 3 / .NET 10 全新打造
 
 <a href="https://readme-typing-svg.demolab.com?font=Fira+Code&size=28&pause=1000&color=0078D4&center=true&vCenter=true&width=600&lines=PC+%E7%A1%AC%E4%BB%B6%E5%B7%A5%E5%85%B7%E9%9B%86%E5%90%88;WinUI+3+%C2%B7+.NET+10;82+%E6%AC%BE%E6%94%B6%E5%BD%95%E5%B7%A5%E5%85%B7+%2B+45+%E6%AC%BE%E5%86%85%E7%BD%AE%E5%B7%A5%E5%85%B7;%E4%B8%80%E9%94%AE%E5%90%AF%E5%8A%A8">
 <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=28&pause=1000&color=0078D4&center=true&vCenter=true&width=600&lines=PC+%E7%A1%AC%E4%BB%B6%E5%B7%A5%E5%85%B7%E9%9B%86%E5%90%88;WinUI+3+%C2%B7+.NET+10;82+%E6%AC%BE%E6%94%B6%E5%BD%95%E5%B7%A5%E5%85%B7+%2B+45+%E6%AC%BE%E5%86%85%E7%BD%AE%E5%B7%A5%E5%85%B7;%E4%B8%80%E9%94%AE%E5%90%AF%E5%8A%A8" alt="Typing SVG" />
@@ -36,7 +36,7 @@
 
 ## AtomGit G-Star 毕业项目
 
-本项目已通过 [AtomGit](https://atomgit.com) 官方评审，获得 **G-Star 项目毕业认证**（编号 No.0614，2026.07.24），感谢 AtomGit 对图吧工具箱开源生态贡献的认可。
+本项目已通过 [AtomGit](https://atomgit.com) 官方评审，获得 **G-Star 项目毕业认证**（编号 No.0614，2026.07.24），感谢 AtomGit 对图吧工具箱CE开源生态贡献的认可。
 
 欢迎在 AtomGit 上关注我们：**[atomgit.com/luolangaga/tubatool](https://atomgit.com/luolangaga/tubatool)**
 
@@ -246,7 +246,7 @@ winget install luolangaga.tubatools
 ### Scoop（Windows 包管理器）
 
 ```powershell
-# 1. 添加图吧工具箱 bucket
+# 1. 添加图吧工具箱CE bucket
 scoop bucket add tubatools https://github.com/luolangaga/scoop-tubatools
 
 # 2. 安装（自动根据系统架构选择 x64 / arm64 便携版）
@@ -255,7 +255,7 @@ scoop install tubatools/tubatool
 
 更新到最新版：`scoop update tubatool`
 
-> 图吧工具箱的 Scoop 源仓库：[luolangaga/scoop-tubatools](https://github.com/luolangaga/scoop-tubatools)
+> 图吧工具箱CE的 Scoop 源仓库：[luolangaga/scoop-tubatools](https://github.com/luolangaga/scoop-tubatools)
 
 ### Microsoft Store（微软商店）
 

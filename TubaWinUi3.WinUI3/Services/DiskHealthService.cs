@@ -448,7 +448,7 @@ public static class DiskHealthService
         string driveLetter, uint index, string interfaceType, string model)
     {
         if (!IsAdministrator())
-            throw new InvalidOperationException("此操作需要管理员权限，请以管理员身份运行图吧工具箱后重试");
+            throw new InvalidOperationException("此操作需要管理员权限，请以管理员身份运行图吧工具箱CE后重试");
 
         var letter = driveLetter.Trim().TrimEnd(':');
         if (letter.Length == 0)

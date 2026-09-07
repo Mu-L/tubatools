@@ -1009,7 +1009,7 @@ public sealed partial class SettingsPage : Page
         UpdateWatermarkDetailVisibility(watermarkOn);
 
         _watermarkTextInitializing = true;
-        WatermarkTextBox.Text = AppSettings.Get("ScreenshotWatermarkText") ?? "图吧工具箱";
+        WatermarkTextBox.Text = AppSettings.Get("ScreenshotWatermarkText") ?? "图吧工具箱CE";
         _watermarkTextInitializing = false;
 
         _watermarkFontInitializing = true;
@@ -1068,7 +1068,7 @@ public sealed partial class SettingsPage : Page
     {
         if (_watermarkTextInitializing) return;
         var text = WatermarkTextBox.Text.Trim();
-        AppSettings.Set("ScreenshotWatermarkText", string.IsNullOrEmpty(text) ? "图吧工具箱" : text);
+        AppSettings.Set("ScreenshotWatermarkText", string.IsNullOrEmpty(text) ? "图吧工具箱CE" : text);
     }
 
     private void WatermarkFontComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -2241,7 +2241,7 @@ public sealed partial class SettingsPage : Page
 
         AppInfoCardScale.ScaleX = 0.95;
         AppInfoCardScale.ScaleY = 1.05;
-        AppTitleText.Text = "图吧工具箱";
+        AppTitleText.Text = "图吧工具箱CE";
         AppSubtitleText.Opacity = 1.0;
 
         var restore = new Storyboard();

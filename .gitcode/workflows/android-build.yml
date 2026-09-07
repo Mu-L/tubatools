@@ -1,6 +1,6 @@
 name: android-build
 
-# 手动触发：构建「图吧工具箱安装助手」Android App 的 APK，上传为 artifact 供侧载
+# 手动触发：构建「图吧工具箱CE安装助手」Android App 的 APK，上传为 artifact 供侧载
 on:
   workflow_dispatch:
 

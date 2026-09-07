@@ -170,7 +170,7 @@ jobs:
 
           payload = {
               'tag_name': tag,
-              'name': f'图吧工具箱WinUI3 {tag}',
+              'name': f'图吧工具箱CE {tag}',
               'body': body,
               'target_commitish': 'master',
               'release_status': status

@@ -435,12 +435,12 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ inputs.version }}
-          name: 图吧工具箱WinUI3 v${{ inputs.version }}
+          name: 图吧工具箱CE v${{ inputs.version }}
           draft: ${{ inputs.draft }}
           prerelease: ${{ inputs.prerelease }}
           files: release_files/*
           body: |
-            ## 图吧工具箱WinUI3 v${{ inputs.version }}
+            ## 图吧工具箱CE v${{ inputs.version }}
 
             > **官方网站**：https://tubawinui3.cn
             > **官方下载**：https://tubawinui3.cn/download

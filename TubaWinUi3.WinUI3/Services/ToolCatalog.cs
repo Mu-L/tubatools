@@ -204,8 +204,16 @@ public static class ToolCatalog
                     return; // 已由 tools.json 副本/内置挂载声明，物理占位跳过避免重复
 
                 var launchable = FindPrimaryLaunchable(toolDir);
-                if (launchable is not null || ToolMetadataService.HasDownloadUrl(category, toolDir))
-                    items.Add(CreateToolItemWithVariants(category, categoryRoot, launchable ?? CreatePlaceholderPath(toolDir), toolDir));
+                var hasDownloadUrl = ToolMetadataService.HasDownloadUrl(category, toolDir);
+                if (launchable is null && !hasDownloadUrl)
+                    return;
+
+                // 列表以 tools.json 为准：目录本身或目录内任一可执行文件命中条目才算收录。
+                // Tools 文件夹里未收录的目录（如 ViveTool）不再出现在列表。
+                if (launchable is not null && !IsCataloguedToolDir(toolDir))
+                    return;
+
+                items.Add(CreateToolItemWithVariants(category, categoryRoot, launchable ?? CreatePlaceholderPath(toolDir), toolDir));
             });
         }
 
@@ -897,6 +905,20 @@ public static class ToolCatalog
         }
 
         return variants;
+    }
+
+    /// <summary>
+    /// 目录是否被 tools.json 收录：目录名/路径命中条目，或目录内任一可执行文件命中条目
+    /// （条目可能按目录名（如 "Geek Uninstaller"）或按文件名（如 fptw64 → fptw64.exe）匹配）。
+    /// </summary>
+    private static bool IsCataloguedToolDir(string toolDir)
+    {
+        if (ToolMetadataService.FindJsonMetadataByDir(toolDir) is not null)
+            return true;
+
+        return Directory.EnumerateFiles(toolDir, "*", SearchOption.AllDirectories)
+            .Where(IsLaunchable)
+            .Any(file => ToolMetadataService.FindJsonMetadata(file) is not null);
     }
 
     private static string? FindPrimaryLaunchable(string toolDir)
