@@ -116,6 +116,19 @@ public static class ToolsBundleService
         AppSettings.Set("ToolsBundleKind", kind);
     }
 
+    private const string SkippedVersionKey = "ToolsBundleSkippedVersion";
+
+    /// <summary>用户标记「跳过此版本」的内核版本；null 表示未跳过。</summary>
+    public static string? GetSkippedVersion() => AppSettings.Get(SkippedVersionKey);
+
+    public static void SetSkippedVersion(string? version)
+    {
+        if (string.IsNullOrEmpty(version))
+            AppSettings.Remove(SkippedVersionKey);
+        else
+            AppSettings.Set(SkippedVersionKey, version);
+    }
+
     public static Version? CurrentAppVersion
     {
         get
@@ -129,43 +142,48 @@ public static class ToolsBundleService
     {
         var currentVersion = GetCurrentVersion();
 
-        string? gitCodeUrl = null, gitCodeLiteUrl = null;
-        string? githubUrl = null, githubLiteUrl = null;
-        long size = 0, liteSize = 0;
-        string? versionStr = null;
-
         var gitCodeTask = FetchGitCodeLatestAsync(ct);
         var githubTask = FetchGitHubLatestAsync(ct);
 
-        try
-        {
-            var gc = await gitCodeTask;
-            if (gc is not null)
-            {
-                gitCodeUrl = gc.FullUrl;
-                gitCodeLiteUrl = gc.LiteUrl;
-                size = gc.FullSize;
-                liteSize = gc.LiteSize;
-                versionStr ??= gc.Version;
-            }
-        }
+        ToolsBundleReleaseAssets? gc = null, gh = null;
+        try { gc = await gitCodeTask; }
+        catch { }
+        try { gh = await githubTask; }
         catch { }
 
-        try
-        {
-            var gh = await githubTask;
-            if (gh is not null)
-            {
-                githubUrl = gh.FullUrl;
-                githubLiteUrl = gh.LiteUrl;
-                size = size > 0 ? size : gh.FullSize;
-                liteSize = liteSize > 0 ? liteSize : gh.LiteSize;
-                versionStr ??= gh.Version;
-            }
-        }
-        catch { }
+        // 两个源都拿不到信息时无法判断更新
+        if (gc is null && gh is null) return null;
 
+        // 版本取两个源中的较新者：GitCode 列表为升序且镜像可能滞后于 GitHub，
+        // 若仍按「GitCode 优先」定版本，镜像没同步时会把旧版工具包当最新
+        // （历史上出现过 1.6.1 已有而界面却解析到 1.4.0 的情况）。
+        var versionStr = NewerVersion(gc?.Version, gh?.Version);
         if (versionStr is null) return null;
+
+        // 链接只取「与最新版本同源」的：同版本时 GitCode 优先、GitHub 链接补齐兜底；
+        // 版本不一致时以较新的那个源为准，避免混入旧版本的资产链接。
+        string? gitCodeUrl = null, gitCodeLiteUrl = null;
+        string? githubUrl = null, githubLiteUrl = null;
+        long size = 0, liteSize = 0;
+
+        if (gc is not null && gc.Version == versionStr)
+        {
+            gitCodeUrl = gc.FullUrl;
+            gitCodeLiteUrl = gc.LiteUrl;
+            size = gc.FullSize;
+            liteSize = gc.LiteSize;
+        }
+        if (gh is not null && gh.Version == versionStr)
+        {
+            githubUrl = gh.FullUrl;
+            githubLiteUrl = gh.LiteUrl;
+            if (size <= 0) size = gh.FullSize;
+            if (liteSize <= 0) liteSize = gh.LiteSize;
+        }
+        // 最新版本只在某个源上发布时，让该源的链接补位主源
+        // （下载链路仍保留 GitCode→GitHub 的失败切换语义）。
+        if (string.IsNullOrEmpty(gitCodeUrl)) gitCodeUrl = githubUrl;
+        if (string.IsNullOrEmpty(gitCodeLiteUrl)) gitCodeLiteUrl = githubLiteUrl;
 
         if (currentVersion is not null && versionStr == currentVersion)
             return new ToolsBundleUpdateInfo(false, versionStr, gitCodeUrl, githubUrl, size,
@@ -173,6 +191,17 @@ public static class ToolsBundleService
 
         return new ToolsBundleUpdateInfo(true, versionStr, gitCodeUrl, githubUrl, size,
             gitCodeLiteUrl, githubLiteUrl, liteSize);
+    }
+
+    /// <summary>取两个版本字符串中的较新者（任一为空时返回另一个）。</summary>
+    private static string? NewerVersion(string? a, string? b)
+    {
+        if (string.IsNullOrEmpty(a)) return string.IsNullOrEmpty(b) ? null : b;
+        if (string.IsNullOrEmpty(b)) return a;
+
+        return Version.TryParse(a, out var va) && Version.TryParse(b, out var vb)
+            ? (vb > va ? b : a)
+            : a;
     }
 
     public static string? PickBestUrl(ToolsBundleUpdateInfo info)

@@ -408,12 +408,20 @@ public partial class App : Application
 
                 if (MainWindow?.Content is FrameworkElement root)
                 {
+                    // 用户已标记「跳过此版本」时不再自动弹出（仍可手动检查/下载）
+                    ToolsBundleUpdateInfo? info = null;
+                    try { info = await ToolsBundleService.CheckForToolsUpdateAsync(); }
+                    catch { }
+                    if (info is not null && info.HasUpdate &&
+                        ToolsBundleService.GetSkippedVersion() == info.Version)
+                        return;
+
                     var dialog = new ToolsBundleDownloadDialog
                     {
                         XamlRoot = root.XamlRoot,
                         RequestedTheme = ThemeService.CurrentElementTheme
                     };
-                    await dialog.ShowDownloadAsync();
+                    await dialog.ShowDownloadAsync(info);
                     return;
                 }
             }
@@ -440,6 +448,7 @@ public partial class App : Application
 
             var info = await ToolsBundleService.CheckForToolsUpdateAsync();
             if (info is null || !info.HasUpdate) return;
+            if (ToolsBundleService.GetSkippedVersion() == info.Version) return;
 
             if (MainWindow?.DispatcherQueue is null) return;
 

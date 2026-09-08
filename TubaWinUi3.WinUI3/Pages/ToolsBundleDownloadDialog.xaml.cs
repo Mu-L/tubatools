@@ -49,6 +49,9 @@ public sealed partial class ToolsBundleDownloadDialog : ContentDialog
         _updateInfo = info;
         var kind = ToolsBundleService.GetInstalledKind();
 
+        // 有更新时提供「跳过此版本」：记住该版本，静默通道不再提示
+        SecondaryButtonText = info.HasUpdate ? "跳过此版本" : null;
+
         // 完整版已是最新：无事可做（完整版不可降级到精简版，也不重复下载）
         if (kind == ToolsBundleService.KindFull && !info.HasUpdate)
         {
@@ -59,6 +62,21 @@ public sealed partial class ToolsBundleDownloadDialog : ContentDialog
 
         UpdateDescriptionFromInfo(info);
         ShowVariantSelection(info, kind);
+    }
+
+    /// <summary>「跳过此版本」：记录当前内核版本，此后启动/静默检查不再提示该版本的更新。</summary>
+    private void OnSecondaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+    {
+        if (_isBusy)
+        {
+            args.Cancel = true;
+            return;
+        }
+
+        if (_updateInfo is not null && _updateInfo.HasUpdate)
+            ToolsBundleService.SetSkippedVersion(_updateInfo.Version);
+
+        Hide();
     }
 
     private void UpdateDescriptionFromInfo(ToolsBundleUpdateInfo info)
@@ -198,6 +216,7 @@ public sealed partial class ToolsBundleDownloadDialog : ContentDialog
         IsPrimaryButtonEnabled = false;
         CloseButtonText = null;
         PrimaryButtonText = "已加入队列";
+        SecondaryButtonText = null;
         SourceSection.Visibility = Visibility.Collapsed;
         VariantSection.Visibility = Visibility.Collapsed;
 
