@@ -248,7 +248,9 @@ public static class ToolsBundleService
     }
 
     /// <summary>
-    /// 从最新发行版开始逐版本向下扫描（分页），返回第一个带 Tools.zip 的发行版。
+    /// 逐页扫描发行版列表，返回带 Tools.zip 的「最新」发行版。
+    /// 不能依赖数组顺序：GitHub 列表最新在前，而 GitCode 列表最旧在前，
+    /// 统一按 published_at/created_at 判定新旧。
     /// 某个发行版没附带工具包更新时（例如纯应用更新），自动回退到更早的版本。
     /// Tools_Lite.zip 只在与 Tools.zip 同一发行版上识别（精简版始终与完整版同版本发布）。
     /// </summary>
@@ -258,11 +260,14 @@ public static class ToolsBundleService
         using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
         client.DefaultRequestHeaders.Add("User-Agent", "TubaWinUi3-ToolsBundle");
 
+        ToolsBundleReleaseAssets? best = null;
+        DateTimeOffset? bestTime = null;
+
         for (var page = 1; page <= MaxReleasePages; page++)
         {
             var url = $"{releasesApi}?page={page}&per_page={ReleasesPerPage}";
             var response = await client.GetAsync(url, ct);
-            if (!response.IsSuccessStatusCode) return null;
+            if (!response.IsSuccessStatusCode) break;
 
             var json = await response.Content.ReadAsStringAsync(ct);
 
@@ -271,30 +276,72 @@ public static class ToolsBundleService
                 using var doc = JsonDocument.Parse(json);
                 var root = doc.RootElement;
 
-                var match = ScanReleasesForTools(root);
-                if (match is not null) return match;
+                if (root.ValueKind != JsonValueKind.Array || root.GetArrayLength() == 0) break;
 
-                // 本页不满一页说明已到最后一页，仍未找到 Tools.zip
-                if (root.ValueKind != JsonValueKind.Array || root.GetArrayLength() < ReleasesPerPage) return null;
+                foreach (var release in root.EnumerateArray())
+                {
+                    var match = ParseToolsAssets(release);
+                    if (match is not null)
+                        ConsiderRelease(match, GetReleaseTimestamp(release), ref best, ref bestTime);
+                }
+
+                // 本页不满一页说明已到最后一页
+                if (root.GetArrayLength() < ReleasesPerPage) break;
             }
-            catch { return null; }
+            catch { break; }
         }
 
-        return null;
+        return best;
     }
 
     /// <summary>
-    /// 按 JSON 数组顺序（发行版列表均为最新在前）扫描，返回第一个带 Tools.zip 的发行版。
+    /// 从发行版数组中选出带 Tools.zip 的最新发行版（按 published_at/created_at 判定，
+    /// 不依赖数组顺序：GitHub 最新在前、GitCode 最旧在前）。
+    /// 时间戳缺失时维持数组顺序兼容旧数据（无时间戳的候选视为不比当前最佳更新）。
     /// </summary>
     internal static ToolsBundleReleaseAssets? ScanReleasesForTools(JsonElement releases)
     {
         if (releases.ValueKind != JsonValueKind.Array) return null;
 
+        ToolsBundleReleaseAssets? best = null;
+        DateTimeOffset? bestTime = null;
+
         foreach (var release in releases.EnumerateArray())
         {
             var match = ParseToolsAssets(release);
-            if (match is not null) return match;
+            if (match is not null)
+                ConsiderRelease(match, GetReleaseTimestamp(release), ref best, ref bestTime);
         }
+
+        return best;
+    }
+
+    /// <summary>
+    /// 候选与当前最佳比较：带时间戳且更新时替换；无时间戳的候选一律视为不比当前最佳新
+    /// （两个候选都无时间戳时维持数组顺序，兼容历史数据）。
+    /// </summary>
+    private static void ConsiderRelease(
+        ToolsBundleReleaseAssets match, DateTimeOffset? time,
+        ref ToolsBundleReleaseAssets? best, ref DateTimeOffset? bestTime)
+    {
+        if (best is null || (time is not null && (bestTime is null || time > bestTime)))
+        {
+            best = match;
+            bestTime = time;
+        }
+    }
+
+    private static DateTimeOffset? GetReleaseTimestamp(JsonElement release)
+    {
+        if (release.TryGetProperty("published_at", out var published) &&
+            published.ValueKind == JsonValueKind.String &&
+            DateTimeOffset.TryParse(published.GetString(), out var publishedAt))
+            return publishedAt;
+
+        if (release.TryGetProperty("created_at", out var created) &&
+            created.ValueKind == JsonValueKind.String &&
+            DateTimeOffset.TryParse(created.GetString(), out var createdAt))
+            return createdAt;
 
         return null;
     }

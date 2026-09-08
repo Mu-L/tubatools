@@ -16,7 +16,7 @@
     <WindowsAppSDKSelfContained Condition="'$(WindowsAppSDKSelfContained)' == ''">true</WindowsAppSDKSelfContained>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>1.6.0</Version>
+    <Version>1.6.2</Version>
     <DefaultItemExcludes>$(DefaultItemExcludes);artifacts\**;publish*\**</DefaultItemExcludes>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <NoWarn>CA2252;CA2014;NU1510</NoWarn>
