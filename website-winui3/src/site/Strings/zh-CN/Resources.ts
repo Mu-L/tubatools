@@ -232,6 +232,8 @@ export default {
   "rank.detail.disk-4k-write": "硬盘 4K 写",
   "rank.detail.browser": "浏览器",
   "rank.detail.submitted": "提交时间",
+  "rank.detail-loading": "正在加载硬件详情…",
+  "rank.detail-load-failed": "硬件详情加载失败，可稍后重试",
 
   "latency.title": "核间延迟查询",
   "latency.subtitle": "查看社区上传的 CPU 核间延迟热力图，对比不同处理器型号的核心间通信延迟",

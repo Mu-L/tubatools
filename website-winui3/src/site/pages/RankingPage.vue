@@ -124,6 +124,15 @@
     :Title="'@' + (active?.author ?? '') + ' ' + t('rank.report-title')"
     :CloseButtonText="t('rank.close')">
     <div v-if="active" class="rank-detail">
+      <!-- 新格式：硬件详情按需加载状态（失败可重试，摘要分数不受影响） -->
+      <div v-if="detailLoading" class="rank-detail-status">
+        <WinProgressRing Width="14" Height="14" IsActive="True" />
+        <span>{{ t('rank.detail-loading') }}</span>
+      </div>
+      <div v-else-if="detailFailed" class="rank-detail-status rank-detail-status-error">
+        <span>{{ t('rank.detail-load-failed') }}</span>
+        <WinButton :Content="t('rank.retry')" @Click="retryDetail" />
+      </div>
       <div class="rank-detail-grid">
         <span class="rank-detail-label">{{ t('rank.detail.cpu') }}</span>
         <span class="rank-detail-value">{{ active.cpuName || '—' }}</span>
@@ -199,7 +208,10 @@ import { useI18n } from '../../components/i18n/index'
 import {
   SORT_META,
   buildLeaderboard,
+  fetchReportDetail,
+  getCachedReportDetail,
   getLeaderboardData,
+  hasHardwareDetails,
   invalidateBenchmarkCache,
   type LeaderboardData,
   type LeaderboardRankEntry,
@@ -218,6 +230,8 @@ const rows = ref<{ rank: number; entry: LeaderboardRankEntry }[]>([])
 const loading = ref(true)
 const error = ref('')
 const active = ref<LeaderboardRankEntry | null>(null)
+const detailLoading = ref(false)
+const detailFailed = ref(false)
 const dialogOpen = computed({
   get: () => active.value !== null,
   set: (v) => { if (!v) active.value = null }
@@ -247,7 +261,34 @@ function formatTime(value: string | undefined): string {
 }
 
 function openDetail(entry: LeaderboardRankEntry) {
-  active.value = entry
+  // 缓存命中（重复打开）直接展示合并后的完整条目，避免加载条闪烁
+  const cached = getCachedReportDetail(entry)
+  active.value = cached ?? entry
+  detailLoading.value = false
+  detailFailed.value = false
+  // 新格式摘要只有分数，硬件详情（OS/主板/内存/硬盘/显示器）按 detailsPath 懒加载
+  if (cached || hasHardwareDetails(entry)) return
+  if (!entry.detailsPath) return
+  detailLoading.value = true
+  void loadDetail(entry)
+}
+
+async function loadDetail(entry: LeaderboardRankEntry) {
+  const detail = await fetchReportDetail(entry)
+  if (active.value?.id !== entry.id) return // 弹窗已关闭或切到别的报告
+  detailLoading.value = false
+  if (detail) {
+    active.value = detail
+  } else {
+    detailFailed.value = true
+  }
+}
+
+function retryDetail() {
+  if (!active.value || detailLoading.value) return
+  detailFailed.value = false
+  detailLoading.value = true
+  void loadDetail(active.value)
 }
 
 async function refresh() {
@@ -553,6 +594,18 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.rank-detail-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.rank-detail-status-error {
+  color: var(--SystemFillColorCriticalBrush, #c42b1c);
 }
 
 .rank-detail-grid {

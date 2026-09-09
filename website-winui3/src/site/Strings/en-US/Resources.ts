@@ -232,6 +232,8 @@ export default {
   "rank.detail.disk-4k-write": "Disk 4K write",
   "rank.detail.browser": "Browser",
   "rank.detail.submitted": "Submitted",
+  "rank.detail-loading": "Loading hardware details…",
+  "rank.detail-load-failed": "Failed to load hardware details. Try again later.",
 
   "latency.title": "Core-to-Core Latency",
   "latency.subtitle": "Community-submitted CPU core-to-core latency heatmaps — compare inter-core communication latency across processors",
