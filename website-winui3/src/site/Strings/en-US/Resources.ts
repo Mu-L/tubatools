@@ -14,6 +14,7 @@ export default {
   "nav.about": "About",
   "nav.ranking": "Benchmarks",
   "nav.latency": "Core Latency",
+  "nav.mushroom": "Mushroom Test",
   "nav.theme": "Theme",
   "nav.github": "View source on GitHub",
 
@@ -242,5 +243,8 @@ export default {
   "latency.view": "Click to view heatmap",
   "latency.total": "heatmaps",
   "latency.close": "Close",
-  "latency.dialog-title": "Core-to-Core Latency Heatmap"
+  "latency.dialog-title": "Core-to-Core Latency Heatmap",
+
+  "mushroom.title": "Mushroom Stress Test",
+  "mushroom.start": "Click to start test"
 }

@@ -14,6 +14,7 @@ export default {
   "nav.about": "关于",
   "nav.ranking": "跑分排行",
   "nav.latency": "核间延迟",
+  "nav.mushroom": "毒蘑菇测试",
   "nav.theme": "主题",
   "nav.github": "在 GitHub 查看源码",
 
@@ -242,5 +243,8 @@ export default {
   "latency.view": "点击查看热力图",
   "latency.total": "张热力图",
   "latency.close": "关闭",
-  "latency.dialog-title": "核间延迟热力图"
+  "latency.dialog-title": "核间延迟热力图",
+
+  "mushroom.title": "毒蘑菇测试",
+  "mushroom.start": "点击开始测试"
 }

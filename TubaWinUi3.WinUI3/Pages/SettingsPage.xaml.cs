@@ -46,6 +46,7 @@ public sealed partial class SettingsPage : Page
     private bool _zenBusy;
     private bool _proxySettingsInitializing;
     private bool _proxyTesting;
+    private bool _tempCleaning;
 
     private FrameworkElement? _generalExpanderContent;
     private FrameworkElement? _appearanceExpanderContent;
@@ -129,6 +130,7 @@ public sealed partial class SettingsPage : Page
         ["HttpDownloadPath"] = "ToolsCommunityExpander",
         ["HttpDownloadAction"] = "ToolsCommunityExpander",
         ["ConfigManager"] = "ToolsCommunityExpander",
+        ["TempClean"] = "ToolsCommunityExpander",
         ["CustomToolManager"] = "ToolsCommunityExpander",
         ["ExportApp"] = "ToolsCommunityExpander",
         ["CommunityTool"] = "ToolsCommunityExpander",
@@ -163,6 +165,7 @@ public sealed partial class SettingsPage : Page
         ["HttpDownloadPath"] = "SettingsHttpDownloadCard",
         ["HttpDownloadAction"] = "SettingsHttpDownloadCard",
         ["ConfigManager"] = "SettingsConfigManagerCard",
+        ["TempClean"] = "SettingsTempCleanCard",
         ["CustomToolManager"] = "SettingsCustomToolCard",
         ["ExportApp"] = "SettingsExportAppCard",
         ["CommunityTool"] = "SettingsCommunityCard",
@@ -1930,6 +1933,70 @@ public sealed partial class SettingsPage : Page
             RequestedTheme = ThemeService.CurrentElementTheme
         };
         _ = dialog.ShowAsync();
+    }
+
+    private async void TempCleanButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_tempCleaning) return;
+
+        var dialog = new ContentDialog
+        {
+            XamlRoot = XamlRoot,
+            Title = "删除临时文件",
+            PrimaryButtonText = "删除",
+            CloseButtonText = "取消",
+            DefaultButton = ContentDialogButton.Close,
+            RequestedTheme = ThemeService.CurrentElementTheme
+        };
+
+        var stack = new StackPanel { Spacing = 12 };
+        stack.Children.Add(new TextBlock
+        {
+            Text = "将扫描系统临时目录（%TEMP%），删除由本软件创建的各种残留文件：",
+            TextWrapping = TextWrapping.Wrap,
+            Opacity = 0.85
+        });
+        stack.Children.Add(new TextBlock
+        {
+            Text = "· 更新包与工具安装包暂存\n· 文档转换中间产物\n· 崩溃日志、探测输出等",
+            TextWrapping = TextWrapping.Wrap,
+            FontSize = 13
+        });
+        stack.Children.Add(new TextBlock
+        {
+            Text = "正在使用中的文件会被自动跳过，不影响正在进行的任务。\n不会删除设置、收藏、AI 聊天记录与已下载的文件。",
+            TextWrapping = TextWrapping.Wrap,
+            Opacity = 0.85,
+            FontSize = 13
+        });
+        dialog.Content = stack;
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+            return;
+
+        _tempCleaning = true;
+        TempCleanButton.IsEnabled = false;
+        TempCleanStatusText.Text = "正在清理临时文件...";
+
+        try
+        {
+            var result = await Task.Run(() => TempCleanupService.CleanTempFiles());
+            var summary = $"已清理 {result.DeletedCount} 项，释放约 {TempCleanupService.FormatBytes(result.FreedBytes)}";
+            if (result.SkippedCount > 0)
+                summary += $"，{result.SkippedCount} 项因被占用而跳过（下次运行将自动清理）";
+            TempCleanStatusText.Text = summary;
+            await ShowMessageAsync("清理完成", summary);
+        }
+        catch (Exception ex)
+        {
+            TempCleanStatusText.Text = $"清理失败: {ex.Message}";
+            await ShowMessageAsync("清理失败", ex.Message);
+        }
+        finally
+        {
+            TempCleanButton.IsEnabled = true;
+            _tempCleaning = false;
+        }
     }
 
     private async void ExportAppButton_Click(object sender, RoutedEventArgs e)

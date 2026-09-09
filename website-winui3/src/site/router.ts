@@ -9,7 +9,8 @@ const pageLoaders = {
   docs: () => import('./pages/DocsPage.vue'),
   thanks: () => import('./pages/ThanksPage.vue'),
   ranking: () => import('./pages/RankingPage.vue'),
-  latency: () => import('./pages/LatencyQueryPage.vue')
+  latency: () => import('./pages/LatencyQueryPage.vue'),
+  mushroom: () => import('./pages/MushroomTestPage.vue')
 };
 
 export const pageTags = new Set(Object.keys(pageLoaders));
@@ -22,6 +23,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/about', name: 'about', component: pageLoaders.about },
   { path: '/ranking', name: 'ranking', component: pageLoaders.ranking },
   { path: '/latency', name: 'latency', component: pageLoaders.latency },
+  { path: '/mushroom', name: 'mushroom', component: pageLoaders.mushroom },
   // 文档路由延续原官网 clean URL 格式：/guide/x、/tools/x、/tutorials/x、/dev/x
   { path: '/:cat(guide|tools|tutorials|dev)/:file?', name: 'docs', component: pageLoaders.docs },
   { path: '/:pathMatch(.*)*', redirect: '/' }

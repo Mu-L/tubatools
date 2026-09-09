@@ -20,6 +20,7 @@
   <Dependencies>
     <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26226.0" />
     <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26100.0" />
+    <PackageDependency Name="Microsoft.WebView2" Publisher="CN=Microsoft Corporation" MinVersion="1.0.1150.38" />
   </Dependencies>
 
   <Resources>

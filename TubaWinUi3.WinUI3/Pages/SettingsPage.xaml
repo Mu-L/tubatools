@@ -1204,6 +1204,29 @@
                                     </Grid>
                                 </Border>
 
+                                <Border x:Name="SettingsTempCleanCard" Style="{StaticResource SettingsCardStyle}">
+                                    <Grid ColumnSpacing="16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Style="{StaticResource IconBorderStyle}">
+                                            <FontIcon FontSize="18" Glyph="&#xE74D;" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                            <TextBlock FontWeight="Bold" Text="删除临时文件" />
+                                            <TextBlock x:Name="TempCleanStatusText" Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="清理本软件在系统临时目录中产生的残留文件（更新包、安装包暂存、转换中间产物、崩溃日志等）。" />
+                                        </StackPanel>
+                                        <Button x:Name="TempCleanButton" Grid.Column="2" VerticalAlignment="Center" Padding="14,6" Click="TempCleanButton_Click">
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <FontIcon FontSize="12" Glyph="&#xE74D;" />
+                                                <TextBlock Text="立即清理" />
+                                            </StackPanel>
+                                        </Button>
+                                    </Grid>
+                                </Border>
+
                                 <Border x:Name="SettingsExportAppCard" Style="{StaticResource SettingsCardStyle}">
                                     <Grid ColumnSpacing="16">
                                         <Grid.ColumnDefinitions>

@@ -100,7 +100,7 @@ router.afterEach((to, from) => {
   updateSeo(to);
 });
 
-/* 按原官网配置的页面级 SEO（title/description/og/canonical） */
+/* 按原官网配置的页面级 SEO（title/description/og/canonical + 可选 JSON-LD 结构化数据） */
 const pageSeo = {
   home: {
     title: '图吧工具箱CE——PC硬件检测与系统维护工具集',
@@ -131,6 +131,23 @@ const pageSeo = {
     title: '核间延迟查询——CPU核心间通信延迟热力图',
     description: '查看社区上传的 CPU 核间延迟热力图，对比不同处理器型号的核心间通信延迟，了解跨核心通信延迟表现。',
     url: 'https://tubawinui3.cn/latency'
+  },
+  mushroom: {
+    title: '毒蘑菇测试 VolumeShader——在线 GPU 分形压力测试',
+    description: '毒蘑菇测试（VolumeShader）在线版：与图吧工具箱CE桌面版同款 WebGL 体素分形渲染引擎的 GPU 压力测试，轻松/中等/变态三档压力、超分辨率渲染、实时帧率监控，浏览器打开即测，检验显卡稳定性与散热。',
+    url: 'https://tubawinui3.cn/mushroom',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'WebApplication',
+      name: '毒蘑菇测试 VolumeShader',
+      alternateName: '毒蘑菇测试',
+      url: 'https://tubawinui3.cn/mushroom',
+      applicationCategory: 'UtilitiesApplication',
+      operatingSystem: 'Any',
+      browserRequirements: 'WebGL',
+      description: '毒蘑菇测试（VolumeShader）在线版：与图吧工具箱CE桌面版同款 WebGL 体素分形渲染引擎的 GPU 压力测试，轻松/中等/变态三档压力、超分辨率渲染、实时帧率监控，检验显卡稳定性与散热。',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'CNY' }
+    }
   },
   thanks: {
     title: '感谢下载图吧工具箱CE——免费PC硬件检测与系统维护工具集',
@@ -169,6 +186,19 @@ function updateSeo(to) {
   setMeta('meta', 'og:site_name', siteName);
   setMeta('meta', 'og:url', seo.url);
   setMeta('link', 'canonical', seo.url);
+
+  /* 页面级 JSON-LD 结构化数据（单页唯一，其他页面不残留） */
+  const jsonLd = seo.jsonLd;
+  const prevLd = document.getElementById('seo-jsonld');
+  if (jsonLd) {
+    const el = prevLd ?? document.createElement('script');
+    el.id = 'seo-jsonld';
+    el.type = 'application/ld+json';
+    el.textContent = JSON.stringify(jsonLd);
+    if (!prevLd) document.head.appendChild(el);
+  } else if (prevLd) {
+    prevLd.remove();
+  }
 }
 
 provide('themeSetting', themeSetting);
@@ -187,6 +217,7 @@ const navMenuItems = [
   { Tag: 'docs', Icon: '\uE8A1', Content: t('nav.docs') },
   { Tag: 'ranking', Icon: '\uE9D5', Content: t('nav.ranking') },
   { Tag: 'latency', Icon: '\uE9D9', Content: t('nav.latency') },
+  { Tag: 'mushroom', Icon: '\uE9F5', Content: t('nav.mushroom') },
   { Tag: 'about', Icon: '\uE946', Content: t('nav.about') }
 ];
 

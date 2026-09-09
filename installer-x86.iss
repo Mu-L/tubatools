@@ -141,3 +141,74 @@ begin
 
   Result := '';
 end;
+
+// === 卸载：询问是否删除用户数据（默认保留；静默卸载自动取默认"否"） ===
+var
+  UninstallDeleteData: Boolean;
+  UninstallCustomDataDir: String;
+
+function IsUninstallAbsolutePath(const S: String): Boolean;
+begin
+  // 仅把 "X:\..." 视为安装目录外的绝对路径；相对路径都在 {app} 内，会随程序一起删除
+  Result := (Length(S) >= 3) and (S[2] = ':') and (S[3] = '\');
+end;
+
+procedure TubaAskDeleteUserData;
+var
+  MarkerPath: String;
+  MarkerContent: AnsiString;
+  CustomPos: Integer;
+begin
+  UninstallDeleteData := False;
+  UninstallCustomDataDir := '';
+
+  if DirExists(ExpandConstant('{localappdata}\TubaWinUi3')) or
+     FileExists(ExpandConstant('{app}\Data\.config_location')) then
+  begin
+    if SuppressibleMsgBox('是否同时删除本软件的用户数据？' + #13#10 + #13#10 +
+              '删除内容包括：' + #13#10 +
+              '· 设置与配置' + #13#10 +
+              '· 收藏与自定义工具信息' + #13#10 +
+              '· AI 助手聊天记录与记忆' + #13#10 +
+              '· 图标缓存、WebView2 缓存等' + #13#10 + #13#10 +
+              '默认数据位于 ' + ExpandConstant('{localappdata}\TubaWinUi3') + '；' + #13#10 +
+              '若您曾把数据迁移到自定义目录，对应目录也会一并删除。' + #13#10 +
+              '此操作不可恢复。' + #13#10 + #13#10 +
+              '选择"是"删除用户数据，选择"否"仅卸载程序、保留数据。',
+              mbConfirmation, MB_YESNO or MB_DEFBUTTON2, IDNO) = IDYES then
+    begin
+      UninstallDeleteData := True;
+
+      // 数据位置标记：AppRoot=安装目录内（随程序删除）；Custom:=外部自定义目录
+      MarkerPath := ExpandConstant('{app}\Data\.config_location');
+      if FileExists(MarkerPath) and LoadStringFromFile(MarkerPath, MarkerContent) then
+      begin
+        MarkerContent := Trim(Utf8Decode(MarkerContent));
+        CustomPos := Pos('Custom:', MarkerContent);
+        if CustomPos > 0 then
+        begin
+          UninstallCustomDataDir := Copy(MarkerContent, CustomPos + 7, MaxInt);
+          if not IsUninstallAbsolutePath(UninstallCustomDataDir) then
+            UninstallCustomDataDir := ''; // 相对路径位于 {app} 内，无需单独删除
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+begin
+  if CurUninstallStep = usUninstall then
+    TubaAskDeleteUserData
+  else if CurUninstallStep = usPostUninstall then
+  begin
+    if UninstallDeleteData then
+    begin
+      DelTree(ExpandConstant('{localappdata}\TubaWinUi3'), True, True, True);
+      if (UninstallCustomDataDir <> '') and
+         (LowerCase(UninstallCustomDataDir) <>
+          LowerCase(ExpandConstant('{localappdata}\TubaWinUi3'))) then
+        DelTree(UninstallCustomDataDir, True, True, True);
+    end;
+  end;
+end;

@@ -81,6 +81,7 @@ const pages: SitePageEntry[] = [
   { title: '下载', subtitle: '免费 · 离线运行 · 自动识别架构', tag: 'download', url: '/download', text: '图吧工具箱CE 图吧工具箱 下载 便携版 安装包 微软商店 x64 arm64 系统要求' },
   { title: '跑分排行', subtitle: '社区性能跑分排行榜', tag: 'ranking', url: '/ranking', text: '跑分 排行榜 排行 性能 游戏性能 办公性能 CPU GPU 硬盘 浏览器 天梯 对比 跑分排行 benchmark leaderboard' },
   { title: '核间延迟', subtitle: 'CPU 核心间通信延迟热力图', tag: 'latency', url: '/latency', text: '核间延迟 核延迟 延迟 热力图 CPU 核心 跨核心 通信延迟 查询 latency heatmap core-to-core' },
+  { title: '毒蘑菇测试', subtitle: '在线 GPU 分形压力测试', tag: 'mushroom', url: '/mushroom', text: '毒蘑菇测试 GPU 压力测试 分形 显卡 稳定性 散热 轻松 中等 变态 渲染倍率 实时光线追踪 帧率 fps WebGL mushroom stress test' },
   { title: '关于', subtitle: '关于图吧工具箱CE', tag: 'about', url: '/about', text: '图吧工具箱CE 图吧工具箱 关于 主题 开源协议 GPL-3.0 社区 GitHub GitCode AtomGit 反馈' }
 ];
 
