@@ -75,8 +75,6 @@ public sealed partial class RuntimeRepairPage : Page
         _cts = null;
     }
 
-    private void BackButton_Click(object sender, RoutedEventArgs e) => App.MainWindow?.NavigateBack();
-
     private static Color ColorRes(string key, Color fallback)
     {
         if (Application.Current.Resources.TryGetValue(key, out var v))

@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using TubaWinUi3.Controls;
 using Windows.UI;
 
 namespace TubaWinUi3.Services;
@@ -59,40 +60,12 @@ public sealed partial class LanFileSharePage : Page
 
     private Grid BuildContent()
     {
-        var titleIcon = new Border
+        var header = new ToolPageHeader
         {
-            Width = 40, Height = 40,
-            Background = new SolidColorBrush(Color.FromArgb(255, 0, 95, 184)),
-            CornerRadius = new CornerRadius(8),
-            Child = new FontIcon { FontSize = 20, Glyph = "\uE8F1", Foreground = new SolidColorBrush(Microsoft.UI.Colors.White) }
+            Title = "局域网文件分享",
+            Subtitle = "在局域网内创建HTTP文件分享服务，其他设备可通过浏览器访问和下载文件",
+            Glyph = "\uE8F1"
         };
-
-        var titleText = new TextBlock { Text = "局域网文件分享", FontSize = 22, FontWeight = Microsoft.UI.Text.FontWeights.Bold };
-        var subtitleText = new TextBlock { Text = "在局域网内创建HTTP文件分享服务，其他设备可通过浏览器访问和下载文件", FontSize = 12, Opacity = 0.68 };
-        var titleStack = new StackPanel { Spacing = 2, Children = { titleText, subtitleText } };
-
-        var closeBtn = new Button
-        {
-            Content = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                Spacing = 6,
-                Children =
-                {
-                    new FontIcon { Glyph = "\uE72B", FontSize = 12 },
-                    new TextBlock { Text = "返回" }
-                }
-            }
-        };
-        closeBtn.Click += (_, _) => App.MainWindow?.NavigateBack();
-
-        var titleBar = new Grid { Padding = new Thickness(24, 0, 24, 12), ColumnSpacing = 12 };
-        titleBar.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        titleBar.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        titleBar.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        titleBar.Children.Add(titleIcon); Grid.SetColumn(titleIcon, 0);
-        titleBar.Children.Add(titleStack); Grid.SetColumn(titleStack, 1);
-        titleBar.Children.Add(closeBtn); Grid.SetColumn(closeBtn, 2);
 
         _statusText = new TextBlock { FontSize = 13, FontWeight = Microsoft.UI.Text.FontWeights.Bold, VerticalAlignment = VerticalAlignment.Center };
 
@@ -160,7 +133,7 @@ public sealed partial class LanFileSharePage : Page
         controlRow.Children.Add(leftStack); Grid.SetColumn(leftStack, 0);
         controlRow.Children.Add(rightStack); Grid.SetColumn(rightStack, 1);
 
-        _controlBar = new StackPanel { Spacing = 4, Children = { titleBar, controlRow } };
+        _controlBar = new StackPanel { Spacing = 4, Children = { header, controlRow } };
 
         _loadingRing = new ProgressRing { Width = 40, Height = 40, IsActive = true };
         _loadingText = new TextBlock { Text = "正在启动服务...", FontSize = 13, Opacity = 0.68 };

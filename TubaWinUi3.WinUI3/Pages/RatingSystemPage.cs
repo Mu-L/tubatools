@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
+using TubaWinUi3.Controls;
 using TubaWinUi3.Models;
 using TubaWinUi3.Services;
 using Windows.UI;
@@ -63,19 +64,13 @@ public sealed partial class RatingSystemPage : Page
         root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // Pivot
 
         // 顶部标题 + 提交按钮
-        var toolbar = new StackPanel
+        var header = new ToolPageHeader
         {
-            Orientation = Orientation.Horizontal,
-            Spacing = 12,
-            Margin = new Thickness(0, 0, 0, 4)
+            HeaderPadding = new Thickness(0, 4, 0, 8),
+            Title = "硬件评分系统",
+            Subtitle = "为你的笔记本或台式机硬件打分，查看社区排行榜对比评价",
+            Glyph = "\uE735"
         };
-        toolbar.Children.Add(new TextBlock
-        {
-            Text = "硬件评分系统",
-            FontSize = 22,
-            FontWeight = Microsoft.UI.Text.FontWeights.Bold,
-            VerticalAlignment = VerticalAlignment.Center
-        });
 
         var submitBtn = new Button
         {
@@ -89,22 +84,13 @@ public sealed partial class RatingSystemPage : Page
                     new TextBlock { Text = "提交评分", FontSize = 13 }
                 }
             },
-            CornerRadius = new CornerRadius(6),
-            Padding = new Thickness(12, 6, 12, 6)
+            Padding = new Thickness(12, 5, 12, 5)
         };
         submitBtn.Click += (_, _) => _ = OpenSubmitDialogAsync();
-        toolbar.Children.Add(submitBtn);
+        header.Actions.Add(submitBtn);
 
-        toolbar.Children.Add(new TextBlock
-        {
-            Text = "为你的笔记本或台式机硬件打分，查看社区排行榜对比评价",
-            FontSize = 12,
-            Foreground = new SolidColorBrush(ThemeColors.DimText),
-            VerticalAlignment = VerticalAlignment.Center
-        });
-
-        root.Children.Add(toolbar);
-        Grid.SetRow(toolbar, 0);
+        root.Children.Add(header);
+        Grid.SetRow(header, 0);
 
         _infoBar = new InfoBar
         {

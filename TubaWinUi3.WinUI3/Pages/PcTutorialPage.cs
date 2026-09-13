@@ -11,6 +11,7 @@ using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
+using TubaWinUi3.Controls;
 using TubaWinUi3.Services;
 using Windows.Graphics;
 using Windows.System;
@@ -23,8 +24,7 @@ public sealed partial class PcTutorialPage : Page
     private ListView _navList = null!;
     private ScrollViewer _contentScroll = null!;
     private StackPanel _contentPanel = null!;
-    private TextBlock _headerTitle = null!;
-    private TextBlock _headerSubtitle = null!;
+    private ToolPageHeader _contentHeader = null!;
     private ProgressBar _progressBar = null!;
     private TextBlock _progressText = null!;
     private Border _celebrationOverlay = null!;
@@ -340,23 +340,11 @@ public sealed partial class PcTutorialPage : Page
 
     private Grid BuildContentArea()
     {
-        _headerTitle = new TextBlock
+        _contentHeader = new ToolPageHeader
         {
-            FontSize = 28,
-            FontWeight = FontWeights.Bold,
-            Foreground = new SolidColorBrush(ThemeColors.PrimaryText)
+            HeaderPadding = new Thickness(0, 16, 0, 0),
+            Glyph = "\uE8D7"
         };
-
-        _headerSubtitle = new TextBlock
-        {
-            FontSize = 14,
-            Foreground = new SolidColorBrush(ThemeColors.DimText),
-            Margin = new Thickness(0, 4, 0, 0)
-        };
-
-        var headerStack = new StackPanel { Spacing = 2 };
-        headerStack.Children.Add(_headerTitle);
-        headerStack.Children.Add(_headerSubtitle);
 
         _contentPanel = new StackPanel { Spacing = 12 };
 
@@ -370,12 +358,12 @@ public sealed partial class PcTutorialPage : Page
         var grid = new Grid { RowSpacing = 16 };
         grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-        grid.Children.Add(headerStack); Grid.SetRow(headerStack, 0);
+        grid.Children.Add(_contentHeader); Grid.SetRow(_contentHeader, 0);
         grid.Children.Add(_contentScroll); Grid.SetRow(_contentScroll, 1);
 
         return new Grid
         {
-            Padding = new Thickness(32, 48, 32, 20),
+            Padding = new Thickness(32, 0, 32, 20),
             Children = { grid }
         };
     }
@@ -403,8 +391,8 @@ public sealed partial class PcTutorialPage : Page
             }
 
             var m = Modules[index];
-            _headerTitle.Text = m.Title;
-            _headerSubtitle.Text = m.Subtitle;
+            _contentHeader.Title = m.Title;
+            _contentHeader.Subtitle = m.Subtitle;
 
             _contentPanel.Children.Clear();
 

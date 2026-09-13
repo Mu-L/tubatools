@@ -32,6 +32,7 @@ public sealed class CertBlockTool : IBuiltinTool
         {
             Title = "恶意软件拦截器",
             Description = "通过将软件厂商证书加入系统不信任列表，阻止流氓软件安装和运行",
+            Glyph = Glyph,
             Content = content,
             OnClose = () =>
             {

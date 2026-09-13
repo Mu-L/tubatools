@@ -97,8 +97,6 @@ public sealed partial class WindowsFeaturePage : Page
 
     private void WindowsFeaturePage_Loaded(object sender, RoutedEventArgs e) => _ = LoadAsync();
 
-    private void BackButton_Click(object sender, RoutedEventArgs e) => App.MainWindow?.NavigateBack();
-
     private static SolidColorBrush Brush(Color color) => new(color);
 
     private static bool IsCurrentUserAdmin() =>

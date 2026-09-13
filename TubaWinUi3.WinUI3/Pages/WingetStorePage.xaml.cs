@@ -44,7 +44,7 @@ public sealed partial class WingetStorePage : Page
         _wingetAvailable = await WingetStoreService.IsWingetAvailableAsync();
         DispatcherQueue.TryEnqueue(() =>
         {
-            SubTitleText.Text = _wingetAvailable
+            PageHeader.Subtitle = _wingetAvailable
                 ? "浏览并安装正版软件 · 搜索支持 WinGet 在线查询"
                 : "浏览并安装正版软件 · 仅本地目录（未检测到 WinGet）";
         });
@@ -73,7 +73,7 @@ public sealed partial class WingetStorePage : Page
                     n += c.SubCategories.Sum(s => s.Packages.Count);
                 return n;
             });
-            SubTitleText.Text = $"共 {_catalog.Count} 个分类 · {totalCount} 款正版软件";
+            PageHeader.Subtitle = $"共 {_catalog.Count} 个分类 · {totalCount} 款正版软件";
 
             ShowCategory("全部");
         }

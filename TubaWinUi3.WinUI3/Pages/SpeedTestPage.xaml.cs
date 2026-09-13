@@ -1137,6 +1137,4 @@ public sealed partial class SpeedTestPage : Page
     }
 
     private void SiteRefreshButton_Click(object sender, RoutedEventArgs e) => _ = ProbeAllSitesAsync();
-
-    private void BackButton_Click(object sender, RoutedEventArgs e) => App.MainWindow?.NavigateBack();
 }

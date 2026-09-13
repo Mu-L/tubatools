@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:TubaWinUi3.Controls"
     mc:Ignorable="d">
 
     <Page.Resources>
@@ -54,32 +55,20 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <!-- Title -->
-            <Grid ColumnSpacing="12">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <Border Width="40" Height="40" Background="{ThemeResource AccentFillColorDefaultBrush}" CornerRadius="8">
-                    <FontIcon FontSize="20" Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" Glyph="&#xE9F5;" />
-                </Border>
-                <StackPanel Grid.Column="1" Spacing="2">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock FontSize="22" FontWeight="Bold" Text="游戏监控" />
-                        <Border Background="#26E81123" BorderBrush="#66E81123" BorderThickness="1"
-                                CornerRadius="4" Padding="6,1" VerticalAlignment="Center">
-                            <TextBlock FontSize="12" FontWeight="Bold" Foreground="#E81123" Text="Beta" />
-                        </Border>
-                    </StackPanel>
-                    <TextBlock Opacity="0.8" FontSize="12" Text="拖拽组件设计覆盖层布局，叠加到游戏窗口实时显示硬件参数" />
-                    <TextBlock FontSize="12" Foreground="#E81123"
-                               Text="此功能处于Beta测试中，可能部分数据出现偏差和不准确的问题。" />
-                </StackPanel>
-                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+            <controls:ToolPageHeader
+                Grid.Row="0"
+                HeaderPadding="0"
+                Title="游戏监控"
+                Subtitle="拖拽组件设计覆盖层布局，叠加到游戏窗口实时显示硬件参数（Beta 测试中，部分数据可能有偏差）"
+                Glyph="&#xE9F5;">
+                <controls:ToolPageHeader.Actions>
+                    <Border Background="#26E81123" BorderBrush="#66E81123" BorderThickness="1"
+                            CornerRadius="4" Padding="6,1" VerticalAlignment="Center">
+                        <TextBlock FontSize="12" FontWeight="Bold" Foreground="#E81123" Text="Beta" />
+                    </Border>
                     <!-- 后台自动监控（与流氓软件拦截共用后端进程；MSIX 模式下不支持，代码里隐藏） -->
                     <ToggleSwitch x:Name="TglBackendMonitor" Toggled="TglBackendMonitor_Toggled"
-                                  Margin="0,0,8,0" ToolTipService.ToolTip="开启后，即使主程序没有运行，后端检测到全屏游戏时也会自动启动主程序并按当前布局显示 FPS 覆盖层；游戏退出前台后自动隐藏"
+                                  ToolTipService.ToolTip="开启后，即使主程序没有运行，后端检测到全屏游戏时也会自动启动主程序并按当前布局显示 FPS 覆盖层；游戏退出前台后自动隐藏"
                                   OnContent="" OffContent="" Padding="0,0">
                         <ToggleSwitch.Header>
                             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -101,8 +90,8 @@
                             <TextBlock x:Name="ToggleOverlayText" Text="启动覆盖层" />
                         </StackPanel>
                     </Button>
-                </StackPanel>
-            </Grid>
+                </controls:ToolPageHeader.Actions>
+            </controls:ToolPageHeader>
 
             <!-- Body: Palette | Canvas | Properties -->
             <Grid Grid.Row="1" ColumnSpacing="12">

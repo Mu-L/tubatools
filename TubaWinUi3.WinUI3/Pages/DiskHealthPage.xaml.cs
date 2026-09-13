@@ -129,8 +129,6 @@ public sealed partial class DiskHealthPage : Page
         _cts = null;
     }
 
-    private void BackButton_Click(object sender, RoutedEventArgs e) => App.MainWindow?.NavigateBack();
-
     private static SolidColorBrush Brush(Color color) => new(color);
 
     // ───────────────────────────── 加载 / 渲染 ─────────────────────────────

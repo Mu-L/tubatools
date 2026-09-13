@@ -279,9 +279,4 @@ public sealed partial class PortViewerPage : Page
     {
         await LoadDataAsync();
     }
-
-    private void BackButton_Click(object sender, RoutedEventArgs e)
-    {
-        App.MainWindow?.NavigateBack();
-    }
 }

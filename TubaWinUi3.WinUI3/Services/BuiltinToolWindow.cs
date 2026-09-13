@@ -80,6 +80,17 @@ public sealed class BuiltinToolWindow
         return null;
     }
 
+    /// <summary>
+    /// 判断元素是否运行在内置工具独立窗口（BuiltinToolWindow）而非主窗口 NavFrame 中。
+    /// WinUI 3 中每个 Window 拥有独立的 XamlRoot 实例，比较 XamlRoot 即可区分宿主。
+    /// </summary>
+    public static bool IsInToolWindow(FrameworkElement element)
+    {
+        var root = element.XamlRoot;
+        var mainRoot = App.MainWindow?.Content?.XamlRoot;
+        return root is not null && mainRoot is not null && !ReferenceEquals(root, mainRoot);
+    }
+
     public void Close() => _window.Close();
 
     /// <summary>页面内"返回/关闭"按钮调用：能后退则后退，否则关闭窗口。</summary>

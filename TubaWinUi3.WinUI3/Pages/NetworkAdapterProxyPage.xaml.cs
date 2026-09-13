@@ -54,7 +54,9 @@ public sealed partial class NetworkAdapterProxyPage : Page
         _ = InitializeAsync();
     }
 
-    private void OnPageUnloaded(object sender, RoutedEventArgs e)
+    private void OnPageUnloaded(object sender, RoutedEventArgs e) => Teardown();
+
+    private void Teardown()
     {
         if (App.IsLiteMode) return;
 
@@ -500,9 +502,9 @@ public sealed partial class NetworkAdapterProxyPage : Page
         _toastBarTimer.Start();
     }
 
-    private void CloseButton_Click(object sender, RoutedEventArgs e)
+    private void OnBackRequested(object? sender, EventArgs e)
     {
-        OnPageUnloaded(sender, e);
+        Teardown();
         App.MainWindow?.NavigateBack();
     }
 }

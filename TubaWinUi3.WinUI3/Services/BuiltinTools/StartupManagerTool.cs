@@ -103,6 +103,7 @@ public sealed class StartupManagerTool : IBuiltinTool
         {
             Title = "启动项管理",
             Description = "扫描开机自启动项目（登记于注册表、启动文件夹、计划任务等），隐藏微软条目，快速定位异常启动项（基于 Sysinternals Autoruns）",
+            Glyph = Glyph,
             Content = rootGrid,
             OnClose = () => _cts?.Cancel()
         });

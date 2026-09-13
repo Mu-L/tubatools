@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 
 using TubaWinUi3.Models;
+using TubaWinUi3.Controls;
 using TubaWinUi3.Services;
 using Windows.UI;
 
@@ -38,7 +39,7 @@ public sealed partial class GpuRankingPage : Page
     private ScrollViewer _listScroll = null!;
     private InfoBar _infoBar = null!;
     private ProgressBar _loadingBar = null!;
-    private TextBlock _subtitleText = null!;
+    private ToolPageHeader _toolHeader = null!;
     private FrameworkElement _headerRow = null!;
     private FrameworkElement _filterRow = null!;
     private FrameworkElement _statsRow = null!;
@@ -98,7 +99,7 @@ public sealed partial class GpuRankingPage : Page
     {
         var mainGrid = new Grid
         {
-            Padding = new Thickness(28, 48, 28, 20),
+            Padding = new Thickness(28, 0, 28, 20),
             RowSpacing = 14
         };
         mainGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -127,19 +128,12 @@ public sealed partial class GpuRankingPage : Page
 
     private StackPanel BuildHeader()
     {
-        var title = new TextBlock
+        _toolHeader = new ToolPageHeader
         {
-            Text = "GPU 天梯图",
-            FontSize = 28,
-            FontWeight = Microsoft.UI.Text.FontWeights.Bold
-        };
-
-        _subtitleText = new TextBlock
-        {
-            Text = $"数据来源 TopCPU.net · 更新于 {GpuRankingService.LastUpdated ?? "内置数据"} · FP32 浮点性能排列",
-            FontSize = 12,
-            Foreground = new SolidColorBrush(ThemeColors.DimText),
-            Margin = new Thickness(0, 4, 0, 0)
+            HeaderPadding = new Thickness(0, 16, 0, 0),
+            Title = "GPU 天梯图",
+            Subtitle = $"数据来源 TopCPU.net · 更新于 {GpuRankingService.LastUpdated ?? "内置数据"} · FP32 浮点性能排列",
+            Glyph = "\uE9D5"
         };
 
         var refreshBtn = new Button
@@ -150,25 +144,16 @@ public sealed partial class GpuRankingPage : Page
                 Spacing = 6,
                 Children =
                 {
-                    new FontIcon { Glyph = "\uE72C", FontSize = 13 },
+                    new FontIcon { Glyph = "\uE72C", FontSize = 12 },
                     new TextBlock { Text = "刷新数据", FontSize = 13 }
                 }
             },
-            Background = new SolidColorBrush(ThemeColors.SubtleBg),
-            Foreground = new SolidColorBrush(ThemeColors.PrimaryText),
-            BorderBrush = new SolidColorBrush(ThemeColors.BorderColor),
-            Padding = new Thickness(14, 6, 14, 6),
-            CornerRadius = new CornerRadius(6),
+            Padding = new Thickness(12, 5, 12, 5),
             VerticalAlignment = VerticalAlignment.Center
         };
 
         refreshBtn.Click += async (_, _) => await RefreshDataAsync();
-
-        var headerGrid = new Grid { ColumnSpacing = 12 };
-        headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        headerGrid.Children.Add(new StackPanel { Spacing = 2, Children = { title, _subtitleText } });
-        headerGrid.Children.Add(refreshBtn); Grid.SetColumn(refreshBtn, 1);
+        _toolHeader.Actions.Add(refreshBtn);
 
         _infoBar = new InfoBar
         {
@@ -186,7 +171,7 @@ public sealed partial class GpuRankingPage : Page
         };
 
         var outer = new StackPanel { Spacing = 12 };
-        outer.Children.Add(headerGrid);
+        outer.Children.Add(_toolHeader);
         outer.Children.Add(_loadingBar);
         outer.Children.Add(_infoBar);
 
@@ -223,7 +208,7 @@ public sealed partial class GpuRankingPage : Page
             _infoBar.Severity = InfoBarSeverity.Success;
             _infoBar.IsOpen = true;
 
-            _subtitleText.Text = $"数据来源 TopCPU.net · 更新于 {GpuRankingService.LastUpdated} · FP32 浮点性能排列";
+            _toolHeader.Subtitle = $"数据来源 TopCPU.net · 更新于 {GpuRankingService.LastUpdated} · FP32 浮点性能排列";
             RefreshList();
         }
         else

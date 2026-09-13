@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:TubaWinUi3.Controls"
     mc:Ignorable="d">
 
     <Grid RowSpacing="0">
@@ -14,26 +15,12 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Grid Padding="24,20,24,12" ColumnSpacing="12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <Border Width="40" Height="40" Background="{ThemeResource AccentFillColorDefaultBrush}" CornerRadius="8">
-                <FontIcon FontSize="20" Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" Glyph="&#xEEA1;" />
-            </Border>
-            <StackPanel Grid.Column="1" Spacing="2">
-                <TextBlock FontSize="22" FontWeight="Bold" Text="配置修改器" />
-                <TextBlock x:Name="SubtitleText" Opacity="1.0" FontSize="12" Text="修改注册表中的硬件信息显示" />
-            </StackPanel>
-            <Button x:Name="CloseButton" Grid.Column="2" Click="CloseButton_Click">
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                    <FontIcon Glyph="&#xE72B;" FontSize="12" />
-                    <TextBlock Text="返回" />
-                </StackPanel>
-            </Button>
-        </Grid>
+        <controls:ToolPageHeader
+            x:Name="PageHeader"
+            Grid.Row="0"
+            Title="配置修改器"
+            Subtitle="修改注册表中的硬件信息显示"
+            Glyph="&#xEEA1;" />
 
         <ScrollViewer Grid.Row="1" HorizontalScrollMode="Disabled" VerticalScrollBarVisibility="Auto" Padding="24,0,24,0">
             <StackPanel x:Name="MainPanel" Spacing="14">

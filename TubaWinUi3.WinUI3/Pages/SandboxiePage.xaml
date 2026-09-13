@@ -2,9 +2,22 @@
     x:Class="TubaWinUi3.Pages.SandboxiePage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:TubaWinUi3.Controls"
     NavigationCacheMode="Disabled">
 
-    <ScrollViewer Padding="24,16,24,24">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <controls:ToolPageHeader
+            Grid.Row="0"
+            Title="沙盒分析"
+            Subtitle="开源沙盒工具（Sandboxie-Plus），可安全运行可疑程序与恶意样本，所有修改都隔离在沙盒中"
+            Glyph="&#xEA18;" />
+
+        <ScrollViewer Grid.Row="1" Padding="24,0,24,24">
         <StackPanel Spacing="16" MaxWidth="920" HorizontalAlignment="Stretch">
 
             <!-- 顶部说明 -->
@@ -184,5 +197,6 @@
             </StackPanel>
 
         </StackPanel>
-    </ScrollViewer>
+        </ScrollViewer>
+    </Grid>
 </Page>

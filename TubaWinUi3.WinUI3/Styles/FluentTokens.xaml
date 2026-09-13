@@ -88,4 +88,29 @@
         <Setter Property="CornerRadius" Value="8" />
     </Style>
 
+    <!--
+        内置工具页统一页头（Controls/ToolPageHeader）
+        - 返回按钮直接复用 WinUI 3 官方独立返回按钮规范 TitleBarBackButtonStyle：
+          40×32 前导箭头（\uE72B）、淡雅底色（SubtleFillColorTransparent/Secondary/Tertiary）、
+          模板内含 AnimatedIcon + AnimatedBackVisualSource 回退动画。
+          官方依据：https://learn.microsoft.com/windows/apps/develop/ui/navigation/navigation-history-and-backwards-navigation
+        - 版式：标题 20 SemiBold、副标题 12 次要色，均单行省略
+    -->
+    <Style x:Key="ToolPageBackButtonStyle" TargetType="Button" BasedOn="{StaticResource TitleBarBackButtonStyle}">
+        <Setter Property="Width" Value="40" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="0" />
+    </Style>
+    <Style x:Key="ToolPageTitleTextStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
+    <Style x:Key="ToolPageSubtitleTextStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
+
 </ResourceDictionary>

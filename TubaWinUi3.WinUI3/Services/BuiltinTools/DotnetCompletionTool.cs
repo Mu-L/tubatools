@@ -2,6 +2,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using TubaWinUi3.Controls;
 using TubaWinUi3.Models;
 using Windows.UI;
 
@@ -161,51 +162,23 @@ public sealed partial class DotnetCompletionPage : Page
 
     private ScrollViewer BuildContent()
     {
-        var titleIcon = new Border
+        var header = new ToolPageHeader
         {
-            Width = 40, Height = 40,
-            Background = new SolidColorBrush(Color.FromArgb(255, 80, 120, 200)),
-            CornerRadius = new CornerRadius(8),
-            Child = new FontIcon { FontSize = 20, Glyph = "\uE950", Foreground = new SolidColorBrush(Microsoft.UI.Colors.White) }
+            Title = ".NET 环境补全",
+            Subtitle = "检测已安装的 .NET Runtime/SDK/Framework，从官网获取最新版本，一键补全缺失组件",
+            Glyph = "\uE950"
         };
-
-        var titleText = new TextBlock { Text = ".NET 环境补全", FontSize = 22, FontWeight = Microsoft.UI.Text.FontWeights.Bold };
-        var subtitleText = new TextBlock { Text = "检测已安装的 .NET Runtime/SDK/Framework，从官网获取最新版本，一键补全缺失组件", FontSize = 12, Opacity = 0.68 };
-        var titleStack = new StackPanel { Spacing = 2, Children = { titleText, subtitleText } };
 
         var helpBtn = new Button
         {
             Content = new FontIcon { Glyph = "\uE9CE", FontSize = 14 },
             Padding = new Thickness(4),
-            MinWidth = 28, MinHeight = 28
+            MinWidth = 28, MinHeight = 28,
+            VerticalAlignment = VerticalAlignment.Center
         };
         helpBtn.Click += OnHelpClick;
         ToolTipService.SetToolTip(helpBtn, "查看 Runtime / SDK / Framework 区别说明");
-
-        var titleBar = new Grid { Padding = new Thickness(24, 0, 24, 12), ColumnSpacing = 12 };
-        titleBar.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        titleBar.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        titleBar.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        titleBar.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        titleBar.Children.Add(titleIcon); Grid.SetColumn(titleIcon, 0);
-        titleBar.Children.Add(titleStack); Grid.SetColumn(titleStack, 1);
-        titleBar.Children.Add(helpBtn); Grid.SetColumn(helpBtn, 2);
-
-        var closeBtn = new Button
-        {
-            Content = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                Spacing = 6,
-                Children =
-                {
-                    new FontIcon { Glyph = "\uE72B", FontSize = 12 },
-                    new TextBlock { Text = "返回" }
-                }
-            }
-        };
-        closeBtn.Click += (_, _) => App.MainWindow?.NavigateBack();
-        titleBar.Children.Add(closeBtn); Grid.SetColumn(closeBtn, 3);
+        header.Actions.Add(helpBtn);
 
         _archText = new TextBlock { FontSize = 22, FontWeight = Microsoft.UI.Text.FontWeights.Bold };
         _runtimeCountText = new TextBlock { FontSize = 22, FontWeight = Microsoft.UI.Text.FontWeights.Bold, Foreground = new SolidColorBrush(ThemeColors.AccentGreen) };
@@ -267,7 +240,7 @@ public sealed partial class DotnetCompletionPage : Page
         _contentPanel.Children.Add(actionBar);
         _contentPanel.Children.Add(_itemsList);
 
-        var root = new StackPanel { Spacing = 14, Padding = new Thickness(24, 0, 24, 24), Children = { titleBar, _loadingPanel, _contentPanel } };
+        var root = new StackPanel { Spacing = 14, Padding = new Thickness(24, 0, 24, 24), Children = { header, _loadingPanel, _contentPanel } };
 
         return new ScrollViewer { Content = root, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollMode = ScrollMode.Disabled };
     }

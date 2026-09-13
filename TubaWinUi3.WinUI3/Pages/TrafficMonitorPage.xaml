@@ -7,6 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:lvc="using:LiveChartsCore.SkiaSharpView.WinUI"
     xmlns:local="using:TubaWinUi3.Pages"
+    xmlns:controls="using:TubaWinUi3.Controls"
     mc:Ignorable="d">
 
     <Page.Resources>
@@ -29,35 +30,21 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- 标题 -->
-        <Grid ColumnSpacing="12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <Border Width="40" Height="40" Background="{ThemeResource AccentFillColorDefaultBrush}" CornerRadius="8">
-                <FontIcon FontSize="20" Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" Glyph="&#xE774;" />
-            </Border>
-            <StackPanel Grid.Column="1" Spacing="2">
-                <TextBlock FontSize="22" FontWeight="Bold" Text="流量监控器" />
-                <TextBlock Opacity="0.8" FontSize="12" Text="选择网卡实时查看各连接的流量、速度与延迟，整卡吞吐折线统计，支持快照录制回放" />
-            </StackPanel>
-            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+        <controls:ToolPageHeader
+            Grid.Row="0"
+            HeaderPadding="0"
+            Title="流量监控器"
+            Subtitle="选择网卡实时查看各连接的流量、速度与延迟，整卡吞吐折线统计，支持快照录制回放"
+            Glyph="&#xE774;">
+            <controls:ToolPageHeader.Actions>
                 <Button x:Name="MinimizeToTrayButton" Click="MinimizeToTrayButton_Click" ToolTipService.ToolTip="隐藏主窗口并继续后台监控">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                         <FontIcon Glyph="&#xE73E;" FontSize="12" />
                         <TextBlock Text="最小化的系统托盘" />
                     </StackPanel>
                 </Button>
-                <Button Click="CloseButton_Click">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <FontIcon Glyph="&#xE72B;" FontSize="12" />
-                        <TextBlock Text="返回" />
-                    </StackPanel>
-                </Button>
-            </StackPanel>
-        </Grid>
+            </controls:ToolPageHeader.Actions>
+        </controls:ToolPageHeader>
 
         <!-- 网卡选择 -->
         <Grid Grid.Row="1" ColumnSpacing="10">

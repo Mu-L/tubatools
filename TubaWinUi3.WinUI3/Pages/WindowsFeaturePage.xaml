@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:local="using:TubaWinUi3.Pages"
+    xmlns:controls="using:TubaWinUi3.Controls"
     mc:Ignorable="d"
     Loaded="WindowsFeaturePage_Loaded">
 
@@ -118,42 +119,27 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- 标题栏 -->
-        <Grid Padding="28,18,28,8" ColumnSpacing="14">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-
+        <controls:ToolPageHeader
+            Grid.Row="0"
+            Title="Windows 隐藏功能"
+            Subtitle="系统功能配置 API 直读（ViVe 引擎移植）· 查询 / 启用 / 禁用 / 重置实验性功能开关"
+            Glyph="&#xE950;">
             <!-- 品牌渐变图标块 -->
-            <Border Width="44" Height="44" CornerRadius="13">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Offset="0" Color="#7C6CF0" />
-                        <GradientStop Offset="1" Color="#5B8DEF" />
-                    </LinearGradientBrush>
-                </Border.Background>
-                <FontIcon FontSize="20" Foreground="White" Glyph="&#xE950;" HorizontalAlignment="Center" VerticalAlignment="Center" />
-            </Border>
-            <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
-                <TextBlock FontSize="21" FontWeight="SemiBold" Text="Windows 隐藏功能" />
-                <TextBlock FontSize="12" Opacity="0.65" Text="系统功能配置 API 直读（ViVe 引擎移植）· 查询 / 启用 / 禁用 / 重置实验性功能开关" />
-            </StackPanel>
-            <Button x:Name="BackButton" Grid.Column="2" Click="BackButton_Click" Padding="10,5" VerticalAlignment="Center" Margin="0,0,8,0" Background="Transparent" BorderBrush="#26000000">
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                    <FontIcon Glyph="&#xE72B;" FontSize="12" />
-                    <TextBlock Text="返回" FontSize="13" />
-                </StackPanel>
-            </Button>
-            <Button x:Name="RefreshButton" Grid.Column="3" Click="RefreshButton_Click" Padding="12,5" VerticalAlignment="Center">
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                    <FontIcon x:Name="RefreshIcon" Glyph="&#xE72C;" FontSize="12" />
-                    <TextBlock x:Name="RefreshText" Text="重新加载" FontSize="13" />
-                </StackPanel>
-            </Button>
-        </Grid>
+            <controls:ToolPageHeader.IconBackground>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Offset="0" Color="#7C6CF0" />
+                    <GradientStop Offset="1" Color="#5B8DEF" />
+                </LinearGradientBrush>
+            </controls:ToolPageHeader.IconBackground>
+            <controls:ToolPageHeader.Actions>
+                <Button x:Name="RefreshButton" Click="RefreshButton_Click" Padding="12,5" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon x:Name="RefreshIcon" Glyph="&#xE72C;" FontSize="12" />
+                        <TextBlock x:Name="RefreshText" Text="重新加载" FontSize="13" />
+                    </StackPanel>
+                </Button>
+            </controls:ToolPageHeader.Actions>
+        </controls:ToolPageHeader>
 
         <!-- 正文 -->
         <ScrollViewer Grid.Row="1" HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled"

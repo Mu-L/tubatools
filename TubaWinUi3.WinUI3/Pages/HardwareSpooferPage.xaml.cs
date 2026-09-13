@@ -317,11 +317,6 @@ public sealed partial class HardwareSpooferPage : Page
         ShowStatus("已刷新", "已重新读取当前注册表值。", InfoBarSeverity.Informational);
     }
 
-    private void CloseButton_Click(object sender, RoutedEventArgs e)
-    {
-        App.MainWindow?.NavigateBack();
-    }
-
     private DispatcherTimer? _statusBarTimer;
 
     private void ShowStatus(string title, string message, InfoBarSeverity severity)

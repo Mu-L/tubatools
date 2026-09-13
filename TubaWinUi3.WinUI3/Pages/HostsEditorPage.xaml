@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:TubaWinUi3.Controls"
     mc:Ignorable="d">
 
     <Grid RowSpacing="0">
@@ -13,27 +14,12 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- Title bar -->
-        <Grid Padding="24,20,24,12" ColumnSpacing="12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <Border Width="40" Height="40" Background="{ThemeResource AccentFillColorDefaultBrush}" CornerRadius="8">
-                <FontIcon FontSize="20" Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" Glyph="&#xE779;" />
-            </Border>
-            <StackPanel Grid.Column="1" Spacing="2">
-                <TextBlock FontSize="22" FontWeight="Bold" Text="Hosts 编辑" />
-                <TextBlock x:Name="PathText" Opacity="1.0" FontSize="11" FontFamily="Consolas" IsTextSelectionEnabled="True" />
-            </StackPanel>
-            <Button x:Name="CloseButton" Grid.Column="2" Click="BackButton_Click">
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                    <FontIcon Glyph="&#xE72B;" FontSize="12" />
-                    <TextBlock Text="返回" />
-                </StackPanel>
-            </Button>
-        </Grid>
+        <controls:ToolPageHeader
+            x:Name="PageHeader"
+            Grid.Row="0"
+            Title="Hosts 编辑"
+            Glyph="&#xE779;"
+            BackRequested="OnBackRequested" />
 
         <!-- Main content -->
         <ScrollViewer Grid.Row="1" HorizontalScrollMode="Disabled" VerticalScrollBarVisibility="Auto" Padding="24,0,24,24">

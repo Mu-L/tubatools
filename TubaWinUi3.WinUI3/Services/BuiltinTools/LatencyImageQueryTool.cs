@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
+using TubaWinUi3.Controls;
 using Windows.System;
 
 namespace TubaWinUi3.Services;
@@ -54,43 +55,19 @@ public sealed partial class LatencyImageQueryPage : Page
 
 	private Grid BuildContent()
 	{
-		var titleIcon = new Border
+		var header = new ToolPageHeader
 		{
-			Width = 40,
-			Height = 40,
-			Background = new SolidColorBrush(Microsoft.UI.Colors.SeaGreen),
-			CornerRadius = new CornerRadius(8),
-			Child = new FontIcon { FontSize = 20, Glyph = "\ue9d9", Foreground = new SolidColorBrush(Microsoft.UI.Colors.White) }
+			Title = "核间延迟查询",
+			Subtitle = "查看社区上传的 CPU 核间延迟热力图（reports/latency-images）",
+			Glyph = "\ue9d9"
 		};
-
-		var titleText = new TextBlock { Text = "核间延迟查询", FontSize = 22, FontWeight = FontWeights.Bold };
-		var subtitleText = new TextBlock { Text = "查看社区上传的 CPU 核间延迟热力图（reports/latency-images）", FontSize = 12, Opacity = 0.68 };
-		var titleStack = new StackPanel { Spacing = 2, Children = { titleText, subtitleText } };
-
-		var closeBtn = new Button
-		{
-			Content = new StackPanel
-			{
-				Orientation = Orientation.Horizontal,
-				Spacing = 6,
-				Children = { new FontIcon { Glyph = "\uE72B", FontSize = 12 }, new TextBlock { Text = "返回" } }
-			}
-		};
-		closeBtn.Click += (_, _) => App.MainWindow?.NavigateBack();
-
-		var titleBar = new Grid { Padding = new Thickness(24, 0, 24, 12), ColumnSpacing = 12 };
-		titleBar.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-		titleBar.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-		titleBar.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-		titleBar.Children.Add(titleIcon); Grid.SetColumn(titleIcon, 0);
-		titleBar.Children.Add(titleStack); Grid.SetColumn(titleStack, 1);
-		titleBar.Children.Add(closeBtn); Grid.SetColumn(closeBtn, 2);
 
 		var refreshBtn = new Button
 		{
 			Content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Children = { new FontIcon { Glyph = "\uE72C", FontSize = 12 }, new TextBlock { Text = "刷新" } } }
 		};
 		refreshBtn.Click += async (_, _) => await LoadImagesAsync(refresh: true);
+		header.Actions.Add(refreshBtn);
 
 		_searchBox = new TextBox
 		{
@@ -175,7 +152,7 @@ public sealed partial class LatencyImageQueryPage : Page
 		root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 		root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 		root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-		root.Children.Add(titleBar); Grid.SetRow(titleBar, 0);
+		root.Children.Add(header); Grid.SetRow(header, 0);
 		root.Children.Add(controlRow); Grid.SetRow(controlRow, 1);
 		root.Children.Add(_gridView); Grid.SetRow(_gridView, 2);
 		root.Children.Add(_loadingPanel); Grid.SetRow(_loadingPanel, 2);

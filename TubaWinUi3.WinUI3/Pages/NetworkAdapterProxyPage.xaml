@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:TubaWinUi3.Controls"
     mc:Ignorable="d">
 
     <Grid RowSpacing="0">
@@ -13,21 +14,14 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- Title bar -->
-        <Grid Padding="20,16,20,8" ColumnSpacing="12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <Border Width="36" Height="36" Background="{ThemeResource AccentFillColorDefaultBrush}" CornerRadius="8">
-                <FontIcon FontSize="16" Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" Glyph="&#xE968;" />
-            </Border>
-            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                <TextBlock FontSize="18" FontWeight="Bold" Text="网络调度器" />
-                <TextBlock Opacity="1.0" FontSize="12" Text="根据实时负载自动均衡多网络流量" />
-            </StackPanel>
-            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+        <controls:ToolPageHeader
+            Grid.Row="0"
+            HeaderPadding="20,16,20,8"
+            Title="网络调度器"
+            Subtitle="根据实时负载自动均衡多网络流量"
+            Glyph="&#xE968;"
+            BackRequested="OnBackRequested">
+            <controls:ToolPageHeader.Actions>
                 <ToggleSwitch x:Name="MonitorToggle" IsOn="True" OnContent="监控中" OffContent="已暂停" FontSize="12" Toggled="MonitorToggle_Toggled" />
                 <Button x:Name="MinimizeToTrayButton" Click="MinimizeToTrayButton_Click" Padding="8,4" ToolTipService.ToolTip="隐藏主窗口并继续后台调度">
                     <StackPanel Orientation="Horizontal" Spacing="4">
@@ -35,11 +29,8 @@
                         <TextBlock Text="最小化的系统托盘" />
                     </StackPanel>
                 </Button>
-                <Button x:Name="CloseButton" Click="CloseButton_Click" Padding="8,4">
-                    <FontIcon Glyph="&#xE72B;" FontSize="12" />
-                </Button>
-            </StackPanel>
-        </Grid>
+            </controls:ToolPageHeader.Actions>
+        </controls:ToolPageHeader>
 
         <!-- Main content -->
         <ScrollViewer Grid.Row="1" HorizontalScrollMode="Disabled" VerticalScrollBarVisibility="Auto" Padding="20,0,20,20">

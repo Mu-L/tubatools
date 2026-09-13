@@ -84,8 +84,6 @@ public sealed partial class TrafficMonitorPage : Page
         _disposed = true;
     }
 
-    private void CloseButton_Click(object sender, RoutedEventArgs e) => App.MainWindow?.NavigateBack();
-
     private static void StopTrafficMonitoring() => TrafficMonitorService.Stop();
 
     private void MinimizeToTrayButton_Click(object sender, RoutedEventArgs e)

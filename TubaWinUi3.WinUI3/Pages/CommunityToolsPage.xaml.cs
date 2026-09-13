@@ -79,7 +79,7 @@ public sealed partial class CommunityToolsPage : Page
             UpdateCategoryFilter();
             ApplyFilter();
 
-            ToolCountText.Text = $"共 {_allTools.Count} 个";
+            PageHeader.Subtitle = $"来自社区贡献的工具插件，下载安装即可使用。共 {_allTools.Count} 个";
             StatusText.Text = _allTools.Count > 0 ? $"共 {_allTools.Count} 个社区工具" : "暂无社区工具";
         }
         catch (OperationCanceledException) { }

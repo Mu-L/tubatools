@@ -21,7 +21,7 @@ public sealed partial class BrowserPage : Page
         if (Content is FrameworkElement root)
             root.RequestedTheme = ThemeService.CurrentElementTheme;
 
-        TitleText.Text = "浏览器";
+        PageHeader.Title = "浏览器";
         _url = "about:blank";
     }
 
@@ -32,7 +32,7 @@ public sealed partial class BrowserPage : Page
         if (e.Parameter is BrowserPageParam param)
         {
             _url = param.Url;
-            TitleText.Text = param.Title ?? "浏览器";
+            PageHeader.Title = param.Title ?? "浏览器";
             _ = InitWebViewAsync();
         }
     }
@@ -60,7 +60,7 @@ public sealed partial class BrowserPage : Page
                 RequestedTheme = ThemeService.CurrentElementTheme
             };
             await dialog.ShowAsync();
-            CloseButton_Click(this, new RoutedEventArgs());
+            App.MainWindow?.NavigateBack();
         }
     }
 
@@ -95,7 +95,7 @@ public sealed partial class BrowserPage : Page
         var docTitle = sender.DocumentTitle;
         if (!string.IsNullOrEmpty(docTitle))
         {
-            TitleText.Text = docTitle;
+            PageHeader.Title = docTitle;
         }
     }
 
@@ -123,11 +123,6 @@ public sealed partial class BrowserPage : Page
             });
         }
         catch { }
-    }
-
-    private void CloseButton_Click(object sender, RoutedEventArgs e)
-    {
-        App.MainWindow?.NavigateBack();
     }
 
     public static void Open(string url, string? title = null)

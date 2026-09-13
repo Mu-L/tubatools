@@ -144,8 +144,6 @@ public sealed partial class NetworkOptimizePage : Page
         _dnsTimer = null;
     }
 
-    private void BackButton_Click(object sender, RoutedEventArgs e) => App.MainWindow?.NavigateBack();
-
     private static SolidColorBrush Brush(Color color) => new(color);
 
     private static SolidColorBrush Tint(Color color, byte alpha) => new(Color.FromArgb(alpha, color.R, color.G, color.B));

@@ -75,8 +75,15 @@ public sealed partial class QuickDeviceCheckPage : Page
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
+        // 独立工具窗口中隐藏页面返回按钮：关闭窗口即可退出，避免与标题栏重复
+        ToolBackButton.Visibility = BuiltinToolWindow.IsInToolWindow(this)
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+
         PlayStepTransition();
     }
+
+    private void ToolBackButton_Click(object sender, RoutedEventArgs e) => App.MainWindow?.NavigateBack();
 
     private void UpdateStepUI()
     {

@@ -93,14 +93,14 @@ public sealed partial class EnergyStarPage : Page
             StatusBadgeText.Text = "已停止";
             StatusBadge.Background = new SolidColorBrush(AccentGray);
             StatusBadgeText.Foreground = new SolidColorBrush(Color.FromArgb(255, 30, 41, 59));
-            StatusText.Text = paused ? "节流已暂停 (进程列表保留, 可随时恢复)" : "效率模式未启用";
+            PageHeader.Subtitle = paused ? "节流已暂停 (进程列表保留, 可随时恢复)" : "效率模式未启用";
         }
         else
         {
             StatusBadgeText.Text = EnergyStarService.IsOnBattery ? "电池模式" : "运行中";
             StatusBadge.Background = new SolidColorBrush(AccentGreen);
             StatusBadgeText.Foreground = new SolidColorBrush(Color.FromArgb(255, 30, 41, 59));
-            StatusText.Text = EnergyStarService.ThrottleStatusDescription(status);
+            PageHeader.Subtitle = EnergyStarService.ThrottleStatusDescription(status);
         }
     }
 
@@ -345,8 +345,6 @@ public sealed partial class EnergyStarPage : Page
         ToastBar.Message = message;
         ToastBar.IsOpen = true;
     }
-
-    private void CloseButton_Click(object sender, RoutedEventArgs e) => App.MainWindow?.NavigateBack();
 
     private void EnergyStarPage_Unloaded(object sender, RoutedEventArgs e)
     {

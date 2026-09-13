@@ -12,6 +12,18 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
+        <!-- 页面返回按钮（左上角）：独立窗口模式下由代码隐藏 -->
+        <Button
+            x:Name="ToolBackButton"
+            Grid.Row="0"
+            Grid.RowSpan="2"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Style="{StaticResource ToolPageBackButtonStyle}"
+            Click="ToolBackButton_Click"
+            AutomationProperties.Name="返回"
+            ToolTipService.ToolTip="返回" />
+
         <StackPanel Grid.Row="0" Spacing="8" HorizontalAlignment="Center">
             <StackPanel x:Name="StepProgressPanel" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
                 <Border Width="12" Height="12" CornerRadius="6" Background="{ThemeResource SubtleFillColorSecondaryBrush}" />

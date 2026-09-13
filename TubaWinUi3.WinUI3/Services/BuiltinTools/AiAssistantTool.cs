@@ -23,6 +23,7 @@ public sealed class AiAssistantTool : IBuiltinTool
         {
             Title = "AI 助手",
             Description = "智能系统代理，可诊断问题、优化配置、执行操作并联网搜索",
+            Glyph = Glyph,
             Content = page,
             OnClose = () => page.Unload()
         });

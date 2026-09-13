@@ -239,6 +239,7 @@ public sealed class KeyboardTestTool : IBuiltinTool
         {
             Title = "键盘测试",
             Description = "依次按下键盘上的按键，检测每个键位是否正常工作",
+            Glyph = Glyph,
             Content = content,
             OnClose = () =>
             {

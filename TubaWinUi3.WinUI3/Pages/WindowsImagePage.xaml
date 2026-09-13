@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:services="using:TubaWinUi3.Services"
+    xmlns:controls="using:TubaWinUi3.Controls"
     mc:Ignorable="d">
 
     <Grid RowSpacing="0">
@@ -14,19 +15,11 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Grid Padding="24,20,24,12" ColumnSpacing="12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Border Width="40" Height="40" Background="{ThemeResource AccentFillColorDefaultBrush}" CornerRadius="8">
-                <FontIcon FontSize="20" Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" Glyph="&#xE896;" />
-            </Border>
-            <StackPanel Grid.Column="1" Spacing="2">
-                <TextBlock FontSize="22" FontWeight="Bold" Text="Windows 镜像下载" />
-                <TextBlock Opacity="1.0" FontSize="12" Text="原版系统镜像下载，支持 ESD 转 ISO（需 UltraISO）" />
-            </StackPanel>
-        </Grid>
+        <controls:ToolPageHeader
+            Grid.Row="0"
+            Title="Windows 镜像下载"
+            Subtitle="原版系统镜像下载，支持 ESD 转 ISO（需 UltraISO）"
+            Glyph="&#xE896;" />
 
         <TeachingTip x:Name="QueueTeachingTip"
                       IsLightDismissEnabled="True"

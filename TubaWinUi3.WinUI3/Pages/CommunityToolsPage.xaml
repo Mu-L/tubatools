@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:TubaWinUi3.Controls"
     NavigationCacheMode="Disabled"
     mc:Ignorable="d">
 
@@ -86,26 +87,14 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <Grid ColumnSpacing="12">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <StackPanel Spacing="4">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock FontSize="30" FontWeight="Bold" Text="社区" />
-                        <TextBlock
-                            x:Name="ToolCountText"
-                            VerticalAlignment="Bottom"
-                            Margin="0,0,0,4"
-                            FontSize="14"
-                            Opacity="1.0" />
-                    </StackPanel>
-                    <TextBlock Opacity="1.0" Text="来自社区贡献的工具插件，下载安装即可使用。" />
-                </StackPanel>
-                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center"
-                            HorizontalAlignment="Right">
+            <controls:ToolPageHeader
+                x:Name="PageHeader"
+                Grid.Row="0"
+                HeaderPadding="0"
+                Title="社区"
+                Subtitle="来自社区贡献的工具插件，下载安装即可使用。"
+                Glyph="&#xE9D5;">
+                <controls:ToolPageHeader.Actions>
                     <ComboBox
                         x:Name="SourceSelector"
                         MinWidth="110"
@@ -129,8 +118,8 @@
                             <TextBlock Text="提交工具" />
                         </StackPanel>
                     </Button>
-                </StackPanel>
-            </Grid>
+                </controls:ToolPageHeader.Actions>
+            </controls:ToolPageHeader>
 
             <Border
                 Grid.Row="1"

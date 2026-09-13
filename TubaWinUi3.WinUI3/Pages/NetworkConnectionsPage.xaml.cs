@@ -57,12 +57,12 @@ public sealed partial class NetworkConnectionsPage : Page
         if (connections.Count == 0)
         {
             EmptyPanel.Visibility = Visibility.Visible;
-            SubtitleText.Text = "TCP 连接实时监控 · 0 条连接";
+            PageHeader.Subtitle = "TCP 连接实时监控 · 0 条连接";
             return;
         }
 
         EmptyPanel.Visibility = Visibility.Collapsed;
-        SubtitleText.Text = $"TCP 连接实时监控 · {connections.Count} 条连接";
+        PageHeader.Subtitle = $"TCP 连接实时监控 · {connections.Count} 条连接";
 
         foreach (var c in connections)
         {
@@ -136,7 +136,7 @@ public sealed partial class NetworkConnectionsPage : Page
         await RefreshAsync();
     }
 
-    private void CloseButton_Click(object sender, RoutedEventArgs e)
+    private void OnBackRequested(object? sender, EventArgs e)
     {
         _refreshTimer?.Stop();
         App.MainWindow?.NavigateBack();

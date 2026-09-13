@@ -21,7 +21,7 @@ public sealed partial class HostsEditorPage : Page
     {
         InitializeComponent();
 
-        PathText.Text = HostsEditorService.HostsPath;
+        PageHeader.Subtitle = HostsEditorService.HostsPath;
 
         // Style stat cards
         StyleStatCard(ActiveCard, ActiveIcon, AccentGreen);
@@ -349,7 +349,7 @@ public sealed partial class HostsEditorPage : Page
         await LoadEntriesAsync();
     }
 
-    private async void BackButton_Click(object sender, RoutedEventArgs e)
+    private async void OnBackRequested(object? sender, EventArgs e)
     {
         if (_dirty)
         {

@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:TubaWinUi3.Pages"
+    xmlns:controls="using:TubaWinUi3.Controls"
     NavigationCacheMode="Disabled">
 
     <Page.Resources>
@@ -304,12 +305,12 @@
         </Grid.RowDefinitions>
 
         <!-- 页头 -->
-        <StackPanel Grid.Row="0" Padding="24,16,24,4" Spacing="2">
-            <TextBlock Text="流氓软件的克星" FontSize="24" FontWeight="Bold"
-                       Foreground="{ThemeResource TextFillColorPrimaryBrush}"/>
-            <TextBlock Text="扫描和清理 Windows 流氓右键菜单、自启动、计划任务、服务、浏览器插件和文件关联残留；所有处理先备份，可随时在恢复中心还原"
-                       FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"/>
-        </StackPanel>
+        <controls:ToolPageHeader
+            Grid.Row="0"
+            HeaderPadding="24,16,24,8"
+            Title="流氓软件的克星"
+            Subtitle="扫描和清理 Windows 流氓右键菜单、自启动、计划任务、服务、浏览器插件和文件关联残留；所有处理先备份，可随时在恢复中心还原"
+            Glyph="&#xE72E;" />
 
         <NavigationView Grid.Row="1" x:Name="Nav" PaneDisplayMode="Top" IsSettingsVisible="False"
                         IsBackButtonVisible="Collapsed" IsPaneToggleButtonVisible="False"

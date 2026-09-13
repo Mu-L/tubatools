@@ -1264,8 +1264,6 @@ public sealed partial class FormatConverterPage : Page
         _category = SourceCategory.Unsupported;
     }
 
-    private void CloseButton_Click(object sender, RoutedEventArgs e) => App.MainWindow?.NavigateBack();
-
     // ══════════════ 引擎卡片 ══════════════
 
     private void RefreshEngineCards()

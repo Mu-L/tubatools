@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
+using TubaWinUi3.Controls;
 using TubaWinUi3.Services;
 using Windows.Foundation;
 using Windows.UI;
@@ -87,11 +88,9 @@ public sealed partial class BatteryAnalyzerPage : Page
         _chartAnimTimer?.Stop();
     }
 
-    private ScrollViewer BuildUI()
+    private Grid BuildUI()
     {
-        var mainStack = new StackPanel { Spacing = 16, Padding = new Thickness(28, 20, 28, 20) };
-
-        mainStack.Children.Add(BuildHeader());
+        var mainStack = new StackPanel { Spacing = 16, Padding = new Thickness(28, 4, 28, 20) };
 
         _chartLoading = new ProgressBar { IsIndeterminate = true, Visibility = Visibility.Collapsed };
         _infoBar = new InfoBar { Severity = InfoBarSeverity.Error, IsOpen = false, IsClosable = true };
@@ -104,24 +103,27 @@ public sealed partial class BatteryAnalyzerPage : Page
         mainStack.Children.Add(BuildProcessSection());
         mainStack.Children.Add(BuildDetailsSection());
 
-        return new ScrollViewer { Content = mainStack };
+        var header = BuildHeader();
+        var scroller = new ScrollViewer { Content = mainStack };
+
+        var root = new Grid();
+        root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+        Grid.SetRow(header, 0);
+        Grid.SetRow(scroller, 1);
+        root.Children.Add(header);
+        root.Children.Add(scroller);
+
+        return root;
     }
 
-    private StackPanel BuildHeader()
+    private ToolPageHeader BuildHeader()
     {
-        var title = new TextBlock
+        var header = new ToolPageHeader
         {
-            Text = "电池消耗分析",
-            FontSize = 28,
-            FontWeight = Microsoft.UI.Text.FontWeights.Bold,
-            Foreground = new SolidColorBrush(ThemeColors.PrimaryText)
-        };
-        var subtitle = new TextBlock
-        {
-            Text = "分析电池消耗趋势、高耗电进程排行，比 Windows 设置更强大的电池分析工具",
-            FontSize = 12,
-            Foreground = new SolidColorBrush(ThemeColors.DimText),
-            Margin = new Thickness(0, 4, 0, 0)
+            Title = "电池消耗分析",
+            Subtitle = "分析电池消耗趋势、高耗电进程排行，比 Windows 设置更强大的电池分析工具",
+            Glyph = "\uE85E"
         };
 
         var refreshBtn = new Button
@@ -132,15 +134,11 @@ public sealed partial class BatteryAnalyzerPage : Page
                 Spacing = 6,
                 Children =
                 {
-                    new FontIcon { Glyph = "\uE72C", FontSize = 13 },
+                    new FontIcon { Glyph = "\uE72C", FontSize = 12 },
                     new TextBlock { Text = "刷新", FontSize = 13 }
                 }
             },
-            Background = new SolidColorBrush(ThemeColors.SubtleBg),
-            Foreground = new SolidColorBrush(ThemeColors.PrimaryText),
-            BorderBrush = new SolidColorBrush(ThemeColors.BorderColor),
-            Padding = new Thickness(14, 6, 14, 6),
-            CornerRadius = new CornerRadius(6),
+            Padding = new Thickness(12, 5, 12, 5),
             VerticalAlignment = VerticalAlignment.Center
         };
         refreshBtn.Click += async (_, _) => await ReloadTrendAsync();
@@ -153,31 +151,19 @@ public sealed partial class BatteryAnalyzerPage : Page
                 Spacing = 6,
                 Children =
                 {
-                    new FontIcon { Glyph = "\uE8A5", FontSize = 13 },
+                    new FontIcon { Glyph = "\uE8A5", FontSize = 12 },
                     new TextBlock { Text = "查看详细报告", FontSize = 13 }
                 }
             },
-            Background = new SolidColorBrush(ThemeColors.SubtleBg),
-            Foreground = new SolidColorBrush(ThemeColors.PrimaryText),
-            BorderBrush = new SolidColorBrush(ThemeColors.BorderColor),
-            Padding = new Thickness(14, 6, 14, 6),
-            CornerRadius = new CornerRadius(6),
+            Padding = new Thickness(12, 5, 12, 5),
             VerticalAlignment = VerticalAlignment.Center
         };
         exportBtn.Click += async (_, _) => await ExportReportAsync();
 
-        var btnPanel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, VerticalAlignment = VerticalAlignment.Center };
-        btnPanel.Children.Add(refreshBtn);
-        btnPanel.Children.Add(exportBtn);
+        header.Actions.Add(refreshBtn);
+        header.Actions.Add(exportBtn);
 
-        var headerGrid = new Grid { ColumnSpacing = 12 };
-        headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        headerGrid.Children.Add(new StackPanel { Spacing = 2, Children = { title, subtitle } });
-        headerGrid.Children.Add(btnPanel);
-        Grid.SetColumn(btnPanel, 1);
-
-        return new StackPanel { Spacing = 10, Children = { headerGrid } };
+        return header;
     }
 
     private Grid BuildOverviewCards()

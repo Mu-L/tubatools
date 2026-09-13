@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:TubaWinUi3.Controls"
     mc:Ignorable="d"
     Loaded="RuntimeRepairPage_Loaded"
     Unloaded="RuntimeRepairPage_Unloaded">
@@ -15,27 +16,11 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- 标题栏 -->
-        <Grid Padding="24,18,24,8" ColumnSpacing="12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <Border Width="40" Height="40" Background="{ThemeResource AccentFillColorDefaultBrush}" CornerRadius="10">
-                <FontIcon FontSize="19" Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" Glyph="&#xE90F;" />
-            </Border>
-            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                <TextBlock FontSize="20" FontWeight="SemiBold" Text="运行库修复" />
-                <TextBlock FontSize="12" Opacity="0.85" Text="检测系统运行库与游戏常用 DLL，仅修复缺失或不完整的项目" />
-            </StackPanel>
-            <Button x:Name="BackButton" Grid.Column="2" Click="BackButton_Click" Padding="10,5" VerticalAlignment="Center">
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                    <FontIcon Glyph="&#xE72B;" FontSize="12" />
-                    <TextBlock Text="返回" FontSize="13" />
-                </StackPanel>
-            </Button>
-        </Grid>
+        <controls:ToolPageHeader
+            Grid.Row="0"
+            Title="运行库修复"
+            Subtitle="检测系统运行库与游戏常用 DLL，仅修复缺失或不完整的项目"
+            Glyph="&#xE90F;" />
 
         <!-- 正文 -->
         <ScrollViewer Grid.Row="1" HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled"

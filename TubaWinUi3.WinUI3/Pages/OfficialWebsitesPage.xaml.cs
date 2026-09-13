@@ -357,9 +357,4 @@ public sealed partial class OfficialWebsitesPage : Page
         }
         catch { }
     }
-
-    private void BackButton_Click(object sender, RoutedEventArgs e)
-    {
-        App.MainWindow?.NavigateBack();
-    }
 }

@@ -173,9 +173,4 @@ public sealed partial class ServiceCenterPage : Page
             catch { }
         }
     }
-
-    private void BackButton_Click(object sender, RoutedEventArgs e)
-    {
-        App.MainWindow?.NavigateBack();
-    }
 }

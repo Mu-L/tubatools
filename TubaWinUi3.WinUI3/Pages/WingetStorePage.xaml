@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:TubaWinUi3.Controls"
     NavigationCacheMode="Enabled"
     mc:Ignorable="d">
 
@@ -164,36 +165,13 @@
             </Grid.RowDefinitions>
 
             <!-- 标题行：图标徽章 + 标题 + 副标题 -->
-            <Grid ColumnSpacing="14">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Border
-                    Width="44"
-                    Height="44"
-                    Background="{ThemeResource AccentFillColorDefaultBrush}"
-                    CornerRadius="10"
-                    VerticalAlignment="Center">
-                    <FontIcon
-                        FontSize="20"
-                        Glyph="&#xE719;"
-                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center" />
-                </Border>
-                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                    <TextBlock
-                        FontSize="24"
-                        FontWeight="SemiBold"
-                        Text="正版软件商店" />
-                    <TextBlock
-                        x:Name="SubTitleText"
-                        FontSize="13"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Text="浏览并安装正版软件，基于 WinGet 软件源" />
-                </StackPanel>
-            </Grid>
+            <controls:ToolPageHeader
+                x:Name="PageHeader"
+                Grid.Row="0"
+                HeaderPadding="0"
+                Title="正版软件商店"
+                Subtitle="浏览并安装正版软件，基于 WinGet 软件源"
+                Glyph="&#xE719;" />
 
             <!-- 搜索框（圆角卡片容器） -->
             <Border

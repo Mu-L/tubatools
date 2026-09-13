@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using TubaWinUi3.Controls;
 
 namespace TubaWinUi3.Pages;
 
@@ -8,19 +9,18 @@ public sealed class ToolContentPageParam
 {
     public required string Title { get; init; }
     public string Description { get; init; } = "";
+    public string Glyph { get; init; } = "";
     public required UIElement Content { get; init; }
     public Action? OnClose { get; init; }
 }
 
 /// <summary>
 /// Hosts tool UIs that are built in code (no dedicated XAML page).
-/// The tool content fills the page below a standard header; the app title bar
-/// back button returns to the previous page.
+/// The tool content fills the page below the standard <see cref="ToolPageHeader"/>.
 /// </summary>
 public sealed partial class ToolContentPage : Page
 {
-    private readonly TextBlock _titleText;
-    private readonly TextBlock _subtitleText;
+    private readonly ToolPageHeader _header;
     private readonly Grid _contentHost;
     private Action? _onClose;
 
@@ -28,26 +28,7 @@ public sealed partial class ToolContentPage : Page
     {
         InitializeComponent();
 
-        _titleText = new TextBlock
-        {
-            FontSize = 28,
-            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-            Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorPrimaryBrush"]
-        };
-
-        _subtitleText = new TextBlock
-        {
-            FontSize = 14,
-            Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
-            TextWrapping = TextWrapping.Wrap
-        };
-
-        var header = new StackPanel
-        {
-            Padding = new Thickness(24, 16, 24, 8),
-            Spacing = 4,
-            Children = { _titleText, _subtitleText }
-        };
+        _header = new ToolPageHeader();
 
         _contentHost = new Grid
         {
@@ -58,9 +39,9 @@ public sealed partial class ToolContentPage : Page
         var root = new Grid();
         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-        Grid.SetRow(header, 0);
+        Grid.SetRow(_header, 0);
         Grid.SetRow(_contentHost, 1);
-        root.Children.Add(header);
+        root.Children.Add(_header);
         root.Children.Add(_contentHost);
 
         Content = root;
@@ -73,8 +54,9 @@ public sealed partial class ToolContentPage : Page
         if (e.Parameter is ToolContentPageParam param)
         {
             _onClose = param.OnClose;
-            _titleText.Text = param.Title;
-            _subtitleText.Text = param.Description;
+            _header.Title = param.Title;
+            _header.Subtitle = param.Description;
+            _header.Glyph = param.Glyph;
             _contentHost.Children.Add(param.Content);
         }
     }

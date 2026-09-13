@@ -11,6 +11,7 @@ using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using TubaWinUi3.Controls;
 using TubaWinUi3.Models;
 using TubaWinUi3.Services;
 using Windows.System;
@@ -146,19 +147,13 @@ public sealed partial class BenchmarkCloudPage : Page
 		root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 		root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1.0, GridUnitType.Star) });
 
-		StackPanel toolbar = new()
+		ToolPageHeader header = new()
 		{
-			Orientation = Orientation.Horizontal,
-			Spacing = 12.0,
-			Margin = new Thickness(0.0, 0.0, 0.0, 12.0)
+			HeaderPadding = new Thickness(0.0, 0.0, 0.0, 12.0),
+			Title = "跑分排行",
+			Glyph = "\uE9D5"
 		};
-		toolbar.Children.Add(new TextBlock
-		{
-			Text = "跑分排行",
-			FontSize = 20.0,
-			FontWeight = FontWeights.Bold,
-			VerticalAlignment = VerticalAlignment.Center
-		});
+
 		RefreshButton = new Button
 		{
 			Content = new StackPanel
@@ -171,11 +166,10 @@ public sealed partial class BenchmarkCloudPage : Page
 					(UIElement)new TextBlock { Text = "刷新", FontSize = 13.0 }
 				}
 			},
-			CornerRadius = new CornerRadius(6.0),
-			Padding = new Thickness(12.0, 6.0, 12.0, 6.0)
+			Padding = new Thickness(12.0, 5.0, 12.0, 5.0)
 		};
 		RefreshButton.Click += RefreshButton_Click;
-		toolbar.Children.Add(RefreshButton);
+		header.Actions.Add(RefreshButton);
 
 		SourceCombo = new ComboBox
 		{
@@ -184,7 +178,7 @@ public sealed partial class BenchmarkCloudPage : Page
 			MinWidth = 100.0
 		};
 		SourceCombo.SelectionChanged += SourceCombo_SelectionChanged;
-		toolbar.Children.Add(SourceCombo);
+		header.Actions.Add(SourceCombo);
 
 		UploadButton = new Button
 		{
@@ -198,11 +192,10 @@ public sealed partial class BenchmarkCloudPage : Page
 					(UIElement)new TextBlock { Text = "上传报告", FontSize = 13.0 }
 				}
 			},
-			CornerRadius = new CornerRadius(6.0),
-			Padding = new Thickness(12.0, 6.0, 12.0, 6.0)
+			Padding = new Thickness(12.0, 5.0, 12.0, 5.0)
 		};
 		UploadButton.Click += UploadButton_Click;
-		toolbar.Children.Add(UploadButton);
+		header.Actions.Add(UploadButton);
 
 		ReportCountText = new TextBlock
 		{
@@ -211,10 +204,10 @@ public sealed partial class BenchmarkCloudPage : Page
 			VerticalAlignment = VerticalAlignment.Center,
 			Foreground = dimText
 		};
-		toolbar.Children.Add(ReportCountText);
+		header.Actions.Add(ReportCountText);
 
-		root.Children.Add(toolbar);
-		Grid.SetRow(toolbar, 0);
+		root.Children.Add(header);
+		Grid.SetRow(header, 0);
 
 		MainPivot = new Pivot();
 		MainPivot.Items.Add(BuildLeaderboardPivotItem(cardBg, borderColor, dimText));
