@@ -77,6 +77,29 @@
                         Margin="0,0,0,16"
                         Text="管理应用外观、更新及查看关于信息。" />
 
+                    <Border x:Name="SettingsStoreRatingCard" Style="{StaticResource SettingsCardStyle}" Visibility="Collapsed">
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Border Style="{StaticResource IconBorderStyle}">
+                                <FontIcon FontSize="18" Glyph="&#xE734;" />
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                <TextBlock FontWeight="Bold" Text="喜欢我们的软件吗？" />
+                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="给一个好评吧！点击直接打开商店评分" />
+                            </StackPanel>
+                            <Button x:Name="StoreRatingButton" Grid.Column="2" VerticalAlignment="Center" Padding="14,6" Style="{StaticResource AccentButtonStyle}" Click="StoreRatingButton_Click">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon FontSize="12" Glyph="&#xE734;" />
+                                    <TextBlock Text="去好评" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </Border>
+
                     <Border
                         x:Name="AppInfoCard"
                         Style="{StaticResource SettingsCardStyle}"
@@ -1691,6 +1714,124 @@
                     </ScrollViewer>
                 </Grid>
             </Border>
+        </Grid>
+
+        <Grid x:Name="RatingThanksOverlay" Visibility="Collapsed">
+            <Border
+                x:Name="RatingThanksScrim"
+                Background="#8A000000"
+                Opacity="0"
+                Tapped="RatingThanksScrim_Tapped" />
+
+            <Border
+                x:Name="RatingThanksCard"
+                Width="360"
+                Padding="28,32,28,26"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="18"
+                Opacity="0"
+                RenderTransformOrigin="0.5,0.5"
+                Translation="0,0,32">
+                <Border.Shadow>
+                    <ThemeShadow />
+                </Border.Shadow>
+                <Border.RenderTransform>
+                    <CompositeTransform x:Name="RatingThanksCardTransform" ScaleX="0.88" ScaleY="0.88" TranslateY="16" />
+                </Border.RenderTransform>
+
+                <StackPanel Spacing="14" HorizontalAlignment="Stretch">
+                    <Grid Width="136" Height="136" HorizontalAlignment="Center">
+                        <Ellipse x:Name="RatingThanksHalo" Width="136" Height="136" Opacity="0">
+                            <Ellipse.Fill>
+                                <RadialGradientBrush>
+                                    <GradientStop Offset="0.3" Color="#7AFFC94D" />
+                                    <GradientStop Offset="1" Color="#00FFC94D" />
+                                </RadialGradientBrush>
+                            </Ellipse.Fill>
+                        </Ellipse>
+                        <Ellipse
+                            x:Name="RatingThanksRing1"
+                            Width="104"
+                            Height="104"
+                            Opacity="0"
+                            RenderTransformOrigin="0.5,0.5"
+                            Stroke="#CCFFD166"
+                            StrokeThickness="2">
+                            <Ellipse.RenderTransform>
+                                <CompositeTransform x:Name="RatingThanksRing1Transform" ScaleX="0.4" ScaleY="0.4" />
+                            </Ellipse.RenderTransform>
+                        </Ellipse>
+                        <Ellipse
+                            x:Name="RatingThanksRing2"
+                            Width="104"
+                            Height="104"
+                            Opacity="0"
+                            RenderTransformOrigin="0.5,0.5"
+                            Stroke="#80FFF3D0"
+                            StrokeThickness="1.5">
+                            <Ellipse.RenderTransform>
+                                <CompositeTransform x:Name="RatingThanksRing2Transform" ScaleX="0.4" ScaleY="0.4" />
+                            </Ellipse.RenderTransform>
+                        </Ellipse>
+                        <Border
+                            x:Name="RatingThanksBadge"
+                            Width="104"
+                            Height="104"
+                            Background="#26FFC94D"
+                            BorderBrush="#59FFD166"
+                            BorderThickness="1"
+                            CornerRadius="52"
+                            RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <CompositeTransform x:Name="RatingThanksBadgeTransform" Rotation="-80" ScaleX="0.3" ScaleY="0.3" />
+                            </Border.RenderTransform>
+                            <Path
+                                Width="60"
+                                Height="60"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Data="M 50,2 L 61.76,33.82 L 95.66,35.17 L 69.02,56.18 L 78.21,88.83 L 50,70 L 21.79,88.83 L 30.98,56.18 L 4.34,35.17 L 38.24,33.82 Z"
+                                Stretch="Uniform">
+                                <Path.Fill>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0.45,1">
+                                        <GradientStop Offset="0" Color="#FFFFEFB8" />
+                                        <GradientStop Offset="0.45" Color="#FFFFC53D" />
+                                        <GradientStop Offset="1" Color="#FFE08A1E" />
+                                    </LinearGradientBrush>
+                                </Path.Fill>
+                            </Path>
+                        </Border>
+                    </Grid>
+
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        FontSize="20"
+                        FontWeight="Bold"
+                        Text="感谢你的支持！" />
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        MaxWidth="296"
+                        FontSize="13"
+                        Opacity="0.75"
+                        TextAlignment="Center"
+                        TextWrapping="Wrap"
+                        Text="你的每一份评价，都会让图吧工具箱变得更好。" />
+                    <Button
+                        x:Name="RatingThanksCloseButton"
+                        MinWidth="136"
+                        Margin="0,8,0,0"
+                        HorizontalAlignment="Center"
+                        Click="RatingThanksCloseButton_Click"
+                        Content="太棒了"
+                        Style="{StaticResource AccentButtonStyle}" />
+                </StackPanel>
+            </Border>
+
+            <Canvas x:Name="RatingThanksParticleCanvas" IsHitTestVisible="False" />
         </Grid>
     </Grid>
 </Page>

@@ -10,6 +10,9 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using System.Drawing.Text;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using Microsoft.UI.Dispatching;
+using Windows.Foundation;
+using Shapes = Microsoft.UI.Xaml.Shapes;
 using TubaWinUi3.Services;
 using TubaWinUi3.Services.ActiveIntercept;
 using TubaWinUi3.Services.Ai;
@@ -47,6 +50,12 @@ public sealed partial class SettingsPage : Page
     private bool _proxySettingsInitializing;
     private bool _proxyTesting;
     private bool _tempCleaning;
+    private bool _storeRatingBusy;
+    private readonly List<Storyboard> _ratingThanksStoryboards = [];
+    private DispatcherQueueTimer? _ratingThanksTimer;
+
+    private const string StorePackageName = "DA3D64F4.winui3";
+    private const string StoreProductId = "9P15095X7MGB";
 
     private FrameworkElement? _generalExpanderContent;
     private FrameworkElement? _appearanceExpanderContent;
@@ -217,6 +226,7 @@ public sealed partial class SettingsPage : Page
         {
             SettingsCommunityCard.Visibility = Visibility.Collapsed;
             SettingsCommunitySubmitCard.Visibility = Visibility.Collapsed;
+            SettingsStoreRatingCard.Visibility = Visibility.Visible;
             ToolsCommunityTitleText.Text = "工具";
             ToolsCommunityDescText.Text = "配置管理、自定义工具、导出";
         }
@@ -2202,6 +2212,317 @@ public sealed partial class SettingsPage : Page
         catch
         {
         }
+    }
+
+    private async void StoreRatingButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_storeRatingBusy) return;
+        _storeRatingBusy = true;
+        StoreRatingButton.IsEnabled = false;
+        try
+        {
+            if (!IsStorePackagedApp())
+            {
+                await ShowMessageAsync("暂不可用", "当前为开发版本，商店评分仅在从 Microsoft Store 安装的版本中可用。");
+                return;
+            }
+
+            try
+            {
+                var storeContext = Windows.Services.Store.StoreContext.GetDefault();
+                WinRT.Interop.InitializeWithWindow.Initialize(storeContext, WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow));
+
+                var result = await storeContext.RequestRateAndReviewAppAsync();
+                if (result.Status is Windows.Services.Store.StoreRateAndReviewStatus.Succeeded)
+                {
+                    ShowRatingThanks();
+                    return;
+                }
+
+                if (result.Status is Windows.Services.Store.StoreRateAndReviewStatus.CanceledByUser)
+                {
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[SettingsPage] 商店评分组件调用失败，回退到商店评价页: {ex}");
+            }
+
+            await OpenStoreReviewPageAsync();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[SettingsPage] 打开商店评分失败: {ex}");
+        }
+        finally
+        {
+            _storeRatingBusy = false;
+            StoreRatingButton.IsEnabled = true;
+        }
+    }
+
+    private static bool IsStorePackagedApp()
+    {
+        try
+        {
+            return Windows.ApplicationModel.Package.Current.Id.Name == StorePackageName;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private async Task OpenStoreReviewPageAsync()
+    {
+        try
+        {
+            var launched = await Windows.System.Launcher.LaunchUriAsync(new Uri($"ms-windows-store://review/?ProductId={StoreProductId}"));
+            if (!launched)
+                await ShowMessageAsync("打开失败", "暂时无法打开商店评分，请稍后重试。");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[SettingsPage] 打开商店评分页失败: {ex}");
+            await ShowMessageAsync("打开失败", "暂时无法打开商店评分，请稍后重试。");
+        }
+    }
+
+    private void RatingThanksScrim_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        HideRatingThanks();
+    }
+
+    private void RatingThanksCloseButton_Click(object sender, RoutedEventArgs e)
+    {
+        HideRatingThanks();
+    }
+
+    private void ShowRatingThanks()
+    {
+        RatingThanksOverlay.Visibility = Visibility.Visible;
+        RatingThanksOverlay.UpdateLayout();
+
+        RatingThanksScrim.Opacity = 0;
+        RatingThanksCard.Opacity = 0;
+        RatingThanksCardTransform.ScaleX = 0.88;
+        RatingThanksCardTransform.ScaleY = 0.88;
+        RatingThanksCardTransform.TranslateY = 16;
+        RatingThanksBadgeTransform.ScaleX = 0.3;
+        RatingThanksBadgeTransform.ScaleY = 0.3;
+        RatingThanksBadgeTransform.Rotation = -80;
+        RatingThanksHalo.Opacity = 0;
+        RatingThanksRing1.Opacity = 0;
+        RatingThanksRing2.Opacity = 0;
+        RatingThanksRing1Transform.ScaleX = 0.4;
+        RatingThanksRing1Transform.ScaleY = 0.4;
+        RatingThanksRing2Transform.ScaleX = 0.4;
+        RatingThanksRing2Transform.ScaleY = 0.4;
+
+        PlayRatingThanksFlourish();
+        SpawnRatingSparkles();
+        ScheduleRatingThanksAutoHide();
+    }
+
+    private void HideRatingThanks()
+    {
+        _ratingThanksTimer?.Stop();
+
+        foreach (var storyboard in _ratingThanksStoryboards) storyboard.Stop();
+        _ratingThanksStoryboards.Clear();
+        RatingThanksParticleCanvas.Children.Clear();
+
+        RatingThanksOverlay.Visibility = Visibility.Collapsed;
+    }
+
+    private void ScheduleRatingThanksAutoHide()
+    {
+        if (_ratingThanksTimer is null)
+        {
+            _ratingThanksTimer = DispatcherQueue.CreateTimer();
+            _ratingThanksTimer.IsRepeating = false;
+            _ratingThanksTimer.Tick += (_, _) => HideRatingThanks();
+        }
+
+        _ratingThanksTimer.Stop();
+        _ratingThanksTimer.Interval = TimeSpan.FromSeconds(7);
+        _ratingThanksTimer.Start();
+    }
+
+    private void PlayRatingThanksFlourish()
+    {
+        if (FastModeService.IsFastModeEnabled())
+        {
+            RatingThanksScrim.Opacity = 1;
+            RatingThanksCard.Opacity = 1;
+            RatingThanksCardTransform.ScaleX = 1;
+            RatingThanksCardTransform.ScaleY = 1;
+            RatingThanksCardTransform.TranslateY = 0;
+            RatingThanksBadgeTransform.ScaleX = 1;
+            RatingThanksBadgeTransform.ScaleY = 1;
+            RatingThanksBadgeTransform.Rotation = 0;
+            RatingThanksHalo.Opacity = 0.9;
+            return;
+        }
+
+        var storyboard = new Storyboard();
+        AddAnimation(storyboard, RatingThanksScrim, "Opacity", 1, 220, 0, new CubicEase { EasingMode = EasingMode.EaseOut });
+        AddAnimation(storyboard, RatingThanksHalo, "Opacity", 0.9, 720, 180, new CubicEase { EasingMode = EasingMode.EaseOut });
+        AddAnimation(storyboard, RatingThanksCard, "Opacity", 1, 320, 40, new CubicEase { EasingMode = EasingMode.EaseOut });
+        AddAnimation(storyboard, RatingThanksCardTransform, "ScaleX", 1, 520, 40, new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.35 });
+        AddAnimation(storyboard, RatingThanksCardTransform, "ScaleY", 1, 520, 40, new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.35 });
+        AddAnimation(storyboard, RatingThanksCardTransform, "TranslateY", 0, 520, 40, new CubicEase { EasingMode = EasingMode.EaseOut });
+        AddAnimation(storyboard, RatingThanksBadgeTransform, "ScaleX", 1, 640, 140, new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.5 });
+        AddAnimation(storyboard, RatingThanksBadgeTransform, "ScaleY", 1, 640, 140, new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.5 });
+        AddAnimation(storyboard, RatingThanksBadgeTransform, "Rotation", 0, 760, 140, new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.3 });
+        AddShockwave(storyboard, RatingThanksRing1, RatingThanksRing1Transform, 0);
+        AddShockwave(storyboard, RatingThanksRing2, RatingThanksRing2Transform, 240);
+
+        storyboard.Begin();
+        _ratingThanksStoryboards.Add(storyboard);
+    }
+
+    private static void AddShockwave(Storyboard storyboard, UIElement ring, CompositeTransform transform, double beginMs)
+    {
+        var opacity = new DoubleAnimationUsingKeyFrames
+        {
+            Duration = TimeSpan.FromMilliseconds(900),
+            BeginTime = TimeSpan.FromMilliseconds(beginMs)
+        };
+        opacity.KeyFrames.Add(new LinearDoubleKeyFrame { KeyTime = KeyTime.FromTimeSpan(TimeSpan.Zero), Value = 0 });
+        opacity.KeyFrames.Add(new LinearDoubleKeyFrame { KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(140)), Value = 0.85 });
+        opacity.KeyFrames.Add(new LinearDoubleKeyFrame { KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(900)), Value = 0 });
+        Storyboard.SetTarget(opacity, ring);
+        Storyboard.SetTargetProperty(opacity, "Opacity");
+        storyboard.Children.Add(opacity);
+
+        AddAnimation(storyboard, transform, "ScaleX", 1.75, 900, beginMs, new CubicEase { EasingMode = EasingMode.EaseOut });
+        AddAnimation(storyboard, transform, "ScaleY", 1.75, 900, beginMs, new CubicEase { EasingMode = EasingMode.EaseOut });
+    }
+
+    private void SpawnRatingSparkles()
+    {
+        RatingThanksParticleCanvas.Children.Clear();
+        if (FastModeService.IsFastModeEnabled()) return;
+
+        var badgeWidth = RatingThanksBadge.ActualWidth;
+        var badgeHeight = RatingThanksBadge.ActualHeight;
+        if (badgeWidth <= 0 || badgeHeight <= 0) return;
+
+        var canvas = RatingThanksParticleCanvas;
+        var origin = RatingThanksBadge.TransformToVisual(canvas).TransformPoint(new Point(badgeWidth / 2, badgeHeight / 2));
+
+        var random = new Random();
+        Color[] tints =
+        [
+            Color.FromArgb(255, 255, 214, 102),
+            Color.FromArgb(255, 255, 236, 179),
+            Color.FromArgb(255, 255, 179, 71),
+            Color.FromArgb(255, 255, 255, 255),
+        ];
+
+        const int count = 18;
+        for (var i = 0; i < count; i++)
+        {
+            var angle = 360.0 / count * i + random.Next(-11, 12);
+            var radians = angle * Math.PI / 180;
+            var distance = 116 + random.Next(0, 120);
+            var size = 4.5 + random.NextDouble() * 7;
+            var duration = 820 + random.Next(0, 420);
+            var delay = 120 + random.Next(0, 300);
+            var tint = new SolidColorBrush(tints[random.Next(tints.Length)]);
+
+            Shapes.Shape shape = i % 3 == 0
+                ? CreateSparkleStar(size, tint)
+                : new Shapes.Ellipse { Width = size * 1.7, Height = size * 1.7, Fill = tint };
+
+            var width = shape.Width;
+            var height = shape.Height;
+            var transform = new CompositeTransform { CenterX = width / 2, CenterY = height / 2 };
+            shape.RenderTransform = transform;
+            Canvas.SetLeft(shape, origin.X - width / 2);
+            Canvas.SetTop(shape, origin.Y - height / 2);
+            canvas.Children.Add(shape);
+
+            var storyboard = new Storyboard();
+            AddAnimation(storyboard, transform, "TranslateX", Math.Cos(radians) * distance, duration, delay, new CubicEase { EasingMode = EasingMode.EaseOut });
+            AddAnimation(storyboard, transform, "TranslateY", Math.Sin(radians) * distance + 30, duration, delay, new CubicEase { EasingMode = EasingMode.EaseOut });
+            AddAnimation(storyboard, transform, "Rotation", random.Next(-200, 201), duration, delay, new CubicEase { EasingMode = EasingMode.EaseOut });
+
+            var scale = new DoubleAnimationUsingKeyFrames
+            {
+                Duration = TimeSpan.FromMilliseconds(duration),
+                BeginTime = TimeSpan.FromMilliseconds(delay)
+            };
+            scale.KeyFrames.Add(new LinearDoubleKeyFrame { KeyTime = KeyTime.FromTimeSpan(TimeSpan.Zero), Value = 0.2 });
+            scale.KeyFrames.Add(new LinearDoubleKeyFrame { KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(duration * 0.22)), Value = 1.1 });
+            scale.KeyFrames.Add(new LinearDoubleKeyFrame { KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(duration)), Value = 0.55 });
+            Storyboard.SetTarget(scale, transform);
+            Storyboard.SetTargetProperty(scale, "ScaleX");
+            storyboard.Children.Add(scale);
+
+            var scaleY = new DoubleAnimationUsingKeyFrames
+            {
+                Duration = TimeSpan.FromMilliseconds(duration),
+                BeginTime = TimeSpan.FromMilliseconds(delay)
+            };
+            scaleY.KeyFrames.Add(new LinearDoubleKeyFrame { KeyTime = KeyTime.FromTimeSpan(TimeSpan.Zero), Value = 0.2 });
+            scaleY.KeyFrames.Add(new LinearDoubleKeyFrame { KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(duration * 0.22)), Value = 1.1 });
+            scaleY.KeyFrames.Add(new LinearDoubleKeyFrame { KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(duration)), Value = 0.55 });
+            Storyboard.SetTarget(scaleY, transform);
+            Storyboard.SetTargetProperty(scaleY, "ScaleY");
+            storyboard.Children.Add(scaleY);
+
+            var opacity = new DoubleAnimationUsingKeyFrames
+            {
+                Duration = TimeSpan.FromMilliseconds(duration),
+                BeginTime = TimeSpan.FromMilliseconds(delay)
+            };
+            opacity.KeyFrames.Add(new LinearDoubleKeyFrame { KeyTime = KeyTime.FromTimeSpan(TimeSpan.Zero), Value = 0 });
+            opacity.KeyFrames.Add(new LinearDoubleKeyFrame { KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(duration * 0.18)), Value = 1 });
+            opacity.KeyFrames.Add(new LinearDoubleKeyFrame { KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(duration * 0.62)), Value = 1 });
+            opacity.KeyFrames.Add(new LinearDoubleKeyFrame { KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(duration)), Value = 0 });
+            Storyboard.SetTarget(opacity, shape);
+            Storyboard.SetTargetProperty(opacity, "Opacity");
+            storyboard.Children.Add(opacity);
+
+            storyboard.Begin();
+            _ratingThanksStoryboards.Add(storyboard);
+        }
+    }
+
+    private static Shapes.Polygon CreateSparkleStar(double size, Brush fill)
+    {
+        var points = new PointCollection
+        {
+            new Point(size, 0),
+            new Point(size * 1.3, size * 0.7),
+            new Point(size * 2, size),
+            new Point(size * 1.3, size * 1.3),
+            new Point(size, size * 2),
+            new Point(size * 0.7, size * 1.3),
+            new Point(0, size),
+            new Point(size * 0.7, size * 0.7),
+        };
+
+        return new Shapes.Polygon { Points = points, Fill = fill, Width = size * 2, Height = size * 2 };
+    }
+
+    private static void AddAnimation(Storyboard storyboard, DependencyObject target, string property, double to, double durationMs, double beginMs, EasingFunctionBase? easing = null)
+    {
+        var animation = new DoubleAnimation
+        {
+            To = to,
+            Duration = TimeSpan.FromMilliseconds(durationMs),
+            BeginTime = TimeSpan.FromMilliseconds(beginMs)
+        };
+
+        if (easing is not null) animation.EasingFunction = easing;
+
+        Storyboard.SetTarget(animation, target);
+        Storyboard.SetTargetProperty(animation, property);
+        storyboard.Children.Add(animation);
     }
 
     private void OpenSourceButton_Click(object sender, RoutedEventArgs e)
