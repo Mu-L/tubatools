@@ -115,6 +115,9 @@ public sealed partial class GameMonitorRecordsPage : Page
             SetupRange(0);
             ShowEmpty("\uE7C3", "还没有记录文件。\n先在「游戏监控」页勾选指标并录制一段，保存后回到这里即可查看。");
             TxtStatus.Text = "未找到记录文件";
+            // 遮罩在 XAML 里默认可见，只有 LoadFile 的 finally 会收起；
+            // 空目录不会走 LoadFile，不在这里关闭就会永远停在「正在解析…」
+            LoadingOverlay.Visibility = Visibility.Collapsed;
             return;
         }
 
