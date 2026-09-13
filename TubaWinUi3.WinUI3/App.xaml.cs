@@ -482,14 +482,23 @@ public partial class App : Application
 
             MainWindow.DispatcherQueue.TryEnqueue(async () =>
             {
-                if (MainWindow?.Content is not FrameworkElement root) return;
-                var dialog = new ToolsBundleDownloadDialog
+                try
                 {
-                    XamlRoot = root.XamlRoot,
-                    RequestedTheme = ThemeService.CurrentElementTheme
-                };
-                dialog.SetDescription("发现工具包新版本，建议更新以获取最新工具。");
-                await dialog.ShowDownloadAsync(info);
+                    if (MainWindow?.Content is not FrameworkElement root) return;
+                    var dialog = new ToolsBundleDownloadDialog
+                    {
+                        XamlRoot = root.XamlRoot,
+                        RequestedTheme = ThemeService.CurrentElementTheme
+                    };
+                    dialog.SetDescription("发现工具包新版本，建议更新以获取最新工具。");
+                    // ShowDownloadAsync 内部会等已有对话框关闭（如刚弹过的「下载完成」提示）；
+                    // 这里再兜一层异常，保证静默检查的 async 回调永远不会把异常抛到全局。
+                    await dialog.ShowDownloadAsync(info);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[ToolsBundle] Silent update dialog failed: {ex.Message}");
+                }
             });
         }
         catch (Exception ex)

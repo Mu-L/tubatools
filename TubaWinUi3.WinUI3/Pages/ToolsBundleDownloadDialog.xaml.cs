@@ -8,6 +8,9 @@ namespace TubaWinUi3.Pages;
 
 public sealed partial class ToolsBundleDownloadDialog : ContentDialog
 {
+    // 等已有对话框关闭的最长时间：超时放弃展示（静默流程不打扰用户，也不会崩）。
+    private static readonly TimeSpan ShowTimeout = TimeSpan.FromSeconds(30);
+
     private ToolsBundleUpdateInfo? _updateInfo;
     private bool _isBusy;
     private bool _selectedLite;
@@ -41,7 +44,10 @@ public sealed partial class ToolsBundleDownloadDialog : ContentDialog
             _ = ResolveAndShowAsync();
         }
 
-        await ShowAsync();
+        // 已有对话框在展示时（如内核刚下载完的「下载完成」提示）等它关闭再弹：
+        // 并发 ShowAsync 会抛 COMException「只能有一个 ContentDialog」，静默流程下
+        // 该异常无人接管，会直接触发全局崩溃上报。
+        await ContentDialogGuard.ShowWhenIdleAsync(this, ShowTimeout);
     }
 
     private void ApplyInfo(ToolsBundleUpdateInfo info)
@@ -401,6 +407,8 @@ public sealed partial class ToolsBundleDownloadDialog : ContentDialog
         stack.Children.Add(border);
         dialog.Content = stack;
 
-        await dialog.ShowAsync();
+        // 本对话框刚 Hide()，或其他流程（静默内核更新提示）的对话框正在展示：
+        // 等空闲再弹，避免 ContentDialog 抢占抛 COMException 导致未处理异常。
+        await ContentDialogGuard.ShowWhenIdleAsync(dialog, ShowTimeout);
     }
 }
