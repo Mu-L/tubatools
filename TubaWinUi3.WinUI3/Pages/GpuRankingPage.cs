@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 
@@ -19,6 +20,12 @@ public sealed partial class GpuRankingPage : Page
     private bool _isRefreshing;
     private double _lastScrollOffset;
     private bool _navCollapsed;
+    private bool _suppressNavToggle;
+    private bool _suppressFilterEvents;
+    private GpuRankingEntry? _locateTarget;
+    private AutoSuggestBox _searchBox = null!;
+    private StackPanel _brandStack = null!;
+    private ComboBox _sortCombo = null!;
 
     private static readonly Color Gold = Color.FromArgb(255, 255, 215, 0);
     private readonly Color Silver = Color.FromArgb(255, 192, 192, 192);
@@ -232,36 +239,38 @@ public sealed partial class GpuRankingPage : Page
         grid.Children.Add(catToggle);
         Grid.SetColumn(catToggle, 0);
 
-        var brandBar = BuildBrandFilter();
-        grid.Children.Add(brandBar);
-        Grid.SetColumn(brandBar, 1);
+        _brandStack = BuildBrandFilter();
+        grid.Children.Add(_brandStack);
+        Grid.SetColumn(_brandStack, 1);
 
-        var searchBox = new AutoSuggestBox
+        _searchBox = new AutoSuggestBox
         {
             PlaceholderText = "搜索 GPU 名称...",
             QueryIcon = new SymbolIcon(Symbol.Find),
             MinWidth = 200
         };
-        searchBox.TextChanged += (s, e) =>
+        _searchBox.TextChanged += (s, e) =>
         {
-            _keyword = searchBox.Text;
+            if (_suppressFilterEvents) return;
+            _keyword = _searchBox.Text;
             RefreshList();
         };
-        grid.Children.Add(searchBox);
-        Grid.SetColumn(searchBox, 2);
+        grid.Children.Add(_searchBox);
+        Grid.SetColumn(_searchBox, 2);
 
-        var sortCombo = new ComboBox
+        _sortCombo = new ComboBox
         {
             MinWidth = 120,
             SelectedIndex = 0,
             Header = null
         };
-        sortCombo.Items.Add("TFLOPS");
-        sortCombo.Items.Add("评分");
-        sortCombo.Items.Add("排名顺序");
-        sortCombo.SelectionChanged += (s, e) =>
+        _sortCombo.Items.Add("TFLOPS");
+        _sortCombo.Items.Add("评分");
+        _sortCombo.Items.Add("排名顺序");
+        _sortCombo.SelectionChanged += (s, e) =>
         {
-            _sortBy = sortCombo.SelectedIndex switch
+            if (_suppressFilterEvents) return;
+            _sortBy = _sortCombo.SelectedIndex switch
             {
                 0 => "tflops",
                 1 => "rating",
@@ -269,8 +278,8 @@ public sealed partial class GpuRankingPage : Page
             };
             RefreshList();
         };
-        grid.Children.Add(sortCombo);
-        Grid.SetColumn(sortCombo, 3);
+        grid.Children.Add(_sortCombo);
+        Grid.SetColumn(_sortCombo, 3);
 
         return grid;
     }
@@ -525,7 +534,7 @@ public sealed partial class GpuRankingPage : Page
         headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(100) });
 
         AddHeader(headerGrid, "", 0);
-        AddHeader(headerGrid, "#", 1);
+        AddHeader(headerGrid, "排名", 1);
         AddHeader(headerGrid, "GPU", 2);
         AddHeader(headerGrid, "TFLOPS", 3);
         AddHeader(headerGrid, "显存", 4);
@@ -571,6 +580,13 @@ public sealed partial class GpuRankingPage : Page
 
         var currentOffset = _listScroll.VerticalOffset;
         var threshold = 30;
+
+        if (_suppressNavToggle)
+        {
+            _lastScrollOffset = currentOffset;
+            if (!e.IsIntermediate) _suppressNavToggle = false;
+            return;
+        }
 
         if (!_navCollapsed && currentOffset > _lastScrollOffset + threshold && currentOffset > 60)
         {
@@ -629,14 +645,71 @@ public sealed partial class GpuRankingPage : Page
 
         _listContainer.Children.Clear();
 
+        Border? locateRow = null;
         var displayRank = 0;
         foreach (var entry in entries)
         {
             displayRank++;
-            _listContainer.Children.Add(CreateRow(entry, displayRank));
+            var row = CreateRow(entry, entry.Rank > 0 ? entry.Rank : displayRank);
+            if (_locateTarget is not null && ReferenceEquals(entry, _locateTarget))
+                locateRow = row;
+            _listContainer.Children.Add(row);
         }
 
         RefreshStats(entries);
+
+        if (_locateTarget is not null)
+        {
+            _locateTarget = null;
+            if (locateRow is not null) _ = BringRowIntoViewAsync(locateRow);
+        }
+    }
+
+    private void OnRowTapped(object sender, TappedRoutedEventArgs e)
+    {
+        if (sender is Border { Tag: GpuRankingEntry entry })
+            LocateInFullRanking(entry);
+    }
+
+    private void LocateInFullRanking(GpuRankingEntry entry)
+    {
+        ExpandNav();
+
+        _locateTarget = entry;
+        _suppressFilterEvents = true;
+        _keyword = "";
+        _searchBox.Text = "";
+        _brand = "全部";
+        UpdateBrandButtons(_brandStack, "全部");
+        _sortBy = "rank";
+        _sortCombo.SelectedIndex = 2;
+        _suppressFilterEvents = false;
+
+        RefreshList();
+
+        _infoBar.Title = "已定位";
+        _infoBar.Message = entry.Rank > 0
+            ? $"{entry.Name} · 完整排名第 {entry.Rank} 名"
+            : entry.Name;
+        _infoBar.Severity = InfoBarSeverity.Informational;
+        _infoBar.IsOpen = true;
+    }
+
+    private async Task BringRowIntoViewAsync(Border row)
+    {
+        _suppressNavToggle = true;
+        _listScroll.UpdateLayout();
+        row.StartBringIntoView(new BringIntoViewOptions
+        {
+            AnimationDesired = true,
+            VerticalAlignmentRatio = 0.5
+        });
+
+        await Task.Delay(600);
+        _suppressNavToggle = false;
+
+        if (_listContainer.Children.Contains(row))
+            SearchHighlightService.HighlightBorder(row);
     }
 
     private void RefreshStats(List<GpuRankingEntry> filtered)
@@ -666,14 +739,14 @@ public sealed partial class GpuRankingPage : Page
         }
     }
 
-    private Border CreateRow(GpuRankingEntry entry, int displayRank)
+    private Border CreateRow(GpuRankingEntry entry, int rank)
     {
-        var rankColor = displayRank <= 3 ? (displayRank == 1 ? Gold : displayRank == 2 ? Silver : Bronze) : ThemeColors.DimText;
+        var rankColor = rank <= 3 ? (rank == 1 ? Gold : rank == 2 ? Silver : Bronze) : ThemeColors.DimText;
         var brandColor = GetBrandColor(entry.Brand);
         var brandLogo = GetBrandLogo(entry.Brand);
 
         FrameworkElement rankBadge;
-        if (displayRank <= 3)
+        if (rank <= 3)
         {
             rankBadge = new Border
             {
@@ -682,7 +755,7 @@ public sealed partial class GpuRankingPage : Page
                 Background = new SolidColorBrush(Color.FromArgb(40, rankColor.R, rankColor.G, rankColor.B)),
                 Child = new TextBlock
                 {
-                    Text = displayRank.ToString(), FontSize = 14, FontWeight = Microsoft.UI.Text.FontWeights.Bold,
+                    Text = rank.ToString(), FontSize = 14, FontWeight = Microsoft.UI.Text.FontWeights.Bold,
                     Foreground = new SolidColorBrush(rankColor),
                     HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center
                 }
@@ -692,7 +765,7 @@ public sealed partial class GpuRankingPage : Page
         {
             rankBadge = new TextBlock
             {
-                Text = displayRank.ToString(), FontSize = 13, Foreground = new SolidColorBrush(ThemeColors.DimText),
+                Text = rank.ToString(), FontSize = 13, Foreground = new SolidColorBrush(ThemeColors.DimText),
                 HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Width = 32
             };
         }
@@ -769,14 +842,22 @@ public sealed partial class GpuRankingPage : Page
         rowGrid.Children.Add(tflopsText); Grid.SetColumn(tflopsText, 3);
         rowGrid.Children.Add(vramText); Grid.SetColumn(vramText, 4);
 
-        return new Border
+        var row = new Border
         {
             Padding = new Thickness(14, 8, 14, 8),
             Background = new SolidColorBrush(ThemeColors.CardBg),
             BorderBrush = new SolidColorBrush(ThemeColors.BorderColor),
             BorderThickness = new Thickness(0, 0, 0, 1),
-            Child = rowGrid
+            Child = rowGrid,
+            Tag = entry
         };
+
+        ToolTipService.SetToolTip(row, "点击在完整排名中定位");
+        row.Tapped += OnRowTapped;
+        row.PointerEntered += (s, e) => row.Background = new SolidColorBrush(ThemeColors.RowHover);
+        row.PointerExited += (s, e) => row.Background = new SolidColorBrush(ThemeColors.CardBg);
+
+        return row;
     }
 
 }
