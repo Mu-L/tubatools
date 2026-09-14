@@ -85,6 +85,19 @@ dotnet test --filter "FullyQualifiedName~ToolCatalogTests"        # one class / 
 - 图片→MP4/WebM 借用 FFmpeg（`BuildImageVideoArgs`：静态图 -loop 1 + 时长，GIF 直接转码）；OCR/ZIP/合并/拆分等非普通目标是 `ConvertSpecial`，由页面专门调度。
 - Win32 拖放复用 `Win32DropHelper`（管理员 UIPI 绕过）；文件多选用 `Win32Dialogs.PickOpenMultiple`。
 
+### 游戏联机助手（GameTunnelPage）— Tailscale 内网穿透联机
+
+- 「游戏联机助手」内置工具（id `game-tunnel`）= `Pages/GameTunnel/GameTunnelPage.xaml`：一个主页 + 全套弹窗（环境准备向导 / 开房向导 / 加入向导 / 邀请面板 / 教程 / 网络检测）。主页只回答「现在能不能玩、点哪里」，细节全部收进弹窗与分步向导里。
+- **通道选择**：用 Tailscale 而不是 HTTP 隧道——它是 L3 虚拟局域网，**TCP/UDP 游戏都支持**，不需要公网 IP、不用改路由器、也不用域名。代价是朋友的机器也要装一次客户端（脚本会自动装）。
+- 关键文件（均在 `TubaWinUi3.WinUI3/`）：`Services/GameTunnel/TailscaleService.cs`（安装/登录/状态/**Health 中文释义**/netcheck/ping/防火墙）、`TailscaleCli.cs`（进程调用，「无输出/超时/取消」都归一成 `CliResult`）、`TailscaleApiService.cs`（API 令牌 → 自动生成邀请密钥、设备列表）、`GameTunnelInvite.cs`（邀请码 + 朋友端 .cmd）、`GameTunnelCatalog.cs`（档案 + JSON 存储）、`GameTunnelProbe.cs`（端口占用探测）、`Controls/GameTunnelInvitePanel.xaml`（邀请面板，开房向导与「再邀请」共用）。
+- **邀请模型**：邀请码 `TBG1:{Base64Url(JSON)}`（房主地址+端口+游戏名+短期 auth key），同时兼容「整段邀请文字」和手输 `100.x.x.x:端口`；朋友端脚本自动提权 → 下载 MSI（`tailscale-setup-latest-<arch>.msi`，官方 302 到当前版本）→ `msiexec /qn TS_NOLAUNCH=1` → `tailscale up --auth-key=… --accept-dns=false --unattended` → 轮询 `ip -4` → `ping` 测连通。脚本落盘用 **GBK 无 BOM 且不能 chcp**（中文 cmd 的批处理读取编码）。
+- **邀请密钥**：优先用 API 令牌自动生成（`POST /api/v2/tailnet/-/keys`，2 小时有效、reusable+preauthorized），没配令牌则就地引导手动创建；同一房间 10 分钟内复用同一把密钥，避免反复生成把朋友手里的邀请码作废。
+- **加入侧不要求先登录自己的账号**：邀请带密钥时由加入向导直接装客户端 + 用密钥入网（一次授权搞定）；若对方已能 `tailscale ping` 通房主则完全不碰登录状态；需要切换账号时先在弹窗内就地确认（ContentDialog 不能再嵌套 ContentDialog）。
+- **防火墙**：`New-NetFirewallRule … -InterfaceAlias 'Tailscale'`，只在 Tailscale 虚拟网卡上放行，规则名统一 `图吧工具箱·游戏联机 <协议> <端口>`，可在网络检测里一键清理。应用自身已提权，所以这一步不需要再弹 UAC。
+- 端口校验用 `IPGlobalProperties.GetActiveTcpListeners/GetActiveUdpListeners` 判断游戏是否真的开好了（无副作用），配合「游戏正在监听端口」徽标提示房主。
+- 数据落盘 `DataDir/GameTunnel/`：`custom_games.json`、`records.json`（最近联机）、`settings.json`（API 令牌）、`Scripts/`（生成的加入脚本）。无常驻子进程，应用退出**不需要**清理。
+- 测试：`TubaWinUi3.Tests/GameTunnelTests.cs`（103 项，覆盖真实 `status --json` / `netcheck` 输出解析、Health 分级、邀请码往返、脚本内容与 GBK 编码、档案与存储）。
+
 ### Windows 镜像下载（WindowsImagePage）— UUP Dump JSON API 管线
 - 「UUP Dump」标签页是**三步向导**（选版本 → 选语言/版本 → 下载转 ISO），数据全部来自官方 JSON API（`https://api.uupdump.net`，仓库 uup-dump/json-api）。`UupDumpService` 内的解析方法（`ParseBuildsJson` 等）为 internal，单测在 `UupDumpApiTests`。
 - **不再抓取 HTML 页面**（旧版对 selectlang/selectedition/known.php 的正则解析已删除）；`fetchupd.php` 未用（实测 Retail 渠道恒返 NO_UPDATE_FOUND 且限流严格），构建列表只用 `listid.php`（无限流）。API 限流规则：同 IP 切换不同资源 10 秒 1 次、同资源 1 秒 1 次；`get.php` 的 `noLinks=1` 不限流（用于大小预览）。

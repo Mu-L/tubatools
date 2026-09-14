@@ -1675,6 +1675,13 @@
       ]
     },
     {
+      "match": "游戏联机助手",
+      "builtin": "game-tunnel",
+      "categories": [
+        "其他工具"
+      ]
+    },
+    {
       "match": "核间延迟查询",
       "builtin": "latency-image-query",
       "categories": [
