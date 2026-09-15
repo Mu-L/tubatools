@@ -95,6 +95,13 @@
                                 </Border>
                             </StackPanel>
                             <TextBlock x:Name="PeerLine" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" TextWrapping="Wrap" Visibility="Collapsed" />
+                            <TextBlock
+                                x:Name="TrayHint"
+                                FontSize="11"
+                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                TextWrapping="Wrap"
+                                Visibility="Collapsed"
+                                Text="想关掉联机时：右键系统托盘（任务栏右下角）的 Tailscale 图标选 Disconnect；要从后台彻底退出就选 Exit。" />
                         </StackPanel>
 
                         <Button
@@ -114,14 +121,6 @@
                 </Border>
 
                 <InfoBar x:Name="HealthBar" IsOpen="False" IsClosable="True" Severity="Warning" />
-
-                <InfoBar
-                    x:Name="BroadcastHint"
-                    IsOpen="False"
-                    IsClosable="False"
-                    Severity="Informational"
-                    Title="游戏里不会自动出现房间"
-                    Message="Tailscale 是三层虚拟网络，只转发点对点的数据，不转发游戏发出的局域网广播（组播）——所以游戏扫描不到对方的大厅。照旧在游戏里选「直接连接 / 通过 IP 加入」，填上面的地址 + 端口（端口见下面的游戏卡）。少数走平台好友邀请的游戏（如 Steam）不受影响。" />
 
                 <!-- ═════════ 和朋友连起来 ═════════ -->
                 <Grid ColumnSpacing="14">
@@ -154,6 +153,20 @@
                                 Text="选一个游戏 → 把邀请码发给朋友 → 他进的是同一个虚拟局域网，并拿到你的联机地址。端口和游戏里的操作都会自动准备好。" />
                             <Button x:Name="StartHostButton" Click="StartHost_Click" Style="{StaticResource AccentButtonStyle}" CornerRadius="8" Padding="0,8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
                                 <TextBlock FontSize="13" FontWeight="SemiBold" Text="选择游戏并邀请" />
+                            </Button>
+                            <Button
+                                x:Name="CurrentInviteButton"
+                                Click="ShowCurrentInvite_Click"
+                                CornerRadius="8"
+                                Padding="0,7"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"
+                                Visibility="Collapsed">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon x:Name="CurrentInviteIcon" FontSize="12" Glyph="&#xE8F1;" />
+                                    <ProgressRing x:Name="CurrentInviteRing" Width="12" Height="12" IsActive="False" Visibility="Collapsed" />
+                                    <TextBlock x:Name="CurrentInviteText" FontSize="12" Text="查看当前邀请信息" />
+                                </StackPanel>
                             </Button>
                         </StackPanel>
                     </Border>
@@ -259,68 +272,6 @@
                     </ScrollViewer>
                 </StackPanel>
 
-                <!-- ═════════ 最近联机 ═════════ -->
-                <StackPanel x:Name="RecentSection" Spacing="8" Visibility="Collapsed">
-                    <Grid>
-                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <Border Width="3" Height="15" CornerRadius="2" Background="#5B8DEF" VerticalAlignment="Center" />
-                            <TextBlock FontSize="15" FontWeight="SemiBold" Text="最近联机" />
-                        </StackPanel>
-                        <Button x:Name="ClearRecentButton" Click="ClearRecent_Click" HorizontalAlignment="Right" Padding="10,4" CornerRadius="7" Background="Transparent" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
-                            <TextBlock FontSize="12" Text="清空" />
-                        </Button>
-                    </Grid>
-
-                    <ItemsControl x:Name="RecentList">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="local:TunnelRecordRow">
-                                <Border
-                                    Margin="0,0,0,8"
-                                    Padding="14,11"
-                                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                                    BorderThickness="1"
-                                    CornerRadius="12">
-                                    <Grid ColumnSpacing="12">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-
-                                        <Border Width="36" Height="36" CornerRadius="10" Background="{ThemeResource SubtleFillColorSecondaryBrush}" VerticalAlignment="Center">
-                                            <FontIcon FontSize="16" Glyph="{x:Bind Glyph}" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                        </Border>
-
-                                        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                                <TextBlock FontSize="14" FontWeight="SemiBold" Text="{x:Bind GameName}" TextTrimming="CharacterEllipsis" />
-                                                <Border Padding="6,1" Background="{ThemeResource SubtleFillColorSecondaryBrush}" CornerRadius="6" VerticalAlignment="Center">
-                                                    <TextBlock FontSize="10" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="{x:Bind RoleText}" />
-                                                </Border>
-                                            </StackPanel>
-                                            <TextBlock FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontFamily="Consolas" Text="{x:Bind Address}" IsTextSelectionEnabled="True" />
-                                            <TextBlock FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Text="{x:Bind DetailText}" />
-                                        </StackPanel>
-
-                                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                            <Button Click="RecentCopy_Click" Tag="{x:Bind Self}" Padding="10,5" CornerRadius="7">
-                                                <TextBlock FontSize="12" Text="复制地址" />
-                                            </Button>
-                                            <Button Click="RecentInvite_Click" Tag="{x:Bind Self}" Visibility="{x:Bind InviteVisibility}" Padding="10,5" CornerRadius="7">
-                                                <TextBlock FontSize="12" Text="再邀请" />
-                                            </Button>
-                                            <Button Click="RecentDelete_Click" Tag="{x:Bind Self}" Padding="10,5" CornerRadius="7" Background="Transparent" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
-                                                <FontIcon FontSize="11" Glyph="&#xE74D;" />
-                                            </Button>
-                                        </StackPanel>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-
                 <!-- ═════════ 原理与说明 ═════════ -->
                 <Border
                     Padding="16,13"
@@ -337,7 +288,7 @@
                             LineHeight="19">
                             <Run Text="· Tailscale 把两台电脑接进同一个虚拟局域网：每台有一个 100 开头的固定地址，TCP / UDP 游戏都能跑，不用公网 IP、不用改路由器。" />
                             <LineBreak />
-                            <Run Text="· 这个虚拟网络是「三层」的：只转发点对点的数据，不转发游戏发出的局域网广播（组播）——所以游戏里不会自动冒出对方的房间，要在游戏里选「直接连接 / 通过 IP 加入」，填地址和端口。" />
+                            <Run Text="· 这个虚拟网络是「三层」的：局域网组播和子网广播跨不过去，所以能不能自动刷出对方的房间取决于游戏怎么找主机——刷不出来时，在游戏里选「直接连接 / 通过 IP 加入」填地址和端口，这一步任何游戏都有效。" />
                             <LineBreak />
                             <Run Text="· 打洞成功时是点对点直连（延迟接近直连），打洞失败会自动走加密中继，能玩但延迟略高——想看自己属于哪种，点右上角「网络检测」。" />
                             <LineBreak />

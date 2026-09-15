@@ -30,7 +30,6 @@ public sealed partial class GameTunnelJoinDialog : ContentDialog
 
     public async Task<bool> RunAsync()
     {
-        LoadRecentRooms();
         await TryFillFromClipboardAsync();
         UpdateChrome();
         await ShowAsync();
@@ -38,19 +37,6 @@ public sealed partial class GameTunnelJoinDialog : ContentDialog
     }
 
     // ══════════════════ 第 1 步：输入 ══════════════════
-
-    private void LoadRecentRooms()
-    {
-        var addresses = GameTunnelCatalog.LoadRecords()
-            .Where(r => r.Role == "guest" && !string.IsNullOrWhiteSpace(r.Address))
-            .Take(3)
-            .Select(r => r.Address!)
-            .Distinct()
-            .ToList();
-
-        RecentList.ItemsSource = addresses;
-        RecentList.Visibility = addresses.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-    }
 
     /// <summary>剪贴板里正好是邀请码时自动填入——用户从聊天软件复制后直接就能下一步。</summary>
     private async Task TryFillFromClipboardAsync()
@@ -82,14 +68,6 @@ public sealed partial class GameTunnelJoinDialog : ContentDialog
         catch
         {
             ShowStatus(InfoBarSeverity.Error, "读不到剪贴板内容，请手动粘贴");
-        }
-    }
-
-    private void RecentRoom_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is Button { Content: string address })
-        {
-            InviteBox.Text = address;
         }
     }
 
@@ -274,17 +252,6 @@ public sealed partial class GameTunnelJoinDialog : ContentDialog
 
             EnterStep3(ping);
 
-            GameTunnelCatalog.UpsertRecord(new TunnelRecord
-            {
-                GameId = ResolveGameId(_invite.Game),
-                GameName = string.IsNullOrWhiteSpace(_invite.Game) ? "未命名游戏" : _invite.Game,
-                Role = "guest",
-                Address = _invite.Address,
-                Port = _invite.Port,
-                Protocol = _invite.Protocol,
-                LastUsedUtc = DateTimeOffset.UtcNow
-            });
-
             _connected = true;
         }
         catch (OperationCanceledException)
@@ -299,13 +266,6 @@ public sealed partial class GameTunnelJoinDialog : ContentDialog
         {
             SetBusy(false, null);
         }
-    }
-
-    private static string ResolveGameId(string? gameName)
-    {
-        if (string.IsNullOrWhiteSpace(gameName)) return "manual";
-        var preset = GameTunnelCatalog.Presets.FirstOrDefault(p => p.Name == gameName);
-        return preset?.Id ?? "manual";
     }
 
     private void ShowSwitchWarning(TailscaleStatus status)

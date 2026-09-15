@@ -24,7 +24,6 @@ public static class GameTunnelCatalog
     }
 
     private static string CustomGamesPath => Path.Combine(DataDir, "custom_games.json");
-    private static string RecordsPath => Path.Combine(DataDir, "records.json");
     private static string SettingsPath => Path.Combine(DataDir, "settings.json");
     private static string ScriptsDir => Path.Combine(DataDir, "Scripts");
 
@@ -340,60 +339,13 @@ public static class GameTunnelCatalog
 
     public static string NewCustomGameId() => "custom-" + Guid.NewGuid().ToString("N")[..8];
 
-    // ══════════════════════ 联机记录 ══════════════════════
+    // ══════════════════════ 本次联机 ══════════════════════
 
-    public static List<TunnelRecord> LoadRecords()
-    {
-        try
-        {
-            if (!File.Exists(RecordsPath)) return [];
-            var list = JsonSerializer.Deserialize<List<TunnelRecord>>(File.ReadAllText(RecordsPath)) ?? [];
-            return list.OrderByDescending(r => r.LastUsedUtc).ToList();
-        }
-        catch
-        {
-            return [];
-        }
-    }
-
-    /// <summary>同一「游戏 + 角色」只保留最近一条。</summary>
-    public static void UpsertRecord(TunnelRecord record)
-    {
-        try
-        {
-            var list = LoadRecords();
-            list.RemoveAll(r => r.GameId == record.GameId && r.Role == record.Role);
-            list.Insert(0, record);
-            File.WriteAllText(RecordsPath, JsonSerializer.Serialize(list.Take(12).ToList(), JsonOptions));
-        }
-        catch
-        {
-        }
-    }
-
-    public static void RemoveRecord(string gameId, string role)
-    {
-        try
-        {
-            var list = LoadRecords();
-            list.RemoveAll(r => r.GameId == gameId && r.Role == role);
-            File.WriteAllText(RecordsPath, JsonSerializer.Serialize(list, JsonOptions));
-        }
-        catch
-        {
-        }
-    }
-
-    public static void ClearRecords()
-    {
-        try
-        {
-            if (File.Exists(RecordsPath)) File.Delete(RecordsPath);
-        }
-        catch
-        {
-        }
-    }
+    /// <summary>
+    /// 本次运行里最近一次建好的联机信息——主页「查看当前邀请」用它直接回到邀请那一步。
+    /// 不落盘：邀请密钥两小时就过期，重启后重新生成比翻出旧的更靠谱。
+    /// </summary>
+    public static InviteInfo? CurrentInvite { get; set; }
 
     // ══════════════════════ 设置 ══════════════════════
 

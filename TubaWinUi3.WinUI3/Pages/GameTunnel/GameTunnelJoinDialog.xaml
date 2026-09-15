@@ -77,27 +77,6 @@
                         <TextBlock x:Name="PreviewNote" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
-
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                    <TextBlock FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="最近加入过：" VerticalAlignment="Center" />
-                    <ItemsControl x:Name="RecentList">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <StackPanel Orientation="Horizontal" Spacing="6" />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Button
-                                    Padding="10,4"
-                                    Click="RecentRoom_Click"
-                                    Content="{Binding}"
-                                    CornerRadius="12"
-                                    FontSize="12" />
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
             </StackPanel>
 
             <!-- ══════════ 第 2 步：连接 ══════════ -->

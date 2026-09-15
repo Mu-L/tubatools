@@ -49,13 +49,20 @@ public sealed class GameTunnelDiagnosticsDialog
 
         _body.Children.Add(_ring);
 
-        var lastHost = GameTunnelCatalog.LoadRecords().FirstOrDefault(r => r.Role == "host" && !string.IsNullOrWhiteSpace(r.Address));
-        if (lastHost is not null) _pingTargetBox.Text = lastHost.Address.Split(':')[0];
-
         _dialog.Opened += async (_, _) => await LoadAsync();
     }
 
     public Task<ContentDialogResult> ShowAsync() => _dialog.ShowAsync().AsTask();
+
+    /// <summary>用虚拟网络里第一台有地址的设备预填测试目标——省得用户去别处抄地址。</summary>
+    private void FillPingTargetFromPeers(IReadOnlyList<TailscalePeer> peers)
+    {
+        if (_pingTargetBox.Text.Length > 0) return;
+
+        var peer = peers.FirstOrDefault(p => p.Online && p.Ipv4 is { Length: > 0 })
+                   ?? peers.FirstOrDefault(p => p.Ipv4 is { Length: > 0 });
+        if (peer?.Ipv4 is { Length: > 0 } ip) _pingTargetBox.Text = ip;
+    }
 
     // ══════════════════ 数据加载 ══════════════════
 
@@ -77,7 +84,8 @@ public sealed class GameTunnelDiagnosticsDialog
             }
 
             var status = await TailscaleService.GetStatusAsync();
-            var peers = await TailscaleService.GetPeersAsync();
+            var peers = status?.Peers ?? [];
+            FillPingTargetFromPeers(peers);
 
             _body.Children.Clear();
             _body.Children.Add(BuildStatusSection(status));

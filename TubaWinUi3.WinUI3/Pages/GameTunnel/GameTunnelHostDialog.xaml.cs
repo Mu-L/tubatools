@@ -24,18 +24,22 @@ public sealed partial class GameTunnelHostDialog : ContentDialog
     /// <summary>主页点某张游戏卡进来时预选的游戏；null = 沿用上次选的那个。</summary>
     private readonly string? _initialPresetId;
 
+    /// <summary>主页点「查看当前邀请」进来：直接落到第 3 步，用同一份联机信息重建邀请面板。</summary>
+    private readonly bool _resumeInvite;
+
     /// <summary>关闭时是否已经拿到可用的邀请（主页据此显示「联机中」）。</summary>
     public bool InviteReady => _inviteReady;
 
     /// <summary>本次联机信息，供主页复用（再次邀请朋友时用）。</summary>
     public InviteInfo? Invite => _invite;
 
-    public GameTunnelHostDialog(XamlRoot xamlRoot, string? presetId = null)
+    public GameTunnelHostDialog(XamlRoot xamlRoot, string? presetId = null, bool resumeInvite = false)
     {
         InitializeComponent();
         XamlRoot = xamlRoot;
         RequestedTheme = ThemeService.CurrentElementTheme;
         _initialPresetId = presetId;
+        _resumeInvite = resumeInvite;
 
         // 邀请码没生成出来时必须说清楚「朋友现在还用不了」，
         // 否则用户会以为地址给出去了就能连（之前就是这样误导人的）
@@ -52,8 +56,44 @@ public sealed partial class GameTunnelHostDialog : ContentDialog
     public async Task<bool> RunAsync()
     {
         LoadGames();
+
+        // 「查看当前邀请」：先用现成的信息把第 3 步画出来（弹窗立刻可见），
+        // 读状态、放行防火墙、生成密钥这些慢动作放到后面异步补，不让用户干等。
+        if (_resumeInvite && GameTunnelCatalog.CurrentInvite is { } invite)
+        {
+            PortBox.Value = invite.Port;
+            PrefillStep3(invite);
+            _ = ResumeInviteAsync();
+        }
+
         await ShowAsync();
         return _inviteReady;
+    }
+
+    /// <summary>恢复时后台补齐防火墙与邀请密钥；失败就地提示，不打断已经显示出来的页面。</summary>
+    private async Task ResumeInviteAsync()
+    {
+        try
+        {
+            await StartInviteAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusText($"准备邀请信息失败：{ex.Message}");
+        }
+    }
+
+    /// <summary>用已有的联机信息直接画出第 3 步，不用再等一次状态查询。</summary>
+    private void PrefillStep3(InviteInfo invite)
+    {
+        RoomAddressText.Text = invite.Address;
+        UpdateInviteStatus(invite.HasAuthKey);
+        UpdateGuestSteps(invite.Host);
+        _step = 3;
+        Step1Panel.Visibility = Visibility.Collapsed;
+        Step2Panel.Visibility = Visibility.Collapsed;
+        Step3Panel.Visibility = Visibility.Visible;
+        UpdateStepChrome();
     }
 
     // ══════════════════ 第 1 步：游戏列表 ══════════════════
@@ -67,10 +107,13 @@ public sealed partial class GameTunnelHostDialog : ContentDialog
         GameGrid.ItemsSource = cards;
         _ = LoadLogosAsync(cards);
 
-        // 主页点进来的游戏优先，其次恢复上次选的那个
+        // 主页点进来的游戏优先，其次「查看当前邀请」时选回当初那个游戏，最后恢复上次选的
         var index = -1;
         if (_initialPresetId is { Length: > 0 } initialId)
             index = cards.FindIndex(c => c.Id == initialId);
+
+        if (index < 0 && _resumeInvite && GameTunnelCatalog.CurrentInvite?.Game is { Length: > 0 } gameName)
+            index = cards.FindIndex(c => c.Name == gameName);
 
         if (index < 0)
         {
@@ -360,6 +403,9 @@ public sealed partial class GameTunnelHostDialog : ContentDialog
                 HostName = status.HostName
             };
 
+            // 主页「查看当前邀请信息」靠它回到这一步（本次运行内有效）
+            GameTunnelCatalog.CurrentInvite = _invite;
+
             // 防火墙只放行 Tailscale 网卡，不影响局域网与公网暴露面
             var settings = GameTunnelCatalog.LoadSettings();
             if (settings.AutoFirewall)
@@ -390,17 +436,6 @@ public sealed partial class GameTunnelHostDialog : ContentDialog
             settings.LastPresetId = _selected.Id;
             settings.LastPort = port;
             GameTunnelCatalog.SaveSettings(settings);
-
-            GameTunnelCatalog.UpsertRecord(new TunnelRecord
-            {
-                GameId = _selected.Id,
-                GameName = game,
-                Role = "host",
-                Address = $"{ip}:{port}",
-                Port = port,
-                Protocol = protocol,
-                LastUsedUtc = DateTimeOffset.UtcNow
-            });
 
             _inviteReady = true;
         }

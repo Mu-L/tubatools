@@ -64,28 +64,6 @@ public sealed class CustomGame
     public string? Note { get; set; }
 }
 
-/// <summary>最近一次联机记录，用于主页快速重连。</summary>
-public sealed class TunnelRecord
-{
-    /// <summary>游戏档案 id（内置 id / custom-xxx / manual）。</summary>
-    public string GameId { get; set; } = "";
-
-    public string GameName { get; set; } = "";
-    public int Port { get; set; }
-    public GameTunnelProtocol Protocol { get; set; }
-
-    /// <summary>"host"（我开的房）或 "guest"（我加入的房）。</summary>
-    public string Role { get; set; } = "host";
-
-    /// <summary>房间地址（主机是本机 Tailscale IP，客人是对方 IP）。</summary>
-    public string? Address { get; set; }
-
-    /// <summary>客人侧保存的邀请码，便于再次加入。</summary>
-    public string? InviteCode { get; set; }
-
-    public DateTimeOffset LastUsedUtc { get; set; } = DateTimeOffset.UtcNow;
-}
-
 /// <summary>邀请码载荷：一段可以被复制到聊天软件里发出去的紧凑字符串。</summary>
 public sealed class InviteInfo
 {

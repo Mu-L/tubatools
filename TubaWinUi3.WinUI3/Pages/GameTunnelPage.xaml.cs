@@ -70,7 +70,7 @@ public sealed partial class GameTunnelPage : Page
             RenderStatus();
             RenderPeers();
             RenderHealth();
-            RenderRecent();
+            UpdateCurrentInviteButton();
             await EnsureGamesAsync();
         }
         catch
@@ -119,8 +119,8 @@ public sealed partial class GameTunnelPage : Page
     {
         var installed = TailscaleService.IsInstalled;
 
-        // 「不会自动扫描出房间」这条只在环境可用时才有意义，先收起来，就绪分支再打开
-        BroadcastHint.IsOpen = false;
+        // 只有联机环境可用时才提示「怎么关掉它」
+        TrayHint.Visibility = Visibility.Collapsed;
 
         if (!installed)
         {
@@ -153,10 +153,14 @@ public sealed partial class GameTunnelPage : Page
             PrepareButtonText.Text = "环境详情";
             AddressRow.Visibility = Visibility.Visible;
             MyAddressText.Text = _status.Ipv4;
-            BroadcastHint.IsOpen = true;
+            TrayHint.Visibility = Visibility.Visible;
 
-            var lastHost = GameTunnelCatalog.LoadRecords().FirstOrDefault(r => r.Role == "host");
-            var listening = lastHost is not null && GameTunnelProbe.Check(lastHost.Port, lastHost.Protocol).Listening;
+            // 「游戏正在监听端口」用上次选的游戏来判断（设置里就存着，不需要额外记录）
+            var settings = GameTunnelCatalog.LoadSettings();
+            var lastGame = GameTunnelCatalog.FindPreset(settings.LastPresetId);
+            var port = lastGame?.DefaultPort ?? settings.LastPort;
+            var protocol = lastGame?.Protocol ?? GameTunnelProtocol.Tcp;
+            var listening = port > 0 && GameTunnelProbe.Check(port, protocol).Listening;
             LiveBadge.Visibility = listening ? Visibility.Visible : Visibility.Collapsed;
             return;
         }
@@ -250,13 +254,6 @@ public sealed partial class GameTunnelPage : Page
         HealthBar.IsOpen = true;
     }
 
-    private void RenderRecent()
-    {
-        var records = GameTunnelCatalog.LoadRecords().Select(TunnelRecordRow.From).ToList();
-        RecentList.ItemsSource = records;
-        RecentSection.Visibility = records.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-    }
-
     // ══════════════════ 主按钮 ══════════════════
 
     private async void Prepare_Click(object sender, RoutedEventArgs e)
@@ -343,6 +340,44 @@ public sealed partial class GameTunnelPage : Page
         return await ShowSetupAsync();
     }
 
+    /// <summary>本次运行已经建过邀请时，露出「查看当前邀请信息」入口。</summary>
+    private void UpdateCurrentInviteButton()
+        => CurrentInviteButton.Visibility = GameTunnelCatalog.CurrentInvite is null ? Visibility.Collapsed : Visibility.Visible;
+
+    /// <summary>回到「我来当主机」的第 3 步：地址、邀请码、一键加入脚本都在那一页。</summary>
+    private async void ShowCurrentInvite_Click(object sender, RoutedEventArgs e)
+    {
+        if (GameTunnelCatalog.CurrentInvite is null) return;
+
+        SetCurrentInviteBusy(true);
+        try
+        {
+            if (!await EnsureReadyAsync()) return;
+
+            var dialog = new GameTunnelHostDialog(XamlRoot, presetId: null, resumeInvite: true);
+            await dialog.RunAsync();
+            await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            ShowError("打不开邀请信息", ex);
+        }
+        finally
+        {
+            SetCurrentInviteBusy(false);
+        }
+    }
+
+    /// <summary>准备邀请信息要读状态、放行防火墙、生成密钥，会卡一小会儿：按钮转圈并禁掉，避免连点。</summary>
+    private void SetCurrentInviteBusy(bool busy)
+    {
+        CurrentInviteButton.IsEnabled = !busy;
+        CurrentInviteRing.IsActive = busy;
+        CurrentInviteRing.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
+        CurrentInviteIcon.Visibility = busy ? Visibility.Collapsed : Visibility.Visible;
+        CurrentInviteText.Text = busy ? "正在准备邀请信息…" : "查看当前邀请信息";
+    }
+
     private async void Diagnostics_Click(object sender, RoutedEventArgs e)
     {
         try
@@ -367,91 +402,6 @@ public sealed partial class GameTunnelPage : Page
         catch (Exception ex)
         {
             ShowError("打不开教程", ex);
-        }
-    }
-
-    // ══════════════════ 最近联机 ══════════════════
-
-    private void RecentCopy_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is not Button { Tag: TunnelRecordRow row }) return;
-        CopyText(row.Address, "地址已复制");
-    }
-
-    private async void RecentInvite_Click(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            if (sender is not Button { Tag: TunnelRecordRow row }) return;
-            if (!GameTunnelInvite.IsValidAddress(row.Address)) return;
-
-            var info = new InviteInfo
-            {
-                Host = row.Address.Split(':')[0],
-                Port = row.Port,
-                Game = row.GameName,
-                Protocol = row.Protocol
-            };
-            await ShowInviteAsync(info);
-        }
-        catch (Exception ex)
-        {
-            ShowError("打不开邀请面板", ex);
-        }
-    }
-
-    private async Task ShowInviteAsync(InviteInfo info)
-    {
-        var panel = new Controls.GameTunnelInvitePanel();
-        var dialog = new ContentDialog
-        {
-            Title = "邀请朋友",
-            Content = new ScrollViewer
-            {
-                Content = panel,
-                MaxHeight = 470,
-                VerticalScrollBarVisibility = ScrollBarVisibility.Auto
-            },
-            CloseButtonText = "关闭",
-            XamlRoot = XamlRoot,
-            RequestedTheme = ThemeService.CurrentElementTheme
-        };
-
-        var init = panel.InitializeAsync(info);
-        await dialog.ShowAsync();
-        await init;
-    }
-
-    private void RecentDelete_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is not Button { Tag: TunnelRecordRow row }) return;
-        GameTunnelCatalog.RemoveRecord(row.GameId, row.Role);
-        RenderRecent();
-    }
-
-    private async void ClearRecent_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is not Button) return;
-
-        var dialog = new ContentDialog
-        {
-            Title = "清空最近联机记录？",
-            Content = new TextBlock
-            {
-                Text = "只会删除这里的记录，不会影响 Tailscale 与游戏本身。",
-                TextWrapping = TextWrapping.Wrap
-            },
-            PrimaryButtonText = "清空",
-            CloseButtonText = "取消",
-            DefaultButton = ContentDialogButton.Close,
-            XamlRoot = XamlRoot,
-            RequestedTheme = ThemeService.CurrentElementTheme
-        };
-
-        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
-        {
-            GameTunnelCatalog.ClearRecords();
-            RenderRecent();
         }
     }
 
