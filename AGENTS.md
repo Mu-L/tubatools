@@ -120,6 +120,15 @@ dotnet test --filter "FullyQualifiedName~ToolCatalogTests"        # one class / 
 - UI：条目按 `CategoryResolver`（LangSecRef → 分类，回退 Section → 其他应用程序）分组展示，逐条开关默认取 ini 的 `Default`；清理前有确认面板，含注册表项目黄色警示。旧硬编码分类 `JunkCleanerService` 与 AI 扫描 `AiJunkAnalyzerService` 已删除。
 - 测试：`Winapp2ParserTests`（解析/Key 模型/分类映射）。
 
+### 时间同步（TimeSyncPage）— w32tm / NTP 服务器切换
+- 「时间同步」内置工具（id `time-sync`，Issue #189 的需求）= `Pages/TimeSyncPage.xaml`，把「网络正常但时间不对」（证书告警、登录/购票失败、网页加载慢）做成三步：看状态 → 服务器测速 → 应用并校时。**只驱动 Windows 自带的 w32tm 与 Windows 时间服务，不装驱动、不常驻进程**。
+- 服务层在 `Services/TimeSync/`：`W32TimeCli.cs`（w32tm.exe/net.exe 进程封装 + 本地化输出解析，超时杀进程树、按 OEM 代码页读输出）、`TimeSyncProbe.cs`（RFC 5905 SNTP 客户端，UDP 123 客户端模式，θ=((T2−T1)+(T3−T4))/2，**正值 = 本机慢**，与 w32tm /stripchart 的符号一致）、`TimeSyncCatalog.cs`（8 组内置预设 + 对等列表拼装 + 地址校验 + `<DataDir>/TimeSync/settings.json`）、`TimeSyncService.cs`（状态读取 / 应用 / 校时 / 恢复默认 / 服务控制 / 一键修复 / 健康检查 / 诊断报告）。
+- 命令口径（全部来自 Microsoft Learn《Windows Time service tools and settings》）：应用服务器 = `w32tm /config /manualpeerlist:"host,0x8 …" /syncfromflags:manual /update` + `net stop/start w32time` + `w32tm /resync /rediscover`；恢复默认 = 域机器 `syncfromflags:domhier`、非域机器 `time.windows.com,0x9`；重置 = `/unregister` + `/register`。**不要用 `/resync /force`——官方文档里没有这个开关**（工单示例里的写法是错的）。
+- 对等列表标志位：`0x8` 客户端模式恒开；`0x1`（SpecialInterval）仅在用户选了固定同步频率时加（`0x9`）。同步频率选「系统自适应」= 去掉 0x1，**不写 SpecialPollInterval**（各版本出厂值并不一致，16384/1024/3600 都见过，改了等于发明配置）。
+- **读取状态一律以 /query /status 为主**：未提权时 `/query /source` 直接返回「拒绝访问 (0x80070005)」，而 /status 仍然可用且带「源:」一行（`ParseSourceFromStatus`，中英标签都认）；`/query /configuration` 同理只在需要诊断报告时读取。服务运行状态/启动类型走 WMI `Win32_Service`（值恒为英文，不受系统语言影响），失败退回注册表 `Start`/`DelayedAutostart`。
+- 注册表读写一律用 `RegistryView.Registry64` 显式打开（x86 构建下 `HKLM\SYSTEM\...` 会被重定向到 Wow6432Node，读不到真实配置）。
+- 测试：`TimeSyncTests`（预设完整性、对等列表与标志位、地址校验、注册表字符串反查、SNTP 报文与偏移数学、w32tm 中英文/真实机器输出解析、健康检查判定、设置落盘）。
+
 ### Adding a built-in tool
 1. New class in `TubaWinUi3.WinUI3/Services/BuiltinTools/` implementing `IBuiltinTool`.
 2. Pick `BuiltinToolKind`: `Dialog` / `BackgroundTask` / `ProgressTask` / `InstantAction`.

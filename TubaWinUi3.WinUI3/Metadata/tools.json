@@ -1757,6 +1757,13 @@
       "categories": [
         "其他工具"
       ]
+    },
+    {
+      "match": "时间同步",
+      "builtin": "time-sync",
+      "categories": [
+        "其他工具"
+      ]
     }
   ]
 }
