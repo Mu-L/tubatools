@@ -24,17 +24,23 @@ public static class GameTunnelProtocolExtensions
     };
 }
 
-/// <summary>内置游戏档案：端口、协议、房主/朋友两侧的分步教程。</summary>
+/// <summary>内置游戏档案：端口、协议、主机/朋友两侧的分步教程。</summary>
 public sealed class GamePreset
 {
     public required string Id { get; init; }
     public required string Name { get; init; }
+
+    /// <summary>拿不到真实 Logo 时的兜底图标字形（Segoe Fluent Icons）。</summary>
     public required string Glyph { get; init; }
+
+    /// <summary>官方 Logo 素材的候选地址，按顺序尝试（第一个通就用）。</summary>
+    public IReadOnlyList<string> LogoUrls { get; init; } = [];
+
     public required int DefaultPort { get; init; }
     public required GameTunnelProtocol Protocol { get; init; }
     public required string Tagline { get; init; }
 
-    /// <summary>房主在游戏里需要先完成的事（一句话）。</summary>
+    /// <summary>主机在游戏里需要先完成的事（一句话）。</summary>
     public required string HostAction { get; init; }
 
     public required IReadOnlyList<string> HostSteps { get; init; }
@@ -71,7 +77,7 @@ public sealed class TunnelRecord
     /// <summary>"host"（我开的房）或 "guest"（我加入的房）。</summary>
     public string Role { get; set; } = "host";
 
-    /// <summary>房间地址（房主是本机 Tailscale IP，客人是对方 IP）。</summary>
+    /// <summary>房间地址（主机是本机 Tailscale IP，客人是对方 IP）。</summary>
     public string? Address { get; set; }
 
     /// <summary>客人侧保存的邀请码，便于再次加入。</summary>
@@ -88,10 +94,10 @@ public sealed class InviteInfo
     public string Game { get; set; } = "";
     public GameTunnelProtocol Protocol { get; set; } = GameTunnelProtocol.Tcp;
 
-    /// <summary>房主 tailnet 的一次性/短期授权密钥；为空表示「对方已有同一网络」。</summary>
+    /// <summary>主机 tailnet 的一次性/短期授权密钥；为空表示「对方已有同一网络」。</summary>
     public string? AuthKey { get; set; }
 
-    /// <summary>房主设备名（展示用）。</summary>
+    /// <summary>主机设备名（展示用）。</summary>
     public string? HostName { get; set; }
 
     /// <summary>邀请码失效时间（Unix 秒），0 表示不限。</summary>
@@ -119,6 +125,9 @@ public sealed class TailscaleStatus
     public string? LoginName { get; init; }
     public string? TailnetName { get; init; }
     public IReadOnlyList<string> Health { get; init; } = [];
+
+    /// <summary>tailnet 里的其它设备（与状态同一次 status --json 解析出来）。</summary>
+    public IReadOnlyList<TailscalePeer> Peers { get; init; } = [];
 
     /// <summary>本机是否已经写过节点密钥（有过登录记录）。</summary>
     public bool HaveNodeKey { get; init; }

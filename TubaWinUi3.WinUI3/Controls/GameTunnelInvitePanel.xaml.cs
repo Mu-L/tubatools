@@ -8,9 +8,9 @@ using Windows.ApplicationModel.DataTransfer;
 namespace TubaWinUi3.Controls;
 
 /// <summary>
-/// 「邀请朋友」面板：拿到房间信息后负责产出三种邀请方式
+/// 「邀请朋友」面板：拿到联机信息后负责产出三种邀请方式
 /// （邀请码 / 一键加入脚本 / 纯地址），并在缺少邀请密钥时就地引导补齐。
-/// 面板会出现在开房向导的最后一步，也会被主页的「邀请朋友」按钮复用。
+/// 面板会出现在主机向导的最后一步，也会被主页的「邀请朋友」按钮复用。
 /// </summary>
 public sealed partial class GameTunnelInvitePanel : UserControl
 {
@@ -52,7 +52,7 @@ public sealed partial class GameTunnelInvitePanel : UserControl
         };
     }
 
-    /// <summary>房间信息就绪后调用；已配置 API 密钥时自动生成邀请码。</summary>
+    /// <summary>联机信息就绪后调用；已配置 API 密钥时自动生成邀请码。</summary>
     public async Task InitializeAsync(InviteInfo info)
     {
         _info = info;

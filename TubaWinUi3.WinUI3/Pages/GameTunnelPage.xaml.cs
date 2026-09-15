@@ -8,7 +8,7 @@ using Windows.ApplicationModel.DataTransfer;
 namespace TubaWinUi3.Pages;
 
 /// <summary>
-/// 游戏联机助手主页：环境状态 + 两个入口（开房 / 加入）+ 最近联机。
+/// 游戏联机助手主页：联机环境（我的虚拟网络地址 + 网里有谁）+ 和朋友连起来 + 我要玩的游戏 + 最近联机。
 /// 所有细节都收进弹窗里，主页只回答「现在能不能玩、点哪里」。
 /// </summary>
 public sealed partial class GameTunnelPage : Page
@@ -16,6 +16,9 @@ public sealed partial class GameTunnelPage : Page
     private DispatcherQueueTimer? _timer;
     private TailscaleStatus? _status;
     private bool _refreshing;
+
+    /// <summary>「我要玩的游戏」条只建一次（含 Logo 拉取），后续刷新不再重建。</summary>
+    private bool _gamesLoaded;
 
     /// <summary>自动拉起托盘客户端的冷却：避免用户有意退出它时被反复重启。</summary>
     private DateTimeOffset _lastTrayAutoStart = DateTimeOffset.MinValue;
@@ -65,8 +68,10 @@ public sealed partial class GameTunnelPage : Page
             _status = TailscaleService.IsInstalled ? await TailscaleService.GetStatusAsync() : null;
             await AutoConnectIfNeededAsync();
             RenderStatus();
+            RenderPeers();
             RenderHealth();
             RenderRecent();
+            await EnsureGamesAsync();
         }
         catch
         {
@@ -114,6 +119,9 @@ public sealed partial class GameTunnelPage : Page
     {
         var installed = TailscaleService.IsInstalled;
 
+        // 「不会自动扫描出房间」这条只在环境可用时才有意义，先收起来，就绪分支再打开
+        BroadcastHint.IsOpen = false;
+
         if (!installed)
         {
             StatusIcon.Glyph = "\uE896";
@@ -141,10 +149,11 @@ public sealed partial class GameTunnelPage : Page
             StatusIcon.Glyph = "\uE73E";
             StatusTitle.Text = "联机环境已就绪";
             var who = _status.LoginName is { Length: > 0 } login ? $"已登录 {login}" : "已登录";
-            StatusDetail.Text = $"{who} · 把这台电脑的地址告诉朋友，他们就能连进来。";
+            StatusDetail.Text = $"{who} · 这是你在虚拟网络里的固定地址，朋友在游戏里填它来连你。";
             PrepareButtonText.Text = "环境详情";
             AddressRow.Visibility = Visibility.Visible;
             MyAddressText.Text = _status.Ipv4;
+            BroadcastHint.IsOpen = true;
 
             var lastHost = GameTunnelCatalog.LoadRecords().FirstOrDefault(r => r.Role == "host");
             var listening = lastHost is not null && GameTunnelProbe.Check(lastHost.Port, lastHost.Protocol).Listening;
@@ -192,6 +201,33 @@ public sealed partial class GameTunnelPage : Page
         PrepareButtonText.Text = "去登录";
         AddressRow.Visibility = Visibility.Collapsed;
         LiveBadge.Visibility = Visibility.Collapsed;
+    }
+
+    /// <summary>
+    /// 状态卡里的「同一虚拟网络里还有谁」——数据来自同一次 status --json 的解析，不额外起进程。
+    /// </summary>
+    private void RenderPeers()
+    {
+        if (_status?.IsReady != true)
+        {
+            PeerLine.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        var peers = _status.Peers;
+        if (peers.Count == 0)
+        {
+            PeerLine.Text = "还没有别的设备加入这个网络——把下面的邀请发给朋友";
+        }
+        else
+        {
+            var names = string.Join(" · ", peers.Take(4).Select(p => $"{p.DisplayName ?? p.HostName}（{p.Describe()}）"));
+            PeerLine.Text = peers.Count > 4
+                ? $"同一虚拟网络：{names} 等 {peers.Count} 台设备"
+                : $"同一虚拟网络：{names}";
+        }
+
+        PeerLine.Visibility = Visibility.Visible;
     }
 
     private void RenderHealth()
@@ -245,20 +281,43 @@ public sealed partial class GameTunnelPage : Page
         }
     }
 
-    private async void StartHost_Click(object sender, RoutedEventArgs e)
+    private async void StartHost_Click(object sender, RoutedEventArgs e) => await StartHostAsync();
+
+    /// <summary>主机流程：先确保环境可用，再打开向导（可带上主页选好的游戏）。</summary>
+    private async Task StartHostAsync(string? presetId = null)
     {
         try
         {
             if (!await EnsureReadyAsync()) return;
 
-            var dialog = new GameTunnelHostDialog(XamlRoot);
+            var dialog = new GameTunnelHostDialog(XamlRoot, presetId);
             await dialog.RunAsync();
             await RefreshAsync();
         }
         catch (Exception ex)
         {
-            ShowError("开房失败", ex);
+            ShowError("打开主机向导失败", ex);
         }
+    }
+
+    /// <summary>游戏卡：直接进主机向导，并预选这个游戏。</summary>
+    private async void GameChip_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: TunnelGameCard chip }) return;
+        await StartHostAsync(chip.IsAddCard ? null : chip.Id);
+    }
+
+    /// <summary>「我要玩的游戏」条只建一次；Logo 与主机向导共用同一份缓存。</summary>
+    private async Task EnsureGamesAsync()
+    {
+        if (_gamesLoaded) return;
+        _gamesLoaded = true;
+
+        var cards = GameTunnelCatalog.Presets.Select(TunnelGameCard.FromPreset).ToList();
+        cards.Add(TunnelGameCard.AddCard());
+        GamesList.ItemsSource = cards;
+
+        await Task.WhenAll(cards.Select(card => card.LoadLogoAsync()));
     }
 
     private async void StartJoin_Click(object sender, RoutedEventArgs e)
@@ -276,7 +335,7 @@ public sealed partial class GameTunnelPage : Page
         }
     }
 
-    /// <summary>需要联机地址的操作（开房）必须先具备可用环境。</summary>
+    /// <summary>需要联机地址的操作（当主机）必须先具备可用环境。</summary>
     private async Task<bool> EnsureReadyAsync()
     {
         _status = TailscaleService.IsInstalled ? await TailscaleService.GetStatusAsync() : null;

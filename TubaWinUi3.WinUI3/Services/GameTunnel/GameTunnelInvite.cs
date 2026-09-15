@@ -8,7 +8,7 @@ namespace TubaWinUi3.Services;
 /// <summary>
 /// 邀请码与朋友端「一键加入」脚本的生成。
 /// 邀请码是一段能直接粘进 QQ / 微信的紧凑字符串（TBG1: + Base64Url），
-/// 内含房主地址、端口、游戏名，以及可选的短期授权密钥。
+/// 内含对方地址、端口、游戏名，以及可选的短期授权密钥。
 /// </summary>
 public static partial class GameTunnelInvite
 {
@@ -163,18 +163,18 @@ public static partial class GameTunnelInvite
 
     // ══════════════════════ 邀请文案 ══════════════════════
 
-    /// <summary>房主复制发给朋友的整段文字。</summary>
+    /// <summary>对方复制发给朋友的整段文字。</summary>
     public static string BuildInviteText(InviteInfo info, string? inviteCode, bool hasScript)
     {
         var builder = new StringBuilder();
         builder.AppendLine("【图吧工具箱 · 联机邀请】");
         if (!string.IsNullOrWhiteSpace(info.Game)) builder.AppendLine($"游戏：{info.Game}");
-        builder.AppendLine($"房主地址：{info.Address}");
+        builder.AppendLine($"联机地址：{info.Address}");
         builder.AppendLine();
 
         if (info.ExpiresAtLocal is { } expires)
         {
-            builder.AppendLine($"（邀请码有效期到 {expires:HH:mm}，过期后让房主重新生成）");
+            builder.AppendLine($"（邀请码有效期到 {expires:HH:mm}，过期后让我重新生成）");
             builder.AppendLine();
         }
 
@@ -231,7 +231,7 @@ public static partial class GameTunnelInvite
 
     /// <summary>
     /// 生成朋友端 .cmd 脚本内容（GBK 落盘，中文 Windows 的 cmd 才不会乱码）。
-    /// 流程：自动提权 → 没有 Tailscale 就下载并静默安装 → 用授权密钥加入房主的网络 → 等待分配地址 → 打印游戏内要填的地址。
+    /// 流程：自动提权 → 没有 Tailscale 就下载并静默安装 → 用授权密钥加入对方的网络 → 等待分配地址 → 打印游戏内要填的地址。
     /// </summary>
     public static string BuildScript(InviteInfo info)
     {
@@ -263,7 +263,7 @@ echo ============================================================
 echo   图吧工具箱 · 一键加入联机
 echo ------------------------------------------------------------
 echo   游戏：%GAME%
-echo   房主：%HOSTADDR%:%PORT%
+echo   主机：%HOSTADDR%:%PORT%
 echo ============================================================
 echo.
 
@@ -336,7 +336,7 @@ timeout /t 4 /nobreak >nul
 :tray_ready
 if "%AUTHKEY%"=="" goto :manual_login
 
-echo [3/3] 加入房主的联机网络（不会修改本机 DNS 设置）
+echo [3/3] 加入对方的联机网络（不会修改本机 DNS 设置）
 echo     如果你本来登录了别的 Tailscale 网络，这次会切换过去，
 echo     之后可以用托盘图标里的账号菜单随时切回来。
 set "TRIES=0"
@@ -352,7 +352,7 @@ goto :join
 :join_failed
 echo.
 echo   [失败] 没能加入联机网络。常见原因：
-echo     - 邀请码已经过期或被房主撤销（让房主重新生成一个）
+echo     - 邀请码已经过期或被对方撤销（让对方重新生成一个）
 echo     - 本机时间不准（同步一下系统时间再试）
 echo     - 网络受限（安全软件 / 代理拦截了 Tailscale）
 echo.
@@ -387,11 +387,11 @@ exit /b 1
 
 :ready
 echo     本机联机地址：%MYIP%
-echo     正在测试与房主的连接...
+echo     正在测试与对方的连接...
 "%TSEXE%" ping --c 2 --timeout 5s %HOSTADDR% > "%TEMP%\tuba-ping.txt" 2>&1
 findstr /i "pong" "%TEMP%\tuba-ping.txt" >nul
 if errorlevel 1 (
-    echo     暂时没通——房主可能还没进入游戏，先打开游戏试试
+    echo     暂时没通——对方可能还没进入游戏，先打开游戏试试
 ) else (
     echo     连接测试成功
 )
@@ -415,16 +415,23 @@ exit /b 0
 """;
     }
 
-    /// <summary>把脚本写到指定路径，使用 GBK 且不带 BOM。</summary>
+    /// <summary>把脚本写到指定路径：GBK 且不带 BOM，换行统一成 CRLF。</summary>
     public static string WriteScript(string content, string targetPath)
     {
         var dir = Path.GetDirectoryName(targetPath);
         if (!string.IsNullOrWhiteSpace(dir)) Directory.CreateDirectory(dir);
 
         var encoding = GetGbkEncoding();
-        File.WriteAllBytes(targetPath, encoding.GetBytes(content));
+        File.WriteAllBytes(targetPath, encoding.GetBytes(ToCrlf(content)));
         return targetPath;
     }
+
+    /// <summary>
+    /// 批处理必须是 CRLF：cmd.exe 遇到裸 LF 会把命令行拆碎成「'o' 不是内部或外部命令」这种碎片。
+    /// 脚本正文来自源码里的多行字符串，源码存成 LF 时正文也就是 LF，所以落盘前统一一次。
+    /// </summary>
+    internal static string ToCrlf(string text) =>
+        text.Replace("\r\n", "\n").Replace('\r', '\n').Replace("\n", "\r\n");
 
     /// <summary>写到本工具自己的脚本目录，返回路径。</summary>
     public static string WriteScriptToDataDir(InviteInfo info)

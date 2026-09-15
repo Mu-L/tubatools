@@ -23,7 +23,6 @@ public sealed class GameTunnelDiagnosticsDialog
 
     private readonly TextBox _pingTargetBox = new() { PlaceholderText = "对方设备的联机地址，如 100.101.102.103", FontFamily = new FontFamily("Consolas") };
     private readonly TextBlock _pingResult = new() { FontSize = 12, TextWrapping = TextWrapping.Wrap };
-    private Button? _pingButton;
 
     public GameTunnelDiagnosticsDialog(XamlRoot xamlRoot)
     {
@@ -168,8 +167,8 @@ public sealed class GameTunnelDiagnosticsDialog
     private FrameworkElement BuildPingSection()
     {
         var panel = new StackPanel { Spacing = 8 };
-        panel.Children.Add(SectionHeader("测试与朋友的连接"));
-        panel.Children.Add(Line("填入房主的联机地址（100 开头），直接测两台电脑之间的链路。"));
+        panel.Children.Add(SectionHeader("测试与对方的连接"));
+        panel.Children.Add(Line("填入对方的联机地址（100 开头），直接测两台电脑之间的链路。先确认你们在同一个虚拟网络里。"));
 
         var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
         _pingTargetBox.Width = 240;

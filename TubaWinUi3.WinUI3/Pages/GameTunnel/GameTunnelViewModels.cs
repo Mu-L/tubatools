@@ -6,7 +6,7 @@ using TubaWinUi3.Services;
 namespace TubaWinUi3.Pages;
 
 /// <summary>游戏选择网格里的一张卡片（内置档案或自定义游戏）。</summary>
-public sealed class TunnelGameCard
+public sealed class TunnelGameCard : TunnelObservable
 {
     public GamePreset? Preset { get; init; }
     public CustomGame? Custom { get; init; }
@@ -16,9 +16,38 @@ public sealed class TunnelGameCard
 
     public string Id => Preset?.Id ?? Custom?.Id ?? "";
 
+    /// <summary>x:Bind 的按钮 Tag 用：把整张卡片传回事件处理器。</summary>
+    public TunnelGameCard Self => this;
+
     public string Name => IsAddCard ? "自定义游戏" : Preset?.Name ?? Custom?.Name ?? "";
 
     public string Glyph => IsAddCard ? "\uE710" : Preset?.Glyph ?? "\uE7FC";
+
+    /// <summary>游戏的真实 Logo；还没拿到（或拿不到）时界面显示 <see cref="Glyph"/>。</summary>
+    public Microsoft.UI.Xaml.Media.ImageSource? Logo
+    {
+        get => _logo;
+        set
+        {
+            if (!Set(ref _logo, value)) return;
+            Raise(nameof(GlyphVisibility));
+        }
+    }
+
+    private Microsoft.UI.Xaml.Media.ImageSource? _logo;
+
+    public Microsoft.UI.Xaml.Visibility GlyphVisibility
+        => _logo is null ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
+
+    /// <summary>官方 Logo 的候选地址（自定义游戏为空，用字形）。</summary>
+    public IReadOnlyList<string> LogoUrls => Preset?.LogoUrls ?? [];
+
+    /// <summary>补齐真实 Logo：有本地缓存立即返回，没有就下载一次；失败保持原样。</summary>
+    public async Task LoadLogoAsync()
+    {
+        if (IsAddCard || LogoUrls.Count == 0) return;
+        Logo = await GameLogoService.GetAsync(Id, LogoUrls);
+    }
 
     public string PortText => IsAddCard ? "" : $"端口 {(Preset?.DefaultPort ?? Custom?.Port ?? 0)}";
 
@@ -64,7 +93,7 @@ public sealed class TunnelRecordRow
     /// <summary>x:Bind 的按钮 Tag 用：把整行传回事件处理器。</summary>
     public TunnelRecordRow Self => this;
 
-    public string RoleText => Role == "host" ? "我开的房" : "我加入的";
+    public string RoleText => Role == "host" ? "我当主机" : "我加入的";
 
     public string Glyph => Role == "host" ? "\uE7FC" : "\uE8F1";
 

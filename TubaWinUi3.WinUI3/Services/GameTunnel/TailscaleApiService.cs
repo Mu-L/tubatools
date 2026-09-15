@@ -378,7 +378,7 @@ public static class TailscaleApiService
 
     /// <summary>
     /// 生成一把用于邀请朋友的授权密钥：2 小时有效、可重复使用（一局可能有多个朋友）、
-    /// 预授权（无需管理员手动批准）。过期后自动失效，房主无需手动清理。
+    /// 预授权（无需管理员手动批准）。过期后自动失效，主机无需手动清理。
     /// </summary>
     public static async Task<ApiAuthKeyResult> CreateInviteKeyAsync(
         string token,
@@ -427,7 +427,7 @@ public static class TailscaleApiService
         }
     }
 
-    /// <summary>撤销一把还没过期的邀请密钥（房主提前结束联机时用）。</summary>
+    /// <summary>撤销一把还没过期的邀请密钥（主机提前结束联机时用）。</summary>
     public static async Task<ApiResult> RevokeKeyAsync(string token, string keyId, CancellationToken ct = default)
     {
         var normalized = NormalizeApiKey(token);

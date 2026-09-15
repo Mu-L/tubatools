@@ -7,7 +7,7 @@ using Windows.ApplicationModel.DataTransfer;
 namespace TubaWinUi3.Pages;
 
 /// <summary>
-/// 开房向导：选游戏 → 确认端口 → 拿到地址和邀请方式。
+/// 主机向导：选游戏 → 确认端口 → 拿到地址和邀请方式。
 /// 环境没准备好时由调用方先跑 <see cref="GameTunnelSetupDialog"/>，这里不再嵌套对话框。
 /// </summary>
 public sealed partial class GameTunnelHostDialog : ContentDialog
@@ -18,38 +18,42 @@ public sealed partial class GameTunnelHostDialog : ContentDialog
     private TunnelGameCard? _selected;
     private InviteInfo? _invite;
     private bool _busy;
-    private bool _roomStarted;
+    private bool _inviteReady;
     private int _editingCustomGameIndex = -1;
 
-    /// <summary>关闭时是否已经开好房间（主页据此显示「联机中」）。</summary>
-    public bool RoomStarted => _roomStarted;
+    /// <summary>主页点某张游戏卡进来时预选的游戏；null = 沿用上次选的那个。</summary>
+    private readonly string? _initialPresetId;
 
-    /// <summary>房间信息，供主页复用（再次邀请朋友时用）。</summary>
-    public InviteInfo? Room => _invite;
+    /// <summary>关闭时是否已经拿到可用的邀请（主页据此显示「联机中」）。</summary>
+    public bool InviteReady => _inviteReady;
 
-    public GameTunnelHostDialog(XamlRoot xamlRoot)
+    /// <summary>本次联机信息，供主页复用（再次邀请朋友时用）。</summary>
+    public InviteInfo? Invite => _invite;
+
+    public GameTunnelHostDialog(XamlRoot xamlRoot, string? presetId = null)
     {
         InitializeComponent();
         XamlRoot = xamlRoot;
         RequestedTheme = ThemeService.CurrentElementTheme;
+        _initialPresetId = presetId;
 
-        // 邀请码没生成出来时，房间卡片必须说清楚「朋友现在还用不了」，
-        // 否则用户会以为房间开好了就能连（之前就是这样误导人的）
-        InvitePanel.InviteStateChanged += (_, ready) => UpdateRoomStatus(ready);
+        // 邀请码没生成出来时必须说清楚「朋友现在还用不了」，
+        // 否则用户会以为地址给出去了就能连（之前就是这样误导人的）
+        InvitePanel.InviteStateChanged += (_, ready) => UpdateInviteStatus(ready);
     }
 
-    private void UpdateRoomStatus(bool inviteReady)
+    private void UpdateInviteStatus(bool inviteReady)
     {
         RoomStatusText.Text = inviteReady
             ? "邀请码已生成 ✓ 把下面任意一种方式发给朋友，他加入后在游戏里填上面的地址即可。你保持游戏开着就行。"
-            : "房间已经开好了，但还差一个邀请密钥——朋友现在连不进来。用下面任意一种方式生成邀请码即可（配一次 API 密钥以后就自动了）。";
+            : "网络已就绪，但还差一把邀请密钥——朋友现在连不进来。用下面任意一种方式生成邀请码即可（配一次 API 密钥以后就自动了）。";
     }
 
     public async Task<bool> RunAsync()
     {
         LoadGames();
         await ShowAsync();
-        return _roomStarted;
+        return _inviteReady;
     }
 
     // ══════════════════ 第 1 步：游戏列表 ══════════════════
@@ -61,18 +65,39 @@ public sealed partial class GameTunnelHostDialog : ContentDialog
         cards.Add(TunnelGameCard.AddCard());
 
         GameGrid.ItemsSource = cards;
+        _ = LoadLogosAsync(cards);
 
-        // 恢复上次选的游戏
-        var settings = GameTunnelCatalog.LoadSettings();
-        var index = 0;
-        if (settings.LastPresetId is { Length: > 0 } lastId)
+        // 主页点进来的游戏优先，其次恢复上次选的那个
+        var index = -1;
+        if (_initialPresetId is { Length: > 0 } initialId)
+            index = cards.FindIndex(c => c.Id == initialId);
+
+        if (index < 0)
         {
-            var found = cards.FindIndex(c => c.Id == lastId);
-            if (found >= 0) index = found;
+            var settings = GameTunnelCatalog.LoadSettings();
+            index = 0;
+            if (settings.LastPresetId is { Length: > 0 } lastId)
+            {
+                var found = cards.FindIndex(c => c.Id == lastId);
+                if (found >= 0) index = found;
+            }
         }
         GameGrid.SelectedIndex = index;
 
         UpdateStepChrome();
+    }
+
+    /// <summary>真实 Logo 异步补齐：先显示图标字形，图片到位后每张卡片各自就地换掉。</summary>
+    private static async Task LoadLogosAsync(IEnumerable<TunnelGameCard> cards)
+    {
+        try
+        {
+            await Task.WhenAll(cards.Select(card => card.LoadLogoAsync()));
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[GameLogo] 加载失败：{ex.Message}");
+        }
     }
 
     private void GameGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -100,7 +125,7 @@ public sealed partial class GameTunnelHostDialog : ContentDialog
 
         GameHintCard.Visibility = Visibility.Visible;
         GameHintTitle.Text = $"{_selected.Name} · {_selected.ProtocolText} {_selected.Port}";
-        GameHintAction.Text = _selected.Preset?.HostAction ?? "在游戏里开启房间 / 启动服务器，然后确认端口。";
+        GameHintAction.Text = _selected.Preset?.HostAction ?? "在游戏里建房或启动服务器，然后确认端口。";
         GameHintNote.Text = _selected.Preset?.Note ?? _selected.Custom?.Note ?? "";
         GameHintNote.Visibility = string.IsNullOrWhiteSpace(GameHintNote.Text) ? Visibility.Collapsed : Visibility.Visible;
 
@@ -180,6 +205,7 @@ public sealed partial class GameTunnelHostDialog : ContentDialog
         cards.AddRange(games.Select(TunnelGameCard.FromCustom));
         cards.Add(TunnelGameCard.AddCard());
         GameGrid.ItemsSource = cards;
+        _ = LoadLogosAsync(cards);
         GameGrid.SelectedIndex = cards.FindIndex(c => c.Id == game.Id);
     }
 
@@ -233,7 +259,7 @@ public sealed partial class GameTunnelHostDialog : ContentDialog
         PortBox.Value = port;
 
         var preset = _selected.Preset;
-        HostStepsList.ItemsSource = preset?.HostSteps ?? ["在游戏里开启房间或启动服务器", $"确认端口是 {port}", "把这个窗口里的地址发给朋友"];
+        HostStepsList.ItemsSource = preset?.HostSteps ?? ["在游戏里建房或启动服务器", $"确认端口是 {port}", "把这个窗口里的地址发给朋友"];
         UpdateGuestSteps();
         GuestEntryText.Text = preset is not null ? $"游戏内的位置：{preset.GuestEntryPoint}" : "";
 
@@ -248,7 +274,7 @@ public sealed partial class GameTunnelHostDialog : ContentDialog
         UpdateGuestSteps();
     }
 
-    private void UpdateGuestSteps(string host = "房主地址")
+    private void UpdateGuestSteps(string host = "对方地址")
     {
         var port = _selected?.Port ?? 0;
         if (PortBox.Value is double value && !double.IsNaN(value)) port = (int)value;
@@ -292,9 +318,9 @@ public sealed partial class GameTunnelHostDialog : ContentDialog
         PortCheckText.Text = status.Message;
     }
 
-    // ══════════════════ 第 3 步：开房 ══════════════════
+    // ══════════════════ 第 3 步：邀请朋友 ══════════════════
 
-    private async Task StartRoomAsync()
+    private async Task StartInviteAsync()
     {
         if (_selected is null) return;
 
@@ -305,7 +331,7 @@ public sealed partial class GameTunnelHostDialog : ContentDialog
             return;
         }
 
-        SetBusy(true, "正在准备房间…");
+        SetBusy(true, "正在准备邀请…");
         try
         {
             var status = await TailscaleService.GetStatusAsync();
@@ -350,7 +376,7 @@ public sealed partial class GameTunnelHostDialog : ContentDialog
             }
 
             RoomAddressText.Text = $"{ip}:{port}";
-            UpdateRoomStatus(_invite.AuthKey is { Length: > 0 });
+            UpdateInviteStatus(_invite.AuthKey is { Length: > 0 });
             UpdateGuestSteps(ip!);
 
             _step = 3;
@@ -376,7 +402,7 @@ public sealed partial class GameTunnelHostDialog : ContentDialog
                 LastUsedUtc = DateTimeOffset.UtcNow
             });
 
-            _roomStarted = true;
+            _inviteReady = true;
         }
         finally
         {
@@ -473,7 +499,7 @@ public sealed partial class GameTunnelHostDialog : ContentDialog
 
                 case 2:
                     args.Cancel = true;
-                    await StartRoomAsync();
+                    await StartInviteAsync();
                     break;
 
                 default:

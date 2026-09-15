@@ -32,6 +32,24 @@ public static class GameTunnelCatalog
 
     public static string BuildAddress(string host, int port) => $"{host}:{port}";
 
+    // ══════════════════════ 官方 Logo 素材 ══════════════════════
+
+    /// <summary>
+    /// Steam 官方素材：logo.png 是透明底的原版字标。
+    /// 两个 CDN 互为备份——国内网络环境下总有一个通。
+    /// </summary>
+    private static string[] SteamLogos(int appId) =>
+    [
+        $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/logo.png",
+        $"https://cdn.akamai.steamstatic.com/steam/apps/{appId}/logo.png",
+    ];
+
+    /// <summary>我的世界不在 Steam 上，用官网自己的 logo 资源。</summary>
+    private static string[] MinecraftLogos() =>
+    [
+        "https://www.minecraft.net/content/dam/minecraftnet/games/minecraft/logos/logo-minecraft.svg",
+    ];
+
     // ══════════════════════ 内置游戏档案 ══════════════════════
 
     private static readonly GamePreset[] _presets =
@@ -39,6 +57,7 @@ public static class GameTunnelCatalog
         new()
         {
             Id = "minecraft-java",
+            LogoUrls = MinecraftLogos(),
             Name = "我的世界（Java 版）",
             Glyph = "\uE7FC",
             DefaultPort = 25565,
@@ -63,6 +82,7 @@ public static class GameTunnelCatalog
         new()
         {
             Id = "minecraft-bedrock",
+            LogoUrls = MinecraftLogos(),
             Name = "我的世界（基岩版）",
             Glyph = "\uE7F4",
             DefaultPort = 19132,
@@ -77,7 +97,7 @@ public static class GameTunnelCatalog
             ],
             GuestSteps =
             [
-                "打开游戏 →「游戏」→「好友」页签，稍等几秒会自动出现房主的房间",
+                "打开游戏 →「游戏」→「好友」页签，稍等几秒会自动出现主机的房间",
                 "没看到房间时，选「添加服务器」→ 地址填 {host}:{port}",
                 "手机版同样可以连（同一个网络里就能互相看见）",
             ],
@@ -87,6 +107,7 @@ public static class GameTunnelCatalog
         new()
         {
             Id = "terraria",
+            LogoUrls = SteamLogos(105600),
             Name = "泰拉瑞亚",
             Glyph = "\uE945",
             DefaultPort = 7777,
@@ -111,6 +132,7 @@ public static class GameTunnelCatalog
         new()
         {
             Id = "tmodloader",
+            LogoUrls = SteamLogos(1281930),
             Name = "泰拉瑞亚 tModLoader",
             Glyph = "\uE9F5",
             DefaultPort = 7777,
@@ -135,6 +157,7 @@ public static class GameTunnelCatalog
         new()
         {
             Id = "stardew",
+            LogoUrls = SteamLogos(413150),
             Name = "星露谷物语",
             Glyph = "\uE735",
             DefaultPort = 24642,
@@ -150,7 +173,7 @@ public static class GameTunnelCatalog
             GuestSteps =
             [
                 "主菜单点「合作」→「加入局域网游戏」",
-                "在列表里选择房主的农场；列表为空时点「输入 IP」填 {host}:{port}",
+                "在列表里选择主机的农场；列表为空时点「输入 IP」填 {host}:{port}",
                 "同一台机器第一次加入可能需要先在游戏里开启一次联机",
             ],
             GuestEntryPoint = "合作 → 加入局域网游戏 / 输入 IP",
@@ -159,6 +182,7 @@ public static class GameTunnelCatalog
         new()
         {
             Id = "dst",
+            LogoUrls = SteamLogos(322330),
             Name = "饥荒联机版",
             Glyph = "\uECAD",
             DefaultPort = 10999,
@@ -174,15 +198,16 @@ public static class GameTunnelCatalog
             GuestSteps =
             [
                 "主菜单点「浏览世界」→「加入游戏」",
-                "在「局域网」页签里应能直接看到房主的世界",
+                "在「局域网」页签里应能直接看到主机的世界",
                 "没有出现时切到「直连」页签，地址填 {host}:{port}",
             ],
             GuestEntryPoint = "浏览世界 → 局域网 / 直连",
-            Note = "饥荒的世界会持续运行，房主退出后世界会暂停。",
+            Note = "饥荒的世界会持续运行，主机退出后世界会暂停。",
         },
         new()
         {
             Id = "valheim",
+            LogoUrls = SteamLogos(892970),
             Name = "英灵神殿",
             Glyph = "\uEA18",
             DefaultPort = 2456,
@@ -199,7 +224,7 @@ public static class GameTunnelCatalog
             [
                 "游戏主菜单点「加入游戏」→「加入 IP」",
                 "地址填 {host}:{port}",
-                "连接超时通常是房主还没进入世界，让房主先进游戏",
+                "连接超时通常是主机还没进入世界，让主机先进游戏",
             ],
             GuestEntryPoint = "加入游戏 → 加入 IP",
             Note = "英灵神殿支持 2456-2458 三个端口，一般只用 2456。",
@@ -207,6 +232,7 @@ public static class GameTunnelCatalog
         new()
         {
             Id = "palworld",
+            LogoUrls = SteamLogos(1623730),
             Name = "幻兽帕鲁",
             Glyph = "\uE7FC",
             DefaultPort = 8211,
@@ -223,7 +249,7 @@ public static class GameTunnelCatalog
             [
                 "主菜单点「加入多人游戏（专用服务器）」",
                 "地址填 {host}:{port}，点「联系」后加入",
-                "进不去时确认游戏版本与房主一致",
+                "进不去时确认游戏版本与主机一致",
             ],
             GuestEntryPoint = "加入多人游戏（专用服务器）",
             Note = "幻兽帕鲁是 UDP 8211；专用服务端需要额外的 query 端口 27015。",
@@ -231,6 +257,7 @@ public static class GameTunnelCatalog
         new()
         {
             Id = "starbound",
+            LogoUrls = SteamLogos(211820),
             Name = "星界边境",
             Glyph = "\uE8B2",
             DefaultPort = 21025,
@@ -253,6 +280,7 @@ public static class GameTunnelCatalog
         new()
         {
             Id = "factorio",
+            LogoUrls = SteamLogos(427520),
             Name = "异星工厂",
             Glyph = "\uE90F",
             DefaultPort = 34197,
@@ -268,7 +296,7 @@ public static class GameTunnelCatalog
             GuestSteps =
             [
                 "主菜单点「多人游戏」→「加入游戏」",
-                "在局域网列表里选择房主的游戏；没有出现时点「直接连接」填 {host}:{port}",
+                "在局域网列表里选择主机的游戏；没有出现时点「直接连接」填 {host}:{port}",
             ],
             GuestEntryPoint = "多人游戏 → 加入游戏 / 直接连接",
             Note = "异星工厂对延迟敏感，建议先用本页的「网络检测」确认走的是直连。",
@@ -418,7 +446,7 @@ public sealed class GameTunnelSettings
 
     public int LastPort { get; set; }
 
-    /// <summary>开房时自动为端口放行防火墙（仅限 Tailscale 网络）。</summary>
+    /// <summary>当主机时自动为端口放行防火墙（仅限 Tailscale 网络）。</summary>
     public bool AutoFirewall { get; set; } = true;
 
     /// <summary>联机时自动把设备名改成易识别的名字（仅首次）。</summary>

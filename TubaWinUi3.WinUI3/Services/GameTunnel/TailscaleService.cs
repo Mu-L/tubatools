@@ -28,7 +28,7 @@ public static class TailscaleService
     public const string KeysUrl = "https://login.tailscale.com/admin/settings/keys";
     public const string MachinesUrl = "https://login.tailscale.com/admin/machines";
 
-    /// <summary>新的联机设备统一使用这个名字前缀，便于房主在控制台里一眼认出并清理。</summary>
+    /// <summary>新的联机设备统一使用这个名字前缀，便于主机在控制台里一眼认出并清理。</summary>
     public const string GuestHostPrefix = "图吧联机";
 
     public static bool IsInstalled => TailscaleCli.IsInstalled;
@@ -429,6 +429,7 @@ public static class TailscaleService
                 DnsName = dnsName,
                 LoginName = loginName,
                 TailnetName = tailnetName,
+                Peers = ParsePeerMap(root),
                 HaveNodeKey = root.TryGetProperty("HaveNodeKey", out var haveKey) && haveKey.ValueKind == JsonValueKind.True,
                 Health = health
             };
@@ -737,7 +738,7 @@ public static class TailscaleService
         return result.Ok;
     }
 
-    /// <summary>用授权密钥把本机加入房主的 tailnet。会切换当前登录（调用方必须先征得用户同意）。</summary>
+    /// <summary>用授权密钥把本机加入主机的 tailnet。会切换当前登录（调用方必须先征得用户同意）。</summary>
     public static async Task<JoinResult> JoinTailnetAsync(string authKey, CancellationToken ct = default)
     {
         var normalized = NormalizeAuthKey(authKey);
@@ -756,7 +757,7 @@ public static class TailscaleService
 
         var line = result.FirstLine("加入失败");
         var friendly = line.Contains("invalid key", StringComparison.OrdinalIgnoreCase) ? "授权密钥无效或已被使用" :
-                       line.Contains("expired", StringComparison.OrdinalIgnoreCase) ? "授权密钥已过期，请让房主重新生成" :
+                       line.Contains("expired", StringComparison.OrdinalIgnoreCase) ? "授权密钥已过期，请让对方重新生成" :
                        line.Contains("timed out", StringComparison.OrdinalIgnoreCase) ? "连接超时，请检查本机网络后重试" :
                        line;
         return new JoinResult(false, friendly);
@@ -957,7 +958,19 @@ public static class TailscaleService
         try
         {
             using var doc = JsonDocument.Parse(json);
-            var root = doc.RootElement;
+            return ParsePeerMap(doc.RootElement);
+        }
+        catch
+        {
+            return [];
+        }
+    }
+
+    /// <summary>从已解析的 status JSON 里取设备列表——和状态共用同一次解析，不用再起一个进程。</summary>
+    internal static IReadOnlyList<TailscalePeer> ParsePeerMap(JsonElement root)
+    {
+        try
+        {
             if (root.ValueKind != JsonValueKind.Object) return [];
             if (!root.TryGetProperty("Peer", out var peers) || peers.ValueKind != JsonValueKind.Object) return [];
 

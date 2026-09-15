@@ -42,7 +42,7 @@
                     FontSize="12"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     TextWrapping="Wrap"
-                    Text="把房主发来的邀请码整段粘进来就行（连说明文字一起粘也可以）。如果房主只给了地址，直接填 100.x.x.x:端口。" />
+                    Text="把对方发来的邀请码整段粘进来就行（连说明文字一起粘也可以）。如果对方只给了地址，直接填 100.x.x.x:端口。" />
 
                 <Grid ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
@@ -132,7 +132,7 @@
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
                             <FontIcon x:Name="PingIcon" FontSize="14" Glyph="&#xE9F5;" VerticalAlignment="Center" />
-                            <TextBlock x:Name="PingText" Grid.Column="1" FontSize="13" VerticalAlignment="Center" TextWrapping="Wrap" Text="与房主的连接" />
+                            <TextBlock x:Name="PingText" Grid.Column="1" FontSize="13" VerticalAlignment="Center" TextWrapping="Wrap" Text="与对方的连接" />
                         </Grid>
                     </StackPanel>
                 </Border>
@@ -229,12 +229,12 @@
                             FontSize="12"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             TextWrapping="Wrap"
-                            Text="· 提示「未知主机 / 服务器无响应」：先回游戏主菜单重进一次，或者让房主确认房间还开着。" />
+                            Text="· 提示「未知主机 / 服务器无响应」：先回游戏主菜单重进一次，或者让对方确认游戏还开着。" />
                         <TextBlock
                             FontSize="12"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             TextWrapping="Wrap"
-                            Text="· 一直连不上：回到工具箱主页点「网络检测」，看对房主是直连还是中继、有没有告警。" />
+                            Text="· 一直连不上：回到工具箱主页点「网络检测」，看和对方是直连还是中继、有没有告警。" />
                         <TextBlock
                             FontSize="12"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"

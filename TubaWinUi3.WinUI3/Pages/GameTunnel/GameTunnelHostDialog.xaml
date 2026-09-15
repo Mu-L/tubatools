@@ -8,7 +8,7 @@
     xmlns:local="using:TubaWinUi3.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Title="我要开房"
+    Title="我来当主机"
     PrimaryButtonText="下一步"
     SecondaryButtonText="上一步"
     CloseButtonText="取消"
@@ -67,17 +67,24 @@
                                 </Grid.ColumnDefinitions>
 
                                 <Border
-                                    Width="38"
-                                    Height="38"
+                                    Width="64"
+                                    Height="40"
                                     VerticalAlignment="Center"
                                     Background="{ThemeResource SubtleFillColorSecondaryBrush}"
                                     CornerRadius="10">
-                                    <FontIcon
-                                        FontSize="17"
-                                        Glyph="{x:Bind Glyph}"
-                                        Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center" />
+                                    <Grid>
+                                        <FontIcon
+                                            FontSize="17"
+                                            Glyph="{x:Bind Glyph}"
+                                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Visibility="{x:Bind GlyphVisibility, Mode=OneWay}" />
+                                        <Image
+                                            Margin="5,4"
+                                            Source="{x:Bind Logo, Mode=OneWay}"
+                                            Stretch="Uniform" />
+                                    </Grid>
                                 </Border>
 
                                 <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
@@ -103,6 +110,12 @@
                         </DataTemplate>
                     </GridView.ItemTemplate>
                 </GridView>
+
+                <TextBlock
+                    FontSize="11"
+                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                    TextWrapping="Wrap"
+                    Text="游戏 Logo 取自各家官方公开素材，版权归各自所有者，仅用于标识对应游戏。" />
 
                 <!-- 选中游戏的说明（只展示当前这一个游戏，不堆在一起） -->
                 <Border
@@ -143,7 +156,7 @@
                             FontSize="12"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             TextWrapping="Wrap"
-                            Text="只需要填游戏用的端口。不知道的话，在游戏「开服 / 开房间」时通常会显示。" />
+                            Text="只需要填游戏用的端口。不知道的话，在游戏「开服 / 建房」时通常会显示。" />
                         <Grid ColumnSpacing="10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -167,7 +180,7 @@
                 </Border>
             </StackPanel>
 
-            <!-- ══════════ 第 2 步：房间设置 ══════════ -->
+            <!-- ══════════ 第 2 步：游戏与端口 ══════════ -->
             <StackPanel x:Name="Step2Panel" Spacing="12" Visibility="Collapsed">
 
                 <Border
@@ -207,7 +220,7 @@
                     <StackPanel Spacing="8">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon FontSize="14" Glyph="&#xE7FC;" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                            <TextBlock FontSize="13" FontWeight="SemiBold" Text="先在游戏里把房间开起来" />
+                            <TextBlock FontSize="13" FontWeight="SemiBold" Text="先在游戏里把游戏开起来" />
                         </StackPanel>
                         <ItemsControl x:Name="HostStepsList">
                             <ItemsControl.ItemTemplate>
@@ -345,7 +358,7 @@
                             FontSize="12"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             TextWrapping="Wrap"
-                            Text="2. 你的游戏必须已经开启房间，并且监听上面这个端口（本页会自动检测）。" />
+                            Text="2. 你的游戏必须已经开好（建好房间或启动服务器），并且监听上面这个端口（本页会自动检测）。" />
                         <TextBlock
                             FontSize="12"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"

@@ -54,7 +54,7 @@ public static class GameTunnelProbe
                 return new PortStatus(true, $"检测到有程序在监听 {what} {port} 端口，游戏应该已经开好了");
             }
 
-            return new PortStatus(false, $"目前没有程序监听 {port} 端口。请先在游戏里开启房间 / 启动服务器；开好后点「重新检测」");
+            return new PortStatus(false, $"目前没有程序监听 {port} 端口。请先在游戏里开好（建房 / 启动服务器）；开好后点「重新检测」");
         }
         catch (Exception ex)
         {

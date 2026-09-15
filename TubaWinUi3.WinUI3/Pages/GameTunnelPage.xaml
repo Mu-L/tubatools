@@ -20,7 +20,7 @@
         <controls:ToolPageHeader
             Grid.Row="0"
             Title="游戏联机助手"
-            Subtitle="Tailscale 内网穿透 · 我的世界 / 泰拉瑞亚 / 帕鲁，不开路由器也能一起玩"
+            Subtitle="把两台电脑接进同一个虚拟局域网 · 我的世界 / 泰拉瑞亚 / 帕鲁，不开路由器也能一起玩"
             Glyph="&#xE774;">
             <controls:ToolPageHeader.IconBackground>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
@@ -53,7 +53,7 @@
 
             <StackPanel Spacing="14">
 
-                <!-- ═════════ 环境状态 ═════════ -->
+                <!-- ═════════ 联机环境：我的地址 + 网里有谁 ═════════ -->
                 <Border Padding="18,16" BorderThickness="1" CornerRadius="16">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
@@ -94,6 +94,7 @@
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
+                            <TextBlock x:Name="PeerLine" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" TextWrapping="Wrap" Visibility="Collapsed" />
                         </StackPanel>
 
                         <Button
@@ -114,7 +115,15 @@
 
                 <InfoBar x:Name="HealthBar" IsOpen="False" IsClosable="True" Severity="Warning" />
 
-                <!-- ═════════ 两个入口 ═════════ -->
+                <InfoBar
+                    x:Name="BroadcastHint"
+                    IsOpen="False"
+                    IsClosable="False"
+                    Severity="Informational"
+                    Title="游戏里不会自动出现房间"
+                    Message="Tailscale 是三层虚拟网络，只转发点对点的数据，不转发游戏发出的局域网广播（组播）——所以游戏扫描不到对方的大厅。照旧在游戏里选「直接连接 / 通过 IP 加入」，填上面的地址 + 端口（端口见下面的游戏卡）。少数走平台好友邀请的游戏（如 Steam）不受影响。" />
+
+                <!-- ═════════ 和朋友连起来 ═════════ -->
                 <Grid ColumnSpacing="14">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -134,17 +143,17 @@
                                     <FontIcon FontSize="18" Glyph="&#xE7FC;" Foreground="#7C6CF0" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
                                 <StackPanel VerticalAlignment="Center" Spacing="1">
-                                    <TextBlock FontSize="16" FontWeight="SemiBold" Text="我要开房" />
-                                    <TextBlock FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="我当房主，朋友来找我玩" />
+                                    <TextBlock FontSize="16" FontWeight="SemiBold" Text="我当主机，邀请朋友" />
+                                    <TextBlock FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="游戏跑在我这台，朋友一键进来" />
                                 </StackPanel>
                             </StackPanel>
                             <TextBlock
                                 FontSize="12"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 TextWrapping="Wrap"
-                                Text="选好游戏 → 生成邀请码 → 朋友粘贴就进来了。地址和教程都会自动准备好。" />
+                                Text="选一个游戏 → 把邀请码发给朋友 → 他进的是同一个虚拟局域网，并拿到你的联机地址。端口和游戏里的操作都会自动准备好。" />
                             <Button x:Name="StartHostButton" Click="StartHost_Click" Style="{StaticResource AccentButtonStyle}" CornerRadius="8" Padding="0,8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
-                                <TextBlock FontSize="13" FontWeight="SemiBold" Text="开始开房" />
+                                <TextBlock FontSize="13" FontWeight="SemiBold" Text="选择游戏并邀请" />
                             </Button>
                         </StackPanel>
                     </Border>
@@ -163,21 +172,92 @@
                                     <FontIcon FontSize="18" Glyph="&#xE8F1;" Foreground="#5B8DEF" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
                                 <StackPanel VerticalAlignment="Center" Spacing="1">
-                                    <TextBlock FontSize="16" FontWeight="SemiBold" Text="我要加入" />
-                                    <TextBlock FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="朋友开好房了，我来找他玩" />
+                                    <TextBlock FontSize="16" FontWeight="SemiBold" Text="我加入朋友" />
+                                    <TextBlock FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="朋友当主机，我进他的虚拟网络" />
                                 </StackPanel>
                             </StackPanel>
                             <TextBlock
                                 FontSize="12"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 TextWrapping="Wrap"
-                                Text="把房主发来的邀请码粘进来就行（从聊天软件复制后会自动识别）。没装 Tailscale 也会自动装好。" />
+                                Text="粘贴朋友发来的邀请码（连说明文字一起粘也行），没装 Tailscale 也会自动装好；进网络后照游戏卡上的端口，在游戏里用「通过 IP 加入」连他。" />
                             <Button x:Name="StartJoinButton" Click="StartJoin_Click" CornerRadius="8" Padding="0,8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
-                                <TextBlock FontSize="13" FontWeight="SemiBold" Text="加入朋友的房间" />
+                                <TextBlock FontSize="13" FontWeight="SemiBold" Text="粘贴邀请码加入" />
                             </Button>
                         </StackPanel>
                     </Border>
                 </Grid>
+
+                <!-- ═════════ 我要玩的游戏（端口速查 + 一键邀请） ═════════ -->
+                <StackPanel x:Name="GamesSection" Spacing="8">
+                    <Grid>
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <Border Width="3" Height="15" CornerRadius="2" Background="#2BB673" VerticalAlignment="Center" />
+                            <TextBlock FontSize="15" FontWeight="SemiBold" Text="我要玩的游戏" />
+                        </StackPanel>
+                        <TextBlock
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            FontSize="11"
+                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                            Text="点一下 = 选好端口并进入邀请流程" />
+                    </Grid>
+
+                    <ScrollViewer
+                        HorizontalScrollBarVisibility="Auto"
+                        HorizontalScrollMode="Auto"
+                        VerticalScrollBarVisibility="Disabled"
+                        VerticalScrollMode="Disabled">
+                        <ItemsControl x:Name="GamesList">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="10" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="local:TunnelGameCard">
+                                    <Button
+                                        Click="GameChip_Click"
+                                        Tag="{x:Bind Self}"
+                                        Padding="0"
+                                        CornerRadius="12"
+                                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                        BorderThickness="1">
+                                        <StackPanel Width="122" Padding="12,10" Spacing="6">
+                                            <Grid Height="34">
+                                                <FontIcon
+                                                    FontSize="16"
+                                                    Glyph="{x:Bind Glyph}"
+                                                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    Visibility="{x:Bind GlyphVisibility, Mode=OneWay}" />
+                                                <Image Source="{x:Bind Logo, Mode=OneWay}" Stretch="Uniform" />
+                                            </Grid>
+                                            <TextBlock
+                                                FontSize="14"
+                                                FontWeight="SemiBold"
+                                                Text="{x:Bind Name}"
+                                                MaxLines="1"
+                                                TextTrimming="CharacterEllipsis" />
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <TextBlock FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="{x:Bind PortText}" />
+                                                <Border
+                                                    Padding="5,0"
+                                                    Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                                    CornerRadius="5"
+                                                    Visibility="{x:Bind HasProtocolBadge}">
+                                                    <TextBlock FontSize="10" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="{x:Bind ProtocolBadge}" />
+                                                </Border>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </StackPanel>
 
                 <!-- ═════════ 最近联机 ═════════ -->
                 <StackPanel x:Name="RecentSection" Spacing="8" Visibility="Collapsed">
@@ -255,11 +335,13 @@
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             TextWrapping="Wrap"
                             LineHeight="19">
-                            <Run Text="· Tailscale 会给每台电脑分配一个 100 开头的固定地址，两台电脑就像在同一个局域网里，TCP / UDP 游戏都支持。" />
+                            <Run Text="· Tailscale 把两台电脑接进同一个虚拟局域网：每台有一个 100 开头的固定地址，TCP / UDP 游戏都能跑，不用公网 IP、不用改路由器。" />
                             <LineBreak />
-                            <Run Text="· 房主开好游戏房间后，把「联机地址」发给朋友；朋友在游戏里直接填这个地址就能连。" />
+                            <Run Text="· 这个虚拟网络是「三层」的：只转发点对点的数据，不转发游戏发出的局域网广播（组播）——所以游戏里不会自动冒出对方的房间，要在游戏里选「直接连接 / 通过 IP 加入」，填地址和端口。" />
                             <LineBreak />
                             <Run Text="· 打洞成功时是点对点直连（延迟接近直连），打洞失败会自动走加密中继，能玩但延迟略高——想看自己属于哪种，点右上角「网络检测」。" />
+                            <LineBreak />
+                            <Run Text="· 少数游戏的联机走平台自己的通道（例如 Steam 好友邀请），不受上面这条限制。" />
                         </TextBlock>
                     </StackPanel>
                 </Border>
