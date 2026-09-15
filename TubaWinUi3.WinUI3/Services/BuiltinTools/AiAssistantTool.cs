@@ -12,7 +12,7 @@ public sealed class AiAssistantTool : IBuiltinTool
     public string Name => "AI 助手";
     public string Description => "智能系统代理，可诊断问题、优化配置、读写文件、执行命令、联网搜索并执行操作。";
     public string Glyph => "\uE946";
-    public string Category => "系统工具";
+    public string Category => "实用工具";
     public BuiltinToolKind Kind => BuiltinToolKind.Dialog;
 
     public Task ExecuteAsync(BuiltinToolContext context)

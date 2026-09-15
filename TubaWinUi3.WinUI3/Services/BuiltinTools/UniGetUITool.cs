@@ -11,7 +11,7 @@ public sealed class UniGetUITool : IBuiltinTool
     public string Name => "UniGetUI 包管理器";
     public string Description => "开源的 Windows 包管理器 GUI，支持 winget/scoop/chocolatey/pip/npm 等多种包管理器。";
     public string Glyph => "\uE8F2";
-    public string Category => "系统工具";
+    public string Category => "实用工具";
     public BuiltinToolKind Kind => BuiltinToolKind.InstantAction;
 
     private const string Repo = "Devolutions/UniGetUI";
