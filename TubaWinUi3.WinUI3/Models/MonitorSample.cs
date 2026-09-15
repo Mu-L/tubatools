@@ -4,6 +4,8 @@ public sealed class MonitorSample
 {
     public float CpuLoad = -1, CpuTemp = -1, CpuClock = -1, CpuPower = -1;
     public string CpuName = "";
+    /// <summary>传感器库实际创建的 CPU 温度传感器数量（0 = CPU 型号不认识，>0 但无值 = 驱动/ring0 不可用）。</summary>
+    public int CpuTempSensors;
 
     public float GpuLoad = -1, GpuTemp = -1, GpuClock = -1, GpuPower = -1, GpuVramLoad = -1, GpuVramUsedGB = -1;
     public string GpuName = "";

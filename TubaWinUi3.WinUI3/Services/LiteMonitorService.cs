@@ -27,6 +27,8 @@ public sealed class LiteMonitorService : IDisposable
             s_initDone = true;
             try
             {
+                // CPU 温度/频率/功耗走 MSR（PawnIO 驱动）：已安装但停着的驱动在重启后不会自动加载，这里补启动一次
+                PawnIoService.EnsureDriver();
                 s_computer?.Close();
                 s_computer = new Computer
                 {
@@ -51,11 +53,17 @@ public sealed class LiteMonitorService : IDisposable
     {
         lock (s_lock)
         {
+            PawnIoService.ResetStartState();
             s_initDone = false;
         }
     }
 
     private static bool s_debugLogged;
+
+    /// <summary>传感器引擎自检信息（LHM 版本 + PawnIO 驱动状态），日志与 sensor_dump.txt 共用。</summary>
+    public static string EngineDescription =>
+        $"LibreHardwareMonitor {typeof(Computer).Assembly.GetName().Version} · PawnIO "
+        + (PawnIoService.IsDeviceAvailable() ? "ready" : PawnIoService.IsInstalled() ? "installed but not loaded" : "missing");
 
     public MonitorSample Read(bool fpsEnabled = false)
     {
@@ -64,35 +72,36 @@ public sealed class LiteMonitorService : IDisposable
         lock (s_lock)
         {
             if (s_computer == null) return sample;
-            try
+            // 单个硬件读失败（传感器驱动/设备异常，烤机高负载时更容易发生）不再拖垮整份采样：
+            // 否则 CPU 温度等全部字段会一起变成 -1，界面显示成「全部读不到」
+            foreach (IHardware hw in s_computer.Hardware)
             {
-                foreach (IHardware hw in s_computer.Hardware)
-                    hw.Update();
-                foreach (IHardware hw in s_computer.Hardware)
+                try { hw.Update(); } catch { }
+            }
+            foreach (IHardware hw in s_computer.Hardware)
+            {
+                try { ReadHardware(hw, sample); } catch { }
+                if (!s_debugLogged)
                 {
-                    ReadHardware(hw, sample);
-                    if (!s_debugLogged)
+                    s_debugLogged = true;
+                    var logPath = ConfigManager.GetSensorDumpPath();
+                    try
                     {
-                        s_debugLogged = true;
-                        var logPath = ConfigManager.GetSensorDumpPath();
-                        try
+                        System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(logPath)!);
+                        using var w = new System.IO.StreamWriter(logPath, false, System.Text.Encoding.UTF8);
+                        w.WriteLine($"=== LHM Sensor Dump {DateTime.Now:HH:mm:ss} ===");
+                        w.WriteLine(EngineDescription);
+                        w.WriteLine($"Hardware count: {s_computer.Hardware.Count}");
+                        foreach (var hw2 in s_computer.Hardware)
                         {
-                            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(logPath)!);
-                            using var w = new System.IO.StreamWriter(logPath, false, System.Text.Encoding.UTF8);
-                            w.WriteLine($"=== LHM Sensor Dump {DateTime.Now:HH:mm:ss} ===");
-                            w.WriteLine($"Hardware count: {s_computer.Hardware.Count}");
-                            foreach (var hw2 in s_computer.Hardware)
-                            {
-                                w.WriteLine($"[HW] {hw2.HardwareType} | {hw2.Name} | Sensors: {hw2.Sensors.Length}");
-                                foreach (var sensor in hw2.Sensors)
-                                    w.WriteLine($"  {sensor.SensorType} | {sensor.Name} = {sensor.Value}");
-                            }
+                            w.WriteLine($"[HW] {hw2.HardwareType} | {hw2.Name} | Sensors: {hw2.Sensors.Length}");
+                            foreach (var sensor in hw2.Sensors)
+                                w.WriteLine($"  {sensor.SensorType} | {sensor.Name} = {sensor.Value}");
                         }
-                        catch { }
                     }
+                    catch { }
                 }
             }
-            catch { }
         }
 
         ReadMemFromWmi(sample);
@@ -129,6 +138,9 @@ public sealed class LiteMonitorService : IDisposable
                 s.CpuName = hw.Name;
                 foreach (var sensor in hw.Sensors)
                 {
+                    // 计数不受值是否可读影响：能区分「传感器没被创建」（CPU 型号不认识）与「创建了但读不到值」（PawnIO 驱动没跑）
+                    if (sensor.SensorType == SensorType.Temperature)
+                        s.CpuTempSensors++;
                     if (!sensor.Value.HasValue) continue;
                     if (sensor.SensorType == SensorType.Load && (Has(sensor.Name, "total") || Has(sensor.Name, "package")))
                         s.CpuLoad = sensor.Value.Value;

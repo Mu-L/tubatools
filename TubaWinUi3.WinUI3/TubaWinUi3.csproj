@@ -362,7 +362,8 @@
     <PackageReference Include="Downloader" Version="5.9.6" />
     <PackageReference Include="FieldCure.AssistStudio.Controls.WinUI" Version="0.21.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
-    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.6" />
+    <!-- 稳定版 0.9.6 不识别 Panther Lake 等新 CPU（uarch=Unknown）→ CPU 温度/频率/功耗传感器不会创建；0.9.7-pre737 起才支持 -->
+    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.7-pre737" />
     <PackageReference Include="LiveChartsCore.SkiaSharpView.WinUI" Version="2.0.4" />
 
     <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.2.2" />
@@ -377,7 +378,7 @@
     <PackageReference Include="QRCoder" Version="1.6.0" />
     <PackageReference Include="System.Drawing.Common" Version="10.0.0" />
     <FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" />
-    <PackageReference Include="System.Management" Version="10.0.8" />
+    <PackageReference Include="System.Management" Version="10.0.12" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.0" />
     <PackageReference Include="SIPSorcery" Version="10.0.14" />
 

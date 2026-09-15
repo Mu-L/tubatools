@@ -76,6 +76,10 @@ public sealed partial class StressTestControl : UserControl
     private int _cpuTempCount, _cpuUsageCount, _cpuClockCount, _cpuPowerCount;
     private int _gpuTempCount, _gpuClockCount, _gpuPowerCount;
     private int _monitorRetryCount;
+    private bool _monitorInFlight;
+    private bool _cpuSelectedThisRun;
+    private int _cpuSensorMissingTicks;
+    private bool _sensorDriverHintShown;
 
     private NetworkStressRunner? _netRunner;
     private bool _netRunnerActive;
@@ -472,6 +476,10 @@ public sealed partial class StressTestControl : UserControl
 
         _isRunning = true;
         _monitorRetryCount = 0;
+        _monitorInFlight = false;
+        _cpuSelectedThisRun = cpuSel;
+        _cpuSensorMissingTicks = 0;
+        _sensorDriverHintShown = false;
         _sampleCount = 0;
         _cpuTempPeak = _cpuUsagePeak = _cpuClockPeak = _cpuPowerPeak = double.MinValue;
         _gpuTempPeak = _gpuClockPeak = _gpuPowerPeak = double.MinValue;
@@ -522,6 +530,7 @@ public sealed partial class StressTestControl : UserControl
         }
 
         Log($"烤机开始 — {string.Join(" + ", started)}，总时长 {_targetMinutes} 分钟");
+        Log($"传感器引擎：{LiteMonitorService.EngineDescription}");
 
         _startTime = DateTime.UtcNow;
 
@@ -615,8 +624,22 @@ public sealed partial class StressTestControl : UserControl
 
     private async Task UpdateMonitorAsync()
     {
-        if (!_isRunning) return;
+        // 与「游戏监控」同样的防重入：LHM 全硬件树 + WMI 采样在烤机高负载下会超过 1 秒，
+        // 上一轮没结束就跳过本 tick —— 否则 async void 会不断叠加读取，把 UI 线程压死、数据一直刷新不出来
+        if (!_isRunning || _monitorInFlight) return;
+        _monitorInFlight = true;
+        try
+        {
+            await UpdateMonitorCoreAsync();
+        }
+        finally
+        {
+            _monitorInFlight = false;
+        }
+    }
 
+    private async Task UpdateMonitorCoreAsync()
+    {
         // 与「游戏监控」共用同一硬件监控引擎（LibreHardwareMonitor）
         var sample = await Task.Run(() => LiteMonitorService.Instance.Read());
 
@@ -633,6 +656,8 @@ public sealed partial class StressTestControl : UserControl
 
         var cpuTemp = sample.CpuTemp; var cpuUsage = sample.CpuLoad; var cpuClock = sample.CpuClock; var cpuPower = sample.CpuPower;
         var gpuTemp = sample.GpuTemp; var gpuClock = sample.GpuClock; var gpuPower = sample.GpuPower;
+
+        TrackCpuSensorAvailability(sample);
 
         if (cpuTemp > 0) { _cpuTempSum += cpuTemp; _cpuTempCount++; if (cpuTemp > _cpuTempPeak) _cpuTempPeak = cpuTemp; }
         if (cpuUsage > 0) { _cpuUsageSum += cpuUsage; _cpuUsageCount++; if (cpuUsage > _cpuUsagePeak) _cpuUsagePeak = cpuUsage; }
@@ -666,6 +691,67 @@ public sealed partial class StressTestControl : UserControl
         GpuTempText.Text = Fi(gpuTemp, "°C");
         GpuClockText.Text = Fi(gpuClock, " MHz");
         GpuPowerText.Text = F(gpuPower, "W");
+    }
+
+    // CPU 温度/频率/功耗走 MSR，需要 PawnIO 传感器驱动；连续读不到就提示一次并给出一键安装入口
+    private void TrackCpuSensorAvailability(MonitorSample sample)
+    {
+        if (!_cpuSelectedThisRun || sample.CpuTemp > 0 || sample.CpuClock > 0 || sample.CpuPower > 0)
+        {
+            _cpuSensorMissingTicks = 0;
+            return;
+        }
+
+        if (++_cpuSensorMissingTicks != 6 || _sensorDriverHintShown) return;
+        _sensorDriverHintShown = true;
+        Log($"CPU 温度/频率/功耗 始终没有数据 — {LiteMonitorService.EngineDescription}，CPU 温度传感器 {sample.CpuTempSensors} 个");
+        _ = PromptSensorDriverAsync(sample.CpuTempSensors);
+    }
+
+    private async Task PromptSensorDriverAsync(int cpuTempSensors)
+    {
+        try
+        {
+            if (PawnIoService.IsDeviceAvailable())
+            {
+                Log(cpuTempSensors == 0
+                    ? "传感器库里没有 CPU 温度传感器：该 CPU 型号不被当前传感器库识别"
+                    : $"PawnIO 驱动已在运行，CPU 温度传感器已创建 {cpuTempSensors} 个却都读不到值，请连同上方诊断信息反馈");
+                return;
+            }
+
+            var dialog = new ContentDialog
+            {
+                Title = "读不到 CPU 温度/频率/功耗",
+                Content = new TextBlock
+                {
+                    TextWrapping = TextWrapping.Wrap,
+                    Text = "CPU 温度、频率、功耗来自 LibreHardwareMonitor 的 MSR 读取，需要 PawnIO 传感器驱动，"
+                         + "「游戏监控」的同类数据同样依赖它。\n\n"
+                         + "当前系统未加载该驱动，是否下载并运行官方安装包（namazso/PawnIO.Setup）？"
+                         + "安装完成后本页会自动恢复读取。"
+                },
+                PrimaryButtonText = "下载并安装",
+                CloseButtonText = "忽略",
+                DefaultButton = ContentDialogButton.Primary,
+                XamlRoot = XamlRoot,
+                RequestedTheme = ThemeService.CurrentElementTheme
+            };
+
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
+
+            Log("正在下载 PawnIO 安装包...");
+            var (ok, message) = await PawnIoService.InstallAsync();
+            Log(message);
+            if (!ok) return;
+
+            LiteMonitorService.ReinitLhm();
+            Log("传感器引擎已重新初始化，稍后即可读到 CPU 温度/频率/功耗");
+        }
+        catch (Exception ex)
+        {
+            Log($"传感器驱动处理失败: {ex.Message}");
+        }
     }
 
     private static void PushChart(ObservableCollection<double> list, double value)
@@ -1189,6 +1275,9 @@ h1{{font-size:28px;font-weight:600;margin-bottom:4px}}
         StartStressBtn.IsEnabled = enabled;
     }
 
+    // 与游戏监控的 game_overlay_auto.log 同理：界面日志关掉就没了，烤机读不到传感器时得留下证据
+    private static string LogFilePath => Path.Combine(ConfigManager.GetDataDir(), "stress_test.log");
+
     private void Log(string msg)
     {
         var line = $"[{DateTime.Now:HH:mm:ss}] {msg}";
@@ -1196,6 +1285,13 @@ h1{{font-size:28px;font-weight:600;margin-bottom:4px}}
         while (LogText.Inlines.Count > MaxLogLines)
             LogText.Inlines.RemoveAt(0);
         LogScrollViewer.ChangeView(null, LogScrollViewer.ScrollableHeight, null);
+        try
+        {
+            var dir = Path.GetDirectoryName(LogFilePath);
+            if (dir is not null) Directory.CreateDirectory(dir);
+            File.AppendAllText(LogFilePath, line + Environment.NewLine);
+        }
+        catch { }
     }
 
     private void ClearLog_Click(object sender, RoutedEventArgs e) => LogText.Inlines.Clear();

@@ -139,7 +139,7 @@ dotnet test --filter "FullyQualifiedName~ToolCatalogTests"        # one class / 
 
 - `Tools/` has Chinese category directory names (处理器工具, 显卡工具, …) — path handling must be Unicode-safe.
 - `HardwareInfoService` runs WMI on `Task.Run`; results are consumed on the UI thread. `ApplyCpuzOverride()` deep-copies WMI sections and overwrites them with CPU-Z data (`IsVerified=true`).
-- `LiteMonitorService` uses LibreHardwareMonitorLib (nvapi64 / ATI ADL / D3DKMT / WMI fallbacks) — installs **no kernel driver**; the FPS overlay reads the ETW `DxgKrnl` Present event via `FpsService` (needs admin, no driver). The game-monitor overlay no longer gates on the PawnIO driver.
+- `LiteMonitorService` uses LibreHardwareMonitorLib **0.9.7-pre737** (稳定的 0.9.6 不认识 Panther Lake 等新 CPU → uarch=Unknown，温度/频率/功耗传感器根本不会创建) with nvapi64 / ATI ADL / D3DKMT / WMI fallbacks. **CPU 温度/频率/功耗走 MSR，依赖 PawnIO 驱动**：`PawnIoService` 在 LHM 初始化前补启动「已安装但未加载」的驱动（这类驱动重启后不会自动加载），仍不可用时「一键三烤」会弹窗引导安装官方 PawnIO_setup；游戏监控覆盖层本身不再强制要求 PawnIO（只影响 CPU 这几项数据）。The FPS overlay reads the ETW `DxgKrnl` Present event via `FpsService` (needs admin, no driver).
 - `FpsService` uses an ETW `DxgKrnl` trace session (`Microsoft.Diagnostics.Tracing.TraceEvent`) — needs admin for kernel tracing.
 - `ConfigManager` supports two data locations — AppData (`%LocalAppData%/TubaWinUi3/`) or AppRoot (`<appdir>/Data/`) — selected by a `.config_location` marker file.
 - `Package.appxmanifest` declares `runFullTrust` and `systemAIModels`.
