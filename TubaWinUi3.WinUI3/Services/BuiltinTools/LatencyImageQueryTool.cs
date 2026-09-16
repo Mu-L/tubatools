@@ -103,12 +103,10 @@ public sealed partial class LatencyImageQueryPage : Page
 		var controlRow = new Grid { Padding = new Thickness(24, 0, 24, 8), ColumnSpacing = 12 };
 		controlRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 		controlRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-		controlRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 		controlRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-		controlRow.Children.Add(refreshBtn); Grid.SetColumn(refreshBtn, 0);
-		controlRow.Children.Add(_searchBox); Grid.SetColumn(_searchBox, 1);
-		controlRow.Children.Add(sourceCombo); Grid.SetColumn(sourceCombo, 2);
-		controlRow.Children.Add(_statusText); Grid.SetColumn(_statusText, 3);
+		controlRow.Children.Add(_searchBox); Grid.SetColumn(_searchBox, 0);
+		controlRow.Children.Add(sourceCombo); Grid.SetColumn(sourceCombo, 1);
+		controlRow.Children.Add(_statusText); Grid.SetColumn(_statusText, 2);
 
 		_gridView = new GridView
 		{
