@@ -183,27 +183,32 @@ internal static class WindowsSearchIndexService
     /// 创建 .lnk 快捷方式（进程内调用 WScript.Shell COM，无子进程）。
     /// WScript.Shell 需要在 STA 线程上调用：UI 线程本身是 STA，
     /// 后台注册路径（Task.Run 的 MTA 线程池）则临时起一个 STA 线程执行。
+    /// 字符串全程走 COM BSTR，不经过子进程命令行，中文路径不受系统代码页
+    /// （936 / 1252 / UTF-8 beta）影响。
     /// </summary>
     private static void CreateShortcut(string shortcutPath, string targetPath, string workingDir,
         string description, string? arguments = null, string? iconPath = null)
+        => RunOnSta(() => CreateShortcutOnSta(shortcutPath, targetPath, workingDir, description, arguments, iconPath));
+
+    private static void RunOnSta(Action action)
     {
-        if (Thread.CurrentThread.GetApartmentState() != ApartmentState.STA)
+        if (Thread.CurrentThread.GetApartmentState() == ApartmentState.STA)
         {
-            Exception? error = null;
-            var staThread = new Thread(() =>
-            {
-                try { CreateShortcutOnSta(shortcutPath, targetPath, workingDir, description, arguments, iconPath); }
-                catch (Exception ex) { error = ex; }
-            });
-            staThread.SetApartmentState(ApartmentState.STA);
-            staThread.Start();
-            staThread.Join();
-            if (error is not null)
-                throw error;
+            action();
             return;
         }
 
-        CreateShortcutOnSta(shortcutPath, targetPath, workingDir, description, arguments, iconPath);
+        Exception? error = null;
+        var staThread = new Thread(() =>
+        {
+            try { action(); }
+            catch (Exception ex) { error = ex; }
+        });
+        staThread.SetApartmentState(ApartmentState.STA);
+        staThread.Start();
+        staThread.Join();
+        if (error is not null)
+            throw error;
     }
 
     private static void CreateShortcutOnSta(string shortcutPath, string targetPath, string workingDir,
@@ -309,17 +314,52 @@ internal static class WindowsSearchIndexService
     private static string IconCacheDir => Path.Combine(ConfigManager.GetDataDir(), "DesktopIcons");
 
     /// <summary>
+    /// 「发送到桌面」第三方工具快捷方式：与内置工具共用同一 COM 写入器，
+    /// 不经过 powershell.exe 等子进程，非中文系统（含 UTF-8 代码页）上
+    /// 中文分类目录也不会被损坏。
+    /// </summary>
+    /// <param name="desktopDirectory">落盘目录，null = 当前用户桌面。</param>
+    /// <returns>生成的 .lnk 完整路径。</returns>
+    internal static string CreateDesktopShortcut(ToolItem tool, string? desktopDirectory = null)
+    {
+        if (tool.IsBuiltinLink)
+        {
+            if (string.IsNullOrWhiteSpace(tool.BuiltinToolId))
+                throw new InvalidOperationException("内置工具缺少注册信息，无法创建快捷方式。");
+            var builtin = BuiltinToolRegistry.GetById(tool.BuiltinToolId)
+                ?? throw new InvalidOperationException("找不到对应的内置工具，无法创建快捷方式。");
+            return CreateDesktopShortcut(builtin, desktopDirectory);
+        }
+
+        var target = tool.EffectivePath;
+        if (tool.NeedsDownload)
+            throw new InvalidOperationException("工具尚未下载，请先下载后再发送到桌面。");
+        if (string.IsNullOrWhiteSpace(target) || !File.Exists(target))
+            throw new InvalidOperationException("工具文件不存在，可能已被移动或删除，无法创建快捷方式。");
+
+        var archSuffix = tool.SelectedArch is not null && !string.IsNullOrEmpty(tool.SelectedArch.Arch)
+            ? $" ({tool.SelectedArch.Arch})" : "";
+        var shortcutPath = BuildDesktopShortcutPath(
+            ResolveDesktopDirectory(desktopDirectory), $"{tool.Name}{archSuffix}");
+
+        CreateShortcut(shortcutPath, target, tool.EffectiveWorkingDir, $"{tool.Name}{archSuffix}");
+        VerifyShortcutTarget(shortcutPath, target);
+        return shortcutPath;
+    }
+
+    /// <summary>
     /// 「发送到桌面」内置工具快捷方式：双击以 --open-builtin 启动本程序直达工具，
     /// 图标用该工具的字体图标（与卡片展示同源）。
     /// </summary>
-    internal static void CreateDesktopShortcut(IBuiltinTool tool)
+    /// <param name="desktopDirectory">落盘目录，null = 当前用户桌面。</param>
+    /// <returns>生成的 .lnk 完整路径。</returns>
+    internal static string CreateDesktopShortcut(IBuiltinTool tool, string? desktopDirectory = null)
     {
         var appExe = Process.GetCurrentProcess().MainModule?.FileName;
         if (string.IsNullOrWhiteSpace(appExe) || !File.Exists(appExe))
             throw new InvalidOperationException("无法定位工具箱自身路径，无法创建快捷方式。");
 
-        var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-        var shortcutPath = Path.Combine(desktop, $"{tool.Name}.lnk");
+        var shortcutPath = BuildDesktopShortcutPath(ResolveDesktopDirectory(desktopDirectory), tool.Name);
 
         // 图标渲染失败只影响显示，不阻断快捷方式本身（退回程序默认图标）
         string? iconPath = null;
@@ -331,6 +371,84 @@ internal static class WindowsSearchIndexService
 
         CreateShortcut(shortcutPath, appExe, AppContext.BaseDirectory,
             $"{tool.Name} - {tool.Category}", $"--open-builtin {tool.Id}", iconPath);
+
+        VerifyShortcutTarget(shortcutPath, appExe);
+        return shortcutPath;
+    }
+
+    private static string ResolveDesktopDirectory(string? desktopDirectory)
+        => string.IsNullOrWhiteSpace(desktopDirectory)
+            ? Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory)
+            : desktopDirectory;
+
+    /// <summary>
+    /// 快捷方式落盘路径：剔除非法文件名字符，避免显示名里的 \ / 把 .lnk 写进子目录。
+    /// </summary>
+    private static string BuildDesktopShortcutPath(string desktopDirectory, string name)
+        => Path.Combine(desktopDirectory, $"{SanitizeFileName(name)}.lnk");
+
+    /// <summary>
+    /// 写后回读校验：把「静默写出坏快捷方式」变成可见错误。
+    /// 读回同样走 WScript.Shell（BuiltinShortcutIconTests 已验证可原样读回目标路径）。
+    /// </summary>
+    private static void VerifyShortcutTarget(string shortcutPath, string expectedTarget)
+    {
+        var actual = string.Empty;
+        RunOnSta(() => actual = ReadShortcutTargetOnSta(shortcutPath));
+
+        if (SameTarget(actual, expectedTarget))
+            return;
+
+        throw new InvalidOperationException(
+            $"快捷方式写入校验失败：目标路径未被正确写入（期望「{expectedTarget}」，实际「{actual}」）。");
+    }
+
+    private static string ReadShortcutTargetOnSta(string shortcutPath)
+    {
+        var shellType = Type.GetTypeFromProgID("WScript.Shell");
+        if (shellType is null)
+            throw new InvalidOperationException("无法加载 WScript.Shell 组件。");
+
+        object? shell = null;
+        object? shortcut = null;
+        try
+        {
+            shell = Activator.CreateInstance(shellType)
+                ?? throw new InvalidOperationException("无法创建 WScript.Shell 组件。");
+            shortcut = ((dynamic)shell).CreateShortcut(shortcutPath);
+            return Convert.ToString(((dynamic)shortcut).TargetPath) ?? string.Empty;
+        }
+        finally
+        {
+            if (shortcut is not null)
+            {
+                try { Marshal.FinalReleaseComObject(shortcut); } catch { }
+            }
+            if (shell is not null)
+            {
+                try { Marshal.FinalReleaseComObject(shell); } catch { }
+            }
+        }
+    }
+
+    private static bool SameTarget(string actual, string expected)
+    {
+        actual = actual.Trim();
+        expected = expected.Trim();
+        if (string.Equals(actual, expected, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        try
+        {
+            return string.Equals(
+                Path.GetFullPath(actual).TrimEnd(Path.DirectorySeparatorChar),
+                Path.GetFullPath(expected).TrimEnd(Path.DirectorySeparatorChar),
+                StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     /// <summary>按工具 Id 缓存字形 .ico；已存在直接复用。</summary>

@@ -803,7 +803,7 @@ public sealed partial class HomePage : Page
         {
             try
             {
-                CreateDesktopShortcut(tool);
+                WindowsSearchIndexService.CreateDesktopShortcut(tool);
                 ShowStatus("已创建", $"已将「{tool.Name}」快捷方式发送到桌面", InfoBarSeverity.Success);
             }
             catch (Exception ex)
@@ -849,7 +849,7 @@ public sealed partial class HomePage : Page
         {
             try
             {
-                CreateDesktopShortcut(tool);
+                WindowsSearchIndexService.CreateDesktopShortcut(tool);
                 ShowStatus("已创建", $"已将「{tool.Name}」快捷方式发送到桌面", InfoBarSeverity.Success);
             }
             catch (Exception ex)
@@ -1156,60 +1156,13 @@ public sealed partial class HomePage : Page
         {
             try
             {
-                CreateDesktopShortcut(tool);
+                WindowsSearchIndexService.CreateDesktopShortcut(tool);
                 ShowStatus("已创建", $"已将「{tool.Name}」快捷方式发送到桌面", InfoBarSeverity.Success);
             }
             catch (Exception ex)
             {
                 ShowStatus("创建失败", ex.Message, InfoBarSeverity.Error);
             }
-        }
-    }
-
-    private static void CreateDesktopShortcut(ToolItem tool)
-    {
-        if (tool.IsBuiltinLink)
-        {
-            if (string.IsNullOrWhiteSpace(tool.BuiltinToolId))
-                throw new InvalidOperationException("内置工具缺少注册信息，无法创建快捷方式。");
-            var builtin = BuiltinToolRegistry.GetById(tool.BuiltinToolId);
-            if (builtin is null)
-                throw new InvalidOperationException("找不到对应的内置工具，无法创建快捷方式。");
-            WindowsSearchIndexService.CreateDesktopShortcut(builtin);
-            return;
-        }
-
-        var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-        var archSuffix = tool.SelectedArch is not null && !string.IsNullOrEmpty(tool.SelectedArch.Arch)
-            ? $" ({tool.SelectedArch.Arch})" : "";
-        var shortcutPath = Path.Combine(desktop, $"{tool.Name}{archSuffix}.lnk");
-
-        var psScript = $"""
-            $ws = New-Object -ComObject WScript.Shell
-            $s = $ws.CreateShortcut('{shortcutPath}')
-            $s.TargetPath = '{tool.EffectivePath}'
-            $s.WorkingDirectory = '{tool.EffectiveWorkingDir}'
-            $s.Description = '{tool.Name}{archSuffix}'
-            $s.Save()
-            """;
-
-        var psi = new ProcessStartInfo
-        {
-            FileName = "powershell.exe",
-            Arguments = $"-NoProfile -NonInteractive -Command \"{psScript.Replace("\"", "\\\"")}\"",
-            CreateNoWindow = true,
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true
-        };
-
-        using var process = Process.Start(psi);
-        process?.WaitForExit(5000);
-
-        if (process is not null && process.ExitCode != 0)
-        {
-            var err = process.StandardError.ReadToEnd();
-            throw new InvalidOperationException(err);
         }
     }
 

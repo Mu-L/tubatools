@@ -47,7 +47,7 @@ dotnet test --filter "FullyQualifiedName~ToolCatalogTests"        # one class / 
 - `ToolItem.InitArchOptions()` auto-selects the best arch for the OS (ARM64 > x64 > x86 preference).
 - Built-in tools: see `BuiltinToolRegistry.RegisterDefaults()` (~45 tools). `CommunityToolBuiltinTool` registers only when `!RuntimeHelper.IsMsixPackaged`.
 - **每个已注册内置工具都必须在 `Metadata/tools.json` 里有 `builtin` 挂载条目**（`categories` 指定挂载分类）：收藏/排序/桌面快捷方式统一以该挂载的虚拟目录路径为键，收藏页与分类页星标互通。新增内置工具时 `RegisterDefaults()` 与 tools.json 两处都要加。
-- **快捷方式统一写入点 = `WindowsSearchIndexService`**：开始菜单搜索注册与「发送到桌面」共用同一 `CreateShortcut`（进程内 WScript.Shell COM，非 STA 线程自动起 STA 线程）。内置工具桌面快捷方式 = 自身 exe + `--open-builtin <id>`，图标为该工具字体字形（Segoe Fluent Icons）离线渲染的多尺寸 .ico，缓存于 `<DataDir>/DesktopIcons/`（字形→Bitmap→ICO 编码在 `BuiltinShortcutIconTests` 有回归测试）。
+- **快捷方式统一写入点 = `WindowsSearchIndexService`**：开始菜单搜索注册与「发送到桌面」共用同一 `CreateShortcut`（进程内 WScript.Shell COM，非 STA 线程自动起 STA 线程）。内置工具桌面快捷方式 = 自身 exe + `--open-builtin <id>`，图标为该工具字体字形（Segoe Fluent Icons）离线渲染的多尺寸 .ico，缓存于 `<DataDir>/DesktopIcons/`（字形→Bitmap→ICO 编码在 `BuiltinShortcutIconTests` 有回归测试）。「发送到桌面」两种工具都走 `CreateDesktopShortcut(ToolItem|IBuiltinTool)`（COM，写后回读校验），**禁止**改用 `powershell.exe -Command` 生成快捷方式：中文路径经子进程命令行会在非中文系统 / UTF-8 beta 代码页（ACP=65001）下写成乱码（回归测试 `DesktopShortcutTests`）。
 
 ### AI 助手（AiAgentPage）— FieldCure ChatPanel 架构
 - 「AI 助手」内置工具 = `AiAgentPage`，消息区/输入区/工具确认全部由 **`FieldCure.AssistStudio.Controls.WinUI`** 的 `ChatPanel` 组件库接管（WebView2 渲染 Markdown/思考块/内联工具调用、`ToolApprovalPanel` 危险操作确认）。
