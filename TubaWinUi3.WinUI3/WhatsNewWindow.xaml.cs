@@ -72,8 +72,7 @@ public sealed partial class WhatsNewWindow : Page
             catch { }
         }
 
-        window.AppWindow.TitleBar.ExtendsContentIntoTitleBar = true;
-        window.AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Tall;
+        SafeTitleBar.ApplyExtendedTall(window);
 
         ApplyTitleBarTheme(window);
         window.Activate();
@@ -81,34 +80,9 @@ public sealed partial class WhatsNewWindow : Page
 
     private static void ApplyTitleBarTheme(Window window)
     {
-        var tb = window.AppWindow.TitleBar;
         var isDark = ThemeService.CurrentTheme == AppTheme.Dark ||
                      (ThemeService.CurrentTheme == AppTheme.Default && Application.Current.RequestedTheme == ApplicationTheme.Dark);
-
-        if (isDark)
-        {
-            tb.ButtonForegroundColor = Color.FromArgb(255, 255, 255, 255);
-            tb.ButtonBackgroundColor = Color.FromArgb(0, 255, 255, 255);
-            tb.ButtonHoverForegroundColor = Color.FromArgb(255, 255, 255, 255);
-            tb.ButtonHoverBackgroundColor = Color.FromArgb(255, 50, 50, 50);
-            tb.ButtonPressedForegroundColor = Color.FromArgb(255, 180, 180, 180);
-            tb.ButtonPressedBackgroundColor = Color.FromArgb(255, 30, 30, 30);
-            tb.BackgroundColor = Color.FromArgb(255, 32, 32, 32);
-            tb.InactiveBackgroundColor = Color.FromArgb(255, 32, 32, 32);
-        }
-        else
-        {
-            tb.ButtonForegroundColor = Color.FromArgb(255, 30, 30, 30);
-            tb.ButtonBackgroundColor = Color.FromArgb(0, 255, 255, 255);
-            tb.ButtonHoverForegroundColor = Color.FromArgb(255, 30, 30, 30);
-            tb.ButtonHoverBackgroundColor = Color.FromArgb(255, 230, 230, 230);
-            tb.ButtonPressedForegroundColor = Color.FromArgb(255, 100, 100, 100);
-            tb.ButtonPressedBackgroundColor = Color.FromArgb(255, 210, 210, 210);
-            tb.BackgroundColor = Color.FromArgb(0, 255, 255, 255);
-            tb.InactiveBackgroundColor = Color.FromArgb(0, 255, 255, 255);
-        }
-
-        tb.ButtonInactiveForegroundColor = Color.FromArgb(255, 160, 160, 160);
+        TitleBarPalette.Apply(SafeTitleBar.Get(window), isDark);
     }
 
     private async Task LoadReleasesAsync()

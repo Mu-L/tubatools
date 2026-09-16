@@ -14,7 +14,6 @@
     <EnableMsixTooling>false</EnableMsixTooling>
     <WindowsPackageType>None</WindowsPackageType>
     <WindowsAppSDKSelfContained Condition="'$(WindowsAppSDKSelfContained)' == ''">true</WindowsAppSDKSelfContained>
-    <CETCompat>false</CETCompat>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Version>1.6.2</Version>
@@ -23,12 +22,19 @@
     <NoWarn>CA2252;CA2014;NU1510</NoWarn>
   </PropertyGroup>
 
-  <!-- AMD Zen 5（Ryzen 9000 等）机器上，.NET 9+ 的 CET 硬件阴影栈会使自包含应用启动即崩
-       0x80131506（.NET 8 无阴影栈正常）。exe 的 /CETCOMPAT 位默认就是关闭的，真正的
-       开关在运行时自己开启的阴影栈，故此处同时用 RuntimeHostConfigurationOption 禁用。 -->
-  <ItemGroup>
-    <RuntimeHostConfigurationOption Include="System.Runtime.EnableCETShadowStack" Value="false" />
-  </ItemGroup>
+  <!-- .NET 9 起 apphost 默认带 CET 兼容标记（PE 的 /CETCOMPAT 位）。Windows 会据此为本进程开启
+       硬件阴影栈，而未打全补丁的 Windows 10 22H2（UBR ≤ 19045.2193，缺 2022 年夏天的 CET 修复）
+       会在运行时初始化阶段直接崩掉：0x80131506 / CLR_INTERNAL_ERROR（dotnet/runtime#110920；
+       .NET 8 的 apphost 不带该标记，所以同一台机器上正常）。
+       唯一的开关就是这里：CETCompat=false 让 SDK 清掉该标记，进程不再被开启阴影栈。
+       注意两条历史误区：coreclr 里并不存在 System.Runtime.EnableCETShadowStack 这个配置项，
+       写进 runtimeconfig 也是空转（已删除）；该标记只影响进程是否被开启阴影栈，
+       与"运行时自己启用"无关。
+       改动本属性后必须重新生成 apphost：obj/ 里的旧 apphost 会被增量构建复用，
+       不 clean 可能继续发出带标记的 exe（发版请用干净构建）。 -->
+  <PropertyGroup>
+    <CETCompat>false</CETCompat>
+  </PropertyGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="TubaWinUi3.Tests" />

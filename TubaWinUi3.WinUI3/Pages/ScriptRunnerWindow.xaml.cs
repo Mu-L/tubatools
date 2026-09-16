@@ -672,14 +672,26 @@ public sealed partial class ScriptRunnerWindow : Window
         var isDark = ThemeService.CurrentElementTheme == ElementTheme.Dark ||
                      (ThemeService.CurrentElementTheme == ElementTheme.Default &&
                       Application.Current.RequestedTheme == ApplicationTheme.Dark);
-        var titleBar = AppWindow.TitleBar;
-        titleBar.BackgroundColor = isDark ? Color.FromArgb(255, 32, 32, 32) : Color.FromArgb(255, 243, 243, 243);
-        titleBar.ForegroundColor = isDark ? Color.FromArgb(255, 210, 210, 210) : Color.FromArgb(255, 30, 30, 30);
-        titleBar.InactiveBackgroundColor = titleBar.BackgroundColor;
-        titleBar.InactiveForegroundColor = isDark ? Color.FromArgb(255, 100, 100, 100) : Color.FromArgb(255, 160, 160, 160);
-        titleBar.ButtonBackgroundColor = Color.FromArgb(0, 0, 0, 0);
-        titleBar.ButtonForegroundColor = titleBar.ForegroundColor;
-        titleBar.ButtonInactiveBackgroundColor = Color.FromArgb(0, 0, 0, 0);
-        titleBar.ButtonInactiveForegroundColor = isDark ? Color.FromArgb(255, 80, 80, 80) : Color.FromArgb(255, 180, 180, 180);
+
+        // 部分 Windows 10 版本 AppWindow.TitleBar 为 null（microsoft-ui-xaml#6101），
+        // 颜色 API 在 Windows 10 上也可能被忽略 —— 失败时保持系统默认配色即可
+        var titleBar = SafeTitleBar.Get(this);
+        if (titleBar is null) return;
+
+        try
+        {
+            titleBar.BackgroundColor = isDark ? Color.FromArgb(255, 32, 32, 32) : Color.FromArgb(255, 243, 243, 243);
+            titleBar.ForegroundColor = isDark ? Color.FromArgb(255, 210, 210, 210) : Color.FromArgb(255, 30, 30, 30);
+            titleBar.InactiveBackgroundColor = titleBar.BackgroundColor;
+            titleBar.InactiveForegroundColor = isDark ? Color.FromArgb(255, 100, 100, 100) : Color.FromArgb(255, 160, 160, 160);
+            titleBar.ButtonBackgroundColor = Color.FromArgb(0, 0, 0, 0);
+            titleBar.ButtonForegroundColor = titleBar.ForegroundColor;
+            titleBar.ButtonInactiveBackgroundColor = Color.FromArgb(0, 0, 0, 0);
+            titleBar.ButtonInactiveForegroundColor = isDark ? Color.FromArgb(255, 80, 80, 80) : Color.FromArgb(255, 180, 180, 180);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ScriptRunnerWindow] 标题栏配色失败（已忽略）: {ex.Message}");
+        }
     }
 }

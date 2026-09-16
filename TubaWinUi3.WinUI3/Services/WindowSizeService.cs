@@ -55,42 +55,56 @@ public static class WindowSizeService
 
         var appWindow = window.AppWindow;
 
-        if (IsRememberEnabled())
+        // 本方法运行在 MainWindow 构造函数里（即 App.OnLaunched 内），
+        // 任何一个未捕获异常都会让进程以 STOWED_EXCEPTION 闪退 —— 尺寸还原失败
+        // 只应退化成默认尺寸，绝不能拖垮启动。
+        if (IsRememberEnabled() && TryRestoreSavedSize(appWindow))
+            return;
+
+        ApplyDefaultSize(appWindow);
+    }
+
+    private static bool TryRestoreSavedSize(AppWindow appWindow)
+    {
+        var width = AppSettings.GetInt(WidthKey, 0);
+        var height = AppSettings.GetInt(HeightKey, 0);
+        if (width <= 0 || height <= 0) return false;
+
+        try
         {
-            int width = AppSettings.GetInt(WidthKey, 0);
-            int height = AppSettings.GetInt(HeightKey, 0);
-            bool maximized = AppSettings.GetBool(MaximizedKey);
+            appWindow.Resize(new Windows.Graphics.SizeInt32(Math.Max(800, width), Math.Max(600, height)));
 
-            if (width > 0 && height > 0)
-            {
-                width = Math.Max(800, width);
-                height = Math.Max(600, height);
-                appWindow.Resize(new Windows.Graphics.SizeInt32(width, height));
+            if (AppSettings.GetBool(MaximizedKey))
+                (appWindow.Presenter as OverlappedPresenter)?.Maximize();
 
-                if (maximized)
-                {
-                    var presenter = appWindow.Presenter as OverlappedPresenter;
-                    presenter?.Maximize();
-                }
-
-                return;
-            }
+            return true;
         }
-
-        var displayArea = DisplayArea.GetFromWindowId(appWindow.Id, DisplayAreaFallback.Primary);
-        if (displayArea is not null)
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"[WindowSize] 还原上次窗口尺寸失败（改用默认尺寸）: {ex.Message}");
+            return false;
+        }
+    }
+
+    private static void ApplyDefaultSize(AppWindow appWindow)
+    {
+        try
+        {
+            var displayArea = DisplayArea.GetFromWindowId(appWindow.Id, DisplayAreaFallback.Primary);
+            if (displayArea is null) return;
+
             var workArea = displayArea.WorkArea;
-            int width = (int)(workArea.Width * 0.8);
-            int height = (int)(workArea.Height * 0.8);
-            width = Math.Max(800, width);
-            height = Math.Max(600, height);
+            int width = Math.Max(800, (int)(workArea.Width * 0.8));
+            int height = Math.Max(600, (int)(workArea.Height * 0.8));
 
             appWindow.Resize(new Windows.Graphics.SizeInt32(width, height));
-
-            int x = workArea.X + (workArea.Width - width) / 2;
-            int y = workArea.Y + (workArea.Height - height) / 2;
-            appWindow.Move(new Windows.Graphics.PointInt32(x, y));
+            appWindow.Move(new Windows.Graphics.PointInt32(
+                workArea.X + (workArea.Width - width) / 2,
+                workArea.Y + (workArea.Height - height) / 2));
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[WindowSize] 设置默认窗口尺寸失败（已忽略）: {ex.Message}");
         }
     }
 }

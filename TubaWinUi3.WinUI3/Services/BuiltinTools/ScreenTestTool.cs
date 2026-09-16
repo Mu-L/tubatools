@@ -31,13 +31,16 @@ public sealed class ScreenTestTool : IBuiltinTool
             window.AppWindow.Title = "屏幕坏点检测";
             window.AppWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
 
-            window.AppWindow.TitleBar.ExtendsContentIntoTitleBar = true;
-            var tb = window.AppWindow.TitleBar;
-            tb.ButtonBackgroundColor = Color.FromArgb(0, 0, 0, 0);
-            tb.ButtonInactiveBackgroundColor = Color.FromArgb(0, 0, 0, 0);
-            tb.ButtonForegroundColor = Color.FromArgb(100, 255, 255, 255);
-            tb.ButtonHoverForegroundColor = Color.FromArgb(255, 255, 255, 255);
-            tb.ButtonHoverBackgroundColor = Color.FromArgb(40, 255, 255, 255);
+            // 部分 Windows 10 版本 AppWindow.TitleBar 为 null，不可直接解引用
+            if (SafeTitleBar.Get(window) is { } tb)
+            {
+                tb.ExtendsContentIntoTitleBar = true;
+                tb.ButtonBackgroundColor = Color.FromArgb(0, 0, 0, 0);
+                tb.ButtonInactiveBackgroundColor = Color.FromArgb(0, 0, 0, 0);
+                tb.ButtonForegroundColor = Color.FromArgb(100, 255, 255, 255);
+                tb.ButtonHoverForegroundColor = Color.FromArgb(255, 255, 255, 255);
+                tb.ButtonHoverBackgroundColor = Color.FromArgb(40, 255, 255, 255);
+            }
 
             window.Activate();
             return Task.CompletedTask;

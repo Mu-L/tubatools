@@ -129,6 +129,20 @@ public static class BackdropService
     /// <summary>将当前设置应用到窗口。材质不受系统支持时自动回退为纯色背景。</summary>
     public static void ApplyBackdrop(Window window)
     {
+        // 窗口构造函数会调用这里（即在 App.OnLaunched 内）：材质创建失败（不支持的
+        // 系统 / 合成器异常）只应退化成纯色背景，不能让启动崩掉。
+        try
+        {
+            ApplyBackdropCore(window);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Backdrop] 材质应用失败（回退纯色背景）: {ex.Message}");
+        }
+    }
+
+    private static void ApplyBackdropCore(Window window)
+    {
         // 与控制器方式互斥,清除可能残留的 XAML 背景属性
         if (window.SystemBackdrop is not null)
             window.SystemBackdrop = null;

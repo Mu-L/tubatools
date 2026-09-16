@@ -76,6 +76,23 @@ public partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+        // 兜底：启动路径上的任何异常都不能让进程直接崩溃。从 OnLaunched 逃出去的托管异常
+        // 会被 WinUI 转成 STOWED_EXCEPTION（空引用异常跨 ABI 映射为 0x80004003 E_POINTER）
+        // 直接结束进程，在应用商店崩溃报告里表现为
+        // STOWED_EXCEPTION_80004003_Microsoft.UI.Xaml.dll!DirectUI::FrameworkApplicationGenerated::OnLaunchedProtected
+        // —— 用户看到的是闪退，开发者连堆栈都拿不到。这里统一捕获并留下可上报的诊断日志。
+        try
+        {
+            OnLaunchedCore(args);
+        }
+        catch (Exception ex)
+        {
+            HandleLaunchFailure(ex);
+        }
+    }
+
+    private void OnLaunchedCore(LaunchActivatedEventArgs args)
+    {
         // 流氓软件的克星「安全增强菜单 - 复制完整路径」配方通过 --copy-path <路径>
         // 唤醒本程序复制路径到剪贴板（后台模式，不显示主窗口）。
         var cmdLine = Environment.GetCommandLineArgs();
@@ -246,6 +263,70 @@ public partial class App : Application
 
         _ = RunStartupSequenceAsync();
     }
+
+    /// <summary>
+    /// 启动失败兜底：把异常写进可上报的日志（错误报告打包会收录 %TEMP%\app_crash.log），
+    /// 并尽力给用户一个能复制堆栈/打包日志/重新打开的窗口，而不是静默闪退。
+    /// </summary>
+    private void HandleLaunchFailure(Exception ex)
+    {
+        var crashLogPath = Path.Combine(Path.GetTempPath(), "app_crash.log");
+        var detail = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] 启动失败（App.OnLaunched）:\n" +
+                     $"版本: {UpdateService.CurrentVersion}  打包: {RuntimeHelper.IsMsixPackaged}  " +
+                     $"管理员: {IsRunningAsAdmin()}  系统: {WindowsVersionText()}\n" +
+                     $"程序: {Environment.ProcessPath}\n" +
+                     $"{ex}\n" + new string('-', 80) + "\n";
+
+        try { File.AppendAllText(crashLogPath, detail); } catch { }
+        try { Services.GameOverlayAutoService.Log($"启动失败: {ex.Message}\n{ex.StackTrace}"); } catch { }
+        Debug.WriteLine(detail);
+
+        _pendingException = ex;
+
+        // 主窗口没建起来也要留住进程：错误窗口提供复制/打包/重开，是用户唯一能求助的入口
+        try
+        {
+            new Pages.ErrorWindow().Activate();
+            return;
+        }
+        catch (Exception fallbackEx)
+        {
+            Debug.WriteLine($"[Startup] 错误窗口也未能启动: {fallbackEx.Message}");
+        }
+
+        // XAML 整体不可用时退回 Win32 消息框，至少让用户知道发生了什么、日志在哪
+        try
+        {
+            MessageBoxW(IntPtr.Zero,
+                $"图吧工具箱启动失败：\n\n{ex.GetType().Name}: {ex.Message}\n\n" +
+                $"诊断日志：{crashLogPath}\n" +
+                "请在「设置 → 错误报告」中打包日志并反馈。",
+                "图吧工具箱", MB_OK | MB_ICONERROR);
+        }
+        catch { }
+
+        // 连错误窗口都起不来时，提示看完就主动结束：宁可退出，也不要留下无窗口的僵尸进程
+        Environment.Exit(1);
+    }
+
+    private static string WindowsVersionText()
+    {
+        try
+        {
+            var v = Environment.OSVersion.Version;
+            return $"{v.Major}.{v.Minor}.{v.Build}";
+        }
+        catch
+        {
+            return "未知";
+        }
+    }
+
+    private const uint MB_OK = 0x00000000;
+    private const uint MB_ICONERROR = 0x00000010;
+
+    [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode, EntryPoint = "MessageBoxW")]
+    private static extern int MessageBoxW(IntPtr hWnd, string text, string caption, uint type);
 
     private static async Task RunStartupSequenceAsync()
     {

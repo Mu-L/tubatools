@@ -56,8 +56,19 @@ public sealed class GameOverlayAutoService
     public void Start()
     {
         if (_started) return;
+
+        // 取不到 DispatcherQueue 时（极少数启动竞态）直接放弃轮询：
+        // 这里运行在 App.OnLaunched 内，空引用会让整个进程以
+        // STOWED_EXCEPTION_80004003 闪退，代价远大于少一个自动覆盖层。
+        var queue = DispatcherQueue.GetForCurrentThread();
+        if (queue is null)
+        {
+            Log("当前线程没有 DispatcherQueue，自动覆盖层轮询未启动");
+            return;
+        }
+
         _started = true;
-        _pollTimer = DispatcherQueue.GetForCurrentThread().CreateTimer();
+        _pollTimer = queue.CreateTimer();
         _pollTimer.Interval = TimeSpan.FromSeconds(1);
         _pollTimer.Tick += (_, _) => PollSignal();
         _pollTimer.Start();

@@ -135,11 +135,20 @@ public sealed partial class MainWindow : Window
         _searchDebounceTimer.Interval = TimeSpan.FromMilliseconds(100);
         _searchDebounceTimer.Tick += OnSearchDebounceTick;
 
-        ExtendsContentIntoTitleBar = true;
-        SetTitleBar(AppTitleBar);
-        AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Tall;
+        // 标题栏定制一律走 SafeTitleBar：部分 Windows 10 版本 AppWindow.TitleBar 为 null，
+        // 构造函数里的空引用会以 STOWED_EXCEPTION_80004003 让进程闪退（见 SafeTitleBar 注释）
+        SafeTitleBar.ApplyExtendedTall(this, AppTitleBar);
+
         var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico");
-        AppWindow.SetIcon(iconPath);
+        try
+        {
+            if (File.Exists(iconPath))
+                AppWindow.SetIcon(iconPath);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] 设置窗口图标失败（已忽略）: {ex.Message}");
+        }
 
         ApplyTitleBarTheme(ElementTheme.Default);
 
@@ -492,7 +501,7 @@ public sealed partial class MainWindow : Window
     {
         var isDark = theme == ElementTheme.Dark ||
                      (theme == ElementTheme.Default && Application.Current.RequestedTheme == ApplicationTheme.Dark);
-        TitleBarPalette.Apply(AppWindow.TitleBar, isDark);
+        TitleBarPalette.Apply(SafeTitleBar.Get(this), isDark);
     }
 
     private void TitleBar_PaneToggleRequested(TitleBar sender, object args)
