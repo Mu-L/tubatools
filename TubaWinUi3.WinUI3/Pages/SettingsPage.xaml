@@ -1351,6 +1351,29 @@
                                     </Grid>
                                 </Border>
 
+                                <Border x:Name="SettingsErrorReportCard" Style="{StaticResource SettingsCardStyle}">
+                                    <Grid ColumnSpacing="16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Style="{StaticResource IconBorderStyle}">
+                                            <FontIcon FontSize="18" Glyph="&#xE7BA;" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                            <TextBlock FontWeight="Bold" Text="错误日志打包" />
+                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="解析 Windows 事件日志中与本程序相关的崩溃报告，连同应用日志和系统信息打包为 zip，便于提交到 GitHub Issue" />
+                                        </StackPanel>
+                                        <Button x:Name="ErrorReportButton" Grid.Column="2" VerticalAlignment="Center" Padding="14,6" Click="ErrorReportButton_Click">
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <FontIcon FontSize="12" Glyph="&#xE7BA;" />
+                                                <TextBlock x:Name="ErrorReportButtonText" Text="打包日志" />
+                                            </StackPanel>
+                                        </Button>
+                                    </Grid>
+                                </Border>
+
                             </StackPanel>
                             </ScrollViewer>
                         </Expander.Content>

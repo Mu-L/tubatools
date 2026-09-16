@@ -2203,6 +2203,47 @@ public sealed partial class SettingsPage : Page
         }
     }
 
+    private async void ErrorReportButton_Click(object sender, RoutedEventArgs e)
+    {
+        ErrorReportButton.IsEnabled = false;
+        ErrorReportButtonText.Text = "正在打包…";
+        try
+        {
+            var result = await ErrorReportService.CreateReportAsync();
+
+            var content = $"压缩包位置：\n{result.ZipPath}\n\n" +
+                          $"大小：{TempCleanupService.FormatBytes(result.SizeBytes)}\n" +
+                          $"Windows 事件日志：{result.EventCount} 条\n" +
+                          $"应用日志文件：{result.LogFileCount} 个\n\n" +
+                          "如需反馈，请把该压缩包拖入 GitHub Issue 的附件区上传。";
+            if (!string.IsNullOrEmpty(result.Warning))
+                content += $"\n\n⚠ {result.Warning}";
+
+            var dialog = new ContentDialog
+            {
+                XamlRoot = XamlRoot,
+                Title = "错误日志打包完成",
+                Content = new TextBlock { Text = content, TextWrapping = TextWrapping.Wrap },
+                PrimaryButtonText = "打开文件夹",
+                CloseButtonText = "关闭",
+                DefaultButton = ContentDialogButton.Primary,
+                RequestedTheme = ThemeService.CurrentElementTheme,
+            };
+
+            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+                ErrorReportService.RevealInExplorer(result.ZipPath);
+        }
+        catch (Exception ex)
+        {
+            await ShowMessageAsync("打包失败", ex.Message);
+        }
+        finally
+        {
+            ErrorReportButton.IsEnabled = true;
+            ErrorReportButtonText.Text = "打包日志";
+        }
+    }
+
     private void LoadCreditsAvatar()
     {
         try

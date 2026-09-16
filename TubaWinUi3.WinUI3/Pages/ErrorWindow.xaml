@@ -155,6 +155,14 @@
                         <TextBlock Text="重启应用" />
                     </StackPanel>
                 </Button>
+                <Button x:Name="PackageLogsButton" Padding="20,10" Click="PackageLogsButton_Click"
+                        CornerRadius="8"
+                        ToolTipService.ToolTip="收集 Windows 事件日志中与本程序相关的崩溃报告和应用日志，打包为 zip 供提交 Issue 时上传">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon FontSize="14" Glyph="&#xE7BA;" />
+                        <TextBlock x:Name="PackageLogsButtonText" Text="打包日志" />
+                    </StackPanel>
+                </Button>
                 <Button x:Name="ReportButton" Padding="20,10" Click="ReportButton_Click"
                         CornerRadius="8"
                         Style="{ThemeResource AccentButtonStyle}">

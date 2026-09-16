@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Management;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.System;
 using Microsoft.UI.Xaml;
@@ -15,6 +14,7 @@ public sealed partial class ErrorWindow : Window
     private const string RepoIssuesUrl = "https://github.com/luolangaga/tubatool/issues/new";
     private string _errorDetail = "";
     private string _systemInfo = "";
+    private string? _packagedZipPath;
     private static string? _cachedSystemInfo;
     private bool _sysInfoExpanded;
 
@@ -73,7 +73,7 @@ public sealed partial class ErrorWindow : Window
     {
         try
         {
-            var info = _cachedSystemInfo ??= CollectSystemInfo();
+            var info = _cachedSystemInfo ??= ErrorReportService.CollectSystemInfo();
             _systemInfo = info;
             SysInfoText.Text = info;
 
@@ -94,124 +94,6 @@ public sealed partial class ErrorWindow : Window
         SysInfoContent.Visibility = _sysInfoExpanded ? Visibility.Visible : Visibility.Collapsed;
         SysInfoChevron.Glyph = _sysInfoExpanded ? "\uE70E" : "\uE70D";
         SysInfoSummary.Visibility = _sysInfoExpanded ? Visibility.Collapsed : Visibility.Visible;
-    }
-
-    private static string CollectSystemInfo()
-    {
-        var sb = new System.Text.StringBuilder();
-
-        sb.AppendLine($"应用版本：{GetAppVersion()}");
-        sb.AppendLine($"操作系统：{GetWindowsVersion()}");
-        sb.AppendLine($"系统架构：{Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE") ?? "Unknown"}");
-        sb.AppendLine($".NET 版本：{Environment.Version}");
-        sb.AppendLine($"管理员权限：{(IsRunningAsAdmin() ? "是" : "否")}");
-
-        try
-        {
-            sb.AppendLine($"处理器：{WmiQuery("Win32_Processor", "Name")}");
-            sb.AppendLine($"内存：{GetTotalMemory()}");
-            sb.AppendLine($"显卡：{WmiQuery("Win32_VideoController", "Name")}");
-            sb.AppendLine($"主板：{WmiQuery("Win32_BaseBoard", "Product")}");
-        }
-        catch { }
-
-        if (HardwareInfoService.HasCache)
-            sb.AppendLine("硬件缓存：已加载");
-
-        return sb.ToString().TrimEnd();
-    }
-
-    private static string GetWindowsVersion()
-    {
-        try
-        {
-            var version = Environment.OSVersion.Version;
-            var build = version.Build;
-            var releaseId = "";
-
-            try
-            {
-                using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
-                if (key?.GetValue("DisplayVersion") is string dv)
-                    releaseId = dv;
-                else if (key?.GetValue("ReleaseId") is string ri)
-                    releaseId = ri;
-            }
-            catch { }
-
-            var name = build >= 26100 ? "Windows 11 24H2"
-                     : build >= 22631 ? "Windows 11 23H2"
-                     : build >= 22621 ? "Windows 11 22H2"
-                     : build >= 22000 ? "Windows 11 21H2"
-                     : build >= 19045 ? "Windows 10 22H2"
-                     : build >= 19044 ? "Windows 10 21H2"
-                     : build >= 19043 ? "Windows 10 21H1"
-                     : "Windows";
-
-            if (!string.IsNullOrEmpty(releaseId))
-                return $"{name} (Build {build}, {releaseId})";
-            return $"{name} (Build {build})";
-        }
-        catch
-        {
-            return "Windows (版本未知)";
-        }
-    }
-
-    private static string GetTotalMemory()
-    {
-        try
-        {
-            var gcMem = GC.GetGCMemoryInfo();
-            var totalMem = gcMem.TotalAvailableMemoryBytes;
-            return $"{totalMem / (1024.0 * 1024.0 * 1024.0):F1} GB";
-        }
-        catch
-        {
-            try
-            {
-                using var searcher = new ManagementObjectSearcher("SELECT TotalPhysicalMemory FROM Win32_ComputerSystem");
-                foreach (var obj in searcher.Get())
-                {
-                    var val = Convert.ToUInt64(obj["TotalPhysicalMemory"]);
-                    return $"{val / (1024.0 * 1024.0 * 1024.0):F1} GB";
-                }
-            }
-            catch { }
-        }
-        return "未知";
-    }
-
-    private static string WmiQuery(string className, string propertyName)
-    {
-        try
-        {
-            using var searcher = new ManagementObjectSearcher($"SELECT {propertyName} FROM {className}");
-            foreach (var obj in searcher.Get())
-            {
-                var val = obj[propertyName]?.ToString();
-                if (!string.IsNullOrEmpty(val)) return val;
-            }
-        }
-        catch { }
-        return "未知";
-    }
-
-    private static bool IsRunningAsAdmin()
-    {
-        try
-        {
-            using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
-            var principal = new System.Security.Principal.WindowsPrincipal(identity);
-            return principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
-        }
-        catch { return false; }
-    }
-
-    private static string GetAppVersion()
-    {
-        var v = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
-        return v is not null ? $"{v.Major}.{v.Minor}.{v.Build}" : "1.0.0";
     }
 
     private void CopyButton_Click(object sender, RoutedEventArgs e)
@@ -252,12 +134,66 @@ public sealed partial class ErrorWindow : Window
 
         ReproStepsBox.Header = null;
 
+        var logSection = _packagedZipPath is null
+            ? ""
+            : $"> 错误日志压缩包已生成：{Path.GetFileName(_packagedZipPath)}（请在提交前拖入下方附件区上传）\n\n";
         var body = Uri.EscapeDataString(
             "## 复现步骤\n\n" + reproSteps + "\n\n" +
+            logSection +
             "## 异常信息\n\n```\n" + _errorDetail + "\n```\n\n" +
             "## 系统信息\n\n```\n" + _systemInfo + "\n```\n");
         var url = $"{RepoIssuesUrl}?title=[Bug]+未处理异常&body={body}";
         await Launcher.LaunchUriAsync(new Uri(url));
+    }
+
+    private async void PackageLogsButton_Click(object sender, RoutedEventArgs e)
+    {
+        PackageLogsButton.IsEnabled = false;
+        PackageLogsButtonText.Text = "正在打包…";
+        try
+        {
+            var result = await ErrorReportService.CreateReportAsync(_errorDetail, _systemInfo);
+            _packagedZipPath = result.ZipPath;
+
+            var content = $"压缩包位置：\n{result.ZipPath}\n\n" +
+                          $"大小：{TempCleanupService.FormatBytes(result.SizeBytes)}\n" +
+                          $"Windows 事件日志：{result.EventCount} 条\n" +
+                          $"应用日志文件：{result.LogFileCount} 个\n\n" +
+                          "请把该压缩包拖入 GitHub Issue 的附件区上传。";
+            if (!string.IsNullOrEmpty(result.Warning))
+                content += $"\n\n⚠ {result.Warning}";
+
+            var dialog = new ContentDialog
+            {
+                Title = "错误日志打包完成",
+                Content = new TextBlock { Text = content, TextWrapping = TextWrapping.Wrap },
+                PrimaryButtonText = "打开文件夹",
+                CloseButtonText = "关闭",
+                DefaultButton = ContentDialogButton.Primary,
+                XamlRoot = Content.XamlRoot,
+                RequestedTheme = ThemeService.CurrentElementTheme,
+            };
+
+            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+                ErrorReportService.RevealInExplorer(result.ZipPath);
+        }
+        catch (Exception ex)
+        {
+            var dialog = new ContentDialog
+            {
+                Title = "打包失败",
+                Content = ex.Message,
+                CloseButtonText = "关闭",
+                XamlRoot = Content.XamlRoot,
+                RequestedTheme = ThemeService.CurrentElementTheme,
+            };
+            await dialog.ShowAsync();
+        }
+        finally
+        {
+            PackageLogsButton.IsEnabled = true;
+            PackageLogsButtonText.Text = "打包日志";
+        }
     }
 
     private void RestartButton_Click(object sender, RoutedEventArgs e)
