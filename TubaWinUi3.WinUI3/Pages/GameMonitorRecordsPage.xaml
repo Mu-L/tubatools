@@ -5,7 +5,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:lvc="using:LiveChartsCore.SkiaSharpView.WinUI"
     xmlns:controls="using:TubaWinUi3.Controls"
     mc:Ignorable="d">
 
@@ -96,6 +95,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <!-- Meta chips -->
@@ -116,12 +116,12 @@
                         <StackPanel x:Name="PnlTabs" Orientation="Horizontal" Spacing="6" />
                     </ScrollViewer>
 
-                    <!-- Chart -->
-                    <Border x:Name="ChartCard" Grid.Row="3" Height="330" Style="{StaticResource CardBorder}">
+                    <!-- 指标选择 + 区间裁剪（作用于下方所有图表） -->
+                    <Border x:Name="ControlCard" Grid.Row="3" Style="{StaticResource CardBorder}">
                         <Grid RowSpacing="8">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
-                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
@@ -135,24 +135,15 @@
                                     <TextBlock x:Name="TxtChartHint" FontSize="11" Opacity="0.6" Text="" />
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                                    <CheckBox x:Name="ChkNorm" Content="归一化" FontSize="12" MinWidth="0"
-                                              Checked="ChartOption_Changed" Unchecked="ChartOption_Changed"
-                                              ToolTipService.ToolTip="把各指标按自身量程缩放到 0–100%，便于跨量纲对比" />
                                     <CheckBox x:Name="ChkFill" Content="面积" FontSize="12" MinWidth="0" IsChecked="True"
-                                              Checked="ChartOption_Changed" Unchecked="ChartOption_Changed" />
+                                              Checked="ChartOption_Changed" Unchecked="ChartOption_Changed"
+                                              ToolTipService.ToolTip="给每张图表的曲线填充面积色" />
                                     <Button Content="重置范围" FontSize="12" Padding="8,4" Click="ResetRange_Click" />
                                 </StackPanel>
                             </Grid>
 
-                            <Grid Grid.Row="1">
-                                <lvc:CartesianChart x:Name="Chart" Background="Transparent" />
-                                <StackPanel x:Name="PnlChartEmpty" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                            Spacing="6" Visibility="Collapsed">
-                                    <FontIcon x:Name="IcoEmpty" Glyph="&#xE9D2;" FontSize="28" Opacity="0.5" />
-                                    <TextBlock x:Name="TxtEmpty" Text="没有可展示的数据" FontSize="13" Opacity="0.6"
-                                               TextAlignment="Center" MaxWidth="320" TextWrapping="Wrap" />
-                                </StackPanel>
-                            </Grid>
+                            <!-- 指标标签：点击增删对应图表；每个指标一张图，各自拥有独立的纵轴量程 -->
+                            <StackPanel x:Name="PnlLegend" Grid.Row="1" Spacing="6" SizeChanged="Legend_SizeChanged" />
 
                             <Grid Grid.Row="2" RowSpacing="2">
                                 <Grid.RowDefinitions>
@@ -187,16 +178,25 @@
                         </Grid>
                     </Border>
 
-                    <!-- Legend + stats -->
-                    <Border x:Name="LegendCard" Grid.Row="4" Style="{StaticResource CardBorder}">
+                    <!-- 图表区：一个指标一张图，每条曲线都用自己的纵轴刻度尺（100 FPS 不会把 1 ms 压成直线） -->
+                    <Grid Grid.Row="4">
+                        <StackPanel x:Name="PnlCharts" Spacing="10" />
+                        <StackPanel x:Name="PnlChartEmpty" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    Spacing="6" Visibility="Collapsed">
+                            <FontIcon x:Name="IcoEmpty" Glyph="&#xE9D2;" FontSize="28" Opacity="0.5" />
+                            <TextBlock x:Name="TxtEmpty" Text="没有可展示的数据" FontSize="13" Opacity="0.6"
+                                       TextAlignment="Center" MaxWidth="320" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- 全量统计（基于全部样本，与图表显隐无关） -->
+                    <Border x:Name="StatsCard" Grid.Row="5" Style="{StaticResource CardBorder}">
                         <Grid RowSpacing="8">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
-                            <StackPanel x:Name="PnlLegend" Spacing="6" SizeChanged="Legend_SizeChanged" />
-                            <Grid Grid.Row="1" ColumnSpacing="8" Padding="4,0">
+                            <Grid Grid.Row="0" ColumnSpacing="8" Padding="4,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="180" />
                                     <ColumnDefinition Width="76" />
@@ -214,7 +214,7 @@
                                 <TextBlock Grid.Column="5" Text="P99" FontSize="11" Opacity="0.6" TextAlignment="Right" />
                                 <TextBlock Grid.Column="6" Text="样本" FontSize="11" Opacity="0.6" TextAlignment="Right" />
                             </Grid>
-                            <ListView x:Name="StatsList" Grid.Row="2" MaxHeight="168" SelectionMode="None"
+                            <ListView x:Name="StatsList" Grid.Row="1" MaxHeight="168" SelectionMode="None"
                                       Background="Transparent" BorderThickness="0" IsItemClickEnabled="False">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>

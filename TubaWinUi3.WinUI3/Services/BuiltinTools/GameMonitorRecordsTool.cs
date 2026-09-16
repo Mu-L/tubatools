@@ -10,7 +10,7 @@ public sealed class GameMonitorRecordsTool : IBuiltinTool
 {
     public string Id => "game-monitor-records";
     public string Name => "记录查看";
-    public string Description => "解析游戏监控导出的 JSON / CSV 记录，图表化回放 FPS、温度、负载等历史数据，支持分组切换、区间裁剪、归一化对比与 P1/P99 统计";
+    public string Description => "解析游戏监控导出的 JSON / CSV 记录，回放 FPS、温度、负载等历史数据：每个指标一张独立图表、各自使用自己的纵轴刻度尺，支持分组切换、区间裁剪与 P1/P99 统计";
     public string Glyph => "\uE9D9";
     public string Category => "游戏工具";
     public BuiltinToolKind Kind => BuiltinToolKind.Dialog;

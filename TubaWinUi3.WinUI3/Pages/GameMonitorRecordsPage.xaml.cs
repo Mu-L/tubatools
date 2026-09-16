@@ -3,10 +3,10 @@ using LiveChartsCore;
 using LiveChartsCore.Measure;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
+using LiveChartsCore.SkiaSharpView.WinUI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using SkiaSharp;
@@ -17,11 +17,15 @@ namespace TubaWinUi3.Pages;
 
 /// <summary>
 /// 「记录查看」：解析游戏监控导出的 JSON / CSV，用工程内原生的 LiveCharts2 图表回放历史数据。
-/// 支持分组切换、区间裁剪、归一化对比、曲线显隐与全量统计（最小/平均/最大/P1/P99）。
+/// 每个指标一张独立图表、各自使用自己的纵轴刻度尺（100 FPS 与 1 ms 延迟不再互相压平），
+/// 默认只展示 FPS；支持分组切换、区间裁剪、指标增删与全量统计（最小/平均/最大/P1/P99）。
 /// </summary>
 public sealed partial class GameMonitorRecordsPage : Page
 {
     private const string AllGroups = "全部";
+
+    /// <summary>同屏最多绘制的图表数量（一个指标一张图）。</summary>
+    private const int MaxCharts = 6;
 
     /// <summary>曲线配色（在浅色/深色背景下都可辨识）。</summary>
     private static readonly Color[] Palette =
@@ -45,13 +49,16 @@ public sealed partial class GameMonitorRecordsPage : Page
     private GameMonitorRecordReader.MonitorRecordView? _view;
     private readonly List<FileItem> _fileItems = [];
 
-    /// <summary>被用户点击图例隐藏的指标 key。</summary>
-    private readonly HashSet<string> _hidden = new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>勾选展示的指标 key：每个 key 对应一张独立图表（各自纵轴量程）。</summary>
+    private readonly HashSet<string> _shown = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>已创建的图表卡片，与勾选指标一一对应；拖动区间时只换数据，不重建控件。</summary>
+    private readonly List<ChartSlot> _slots = [];
 
     private readonly List<string> _groups = [];
     private string _group = AllGroups;
 
-    /// <summary>当前 X 轴刻度对应的真实秒数（随区间裁剪变化）。</summary>
+    /// <summary>当前 X 轴刻度对应的真实秒数（随区间裁剪变化，所有图表共用）。</summary>
     private List<double> _visibleTimes = [];
 
     private bool _suspendRange;
@@ -65,7 +72,7 @@ public sealed partial class GameMonitorRecordsPage : Page
         InitializeComponent();
         ActualThemeChanged += (_, _) =>
         {
-            if (_ready && _view is not null) RenderChart();
+            if (_ready && _view is not null) RenderCharts();
         };
         Loaded += OnLoaded;
     }
@@ -169,8 +176,8 @@ public sealed partial class GameMonitorRecordsPage : Page
             if (token != _loadToken) return;
 
             _view = view;
-            _hidden.Clear();
             _group = AllGroups;
+            SelectDefaultMetrics();
             BuildGroups();
             SetupRange(view.Times.Count);
             RenderAll();
@@ -188,6 +195,42 @@ public sealed partial class GameMonitorRecordsPage : Page
         {
             if (token == _loadToken) LoadingOverlay.Visibility = Visibility.Collapsed;
         }
+    }
+
+    // ------------------------------------------------------------ 指标选择
+
+    /// <summary>「默认展示 FPS」：记录里有 FPS 就只画 FPS，没有才退回第一条有数据的指标。</summary>
+    private void SelectDefaultMetrics()
+    {
+        _shown.Clear();
+        var key = GameMonitorRecordReader.PickDefaultMetricKey(VisibleMetrics());
+        if (key is not null) _shown.Add(key);
+    }
+
+    /// <summary>切换分组时展示该组指标（一张图一个，超出上限的截断）。</summary>
+    private void SelectGroupMetrics()
+    {
+        _shown.Clear();
+        foreach (var key in GameMonitorRecordReader.PickMetricKeys(VisibleMetrics(), MaxCharts))
+            _shown.Add(key);
+    }
+
+    private void ToggleMetric(string key)
+    {
+        if (_shown.Remove(key))
+        {
+            RenderCharts();
+            return;
+        }
+
+        if (_shown.Count >= MaxCharts)
+        {
+            TxtStatus.Text = $"最多同时显示 {MaxCharts} 个指标，请先取消一个再添加";
+            return;
+        }
+
+        _shown.Add(key);
+        RenderCharts();
     }
 
     // -------------------------------------------------------------- 分组
@@ -225,12 +268,11 @@ public sealed partial class GameMonitorRecordsPage : Page
             var captured = group;
             button.Click += (_, _) =>
             {
-                if (_group == captured) return;
                 _group = captured;
-                _hidden.Clear();
+                SelectGroupMetrics();
                 BuildTabs();
                 RenderCards();
-                RenderChart();
+                RenderCharts();
                 RenderStats();
             };
             PnlTabs.Children.Add(button);
@@ -252,9 +294,9 @@ public sealed partial class GameMonitorRecordsPage : Page
         RenderMeta();
         RenderCards();
         BuildTabs();
-        RenderChart();
+        RenderCharts();
         RenderStats();
-        DispatcherQueue.TryEnqueue(UpdateChartHeight);
+        RequestLayoutUpdate();
     }
 
     private void RenderMeta()
@@ -312,22 +354,27 @@ public sealed partial class GameMonitorRecordsPage : Page
         AddCard("本组指标", count.ToString(CultureInfo.InvariantCulture), Palette[7]);
     }
 
-    private void RenderChart()
+    private void RenderCharts()
     {
         if (_view is null || _view.Times.Count == 0)
         {
-            Chart.Series = Array.Empty<ISeries>();
+            ClearCharts();
             ShowEmpty("\uE9D2", "没有可展示的数据");
             return;
         }
 
         var metrics = VisibleMetrics();
-        var plotted = metrics.Where(m => !_hidden.Contains(m.Metric.Key) && m.HasData).ToList();
-        if (plotted.Count == 0)
+
+        // 一张图一个指标：勾选项按分组顺序落成图表卡片
+        var chosen = new List<(GameMonitorRecordReader.MonitorMetricView Metric, Color Color)>();
+        var legend = new List<LegendItem>();
+        for (var i = 0; i < metrics.Count; i++)
         {
-            Chart.Series = Array.Empty<ISeries>();
-            ShowEmpty("\uE9D2", "当前分组没有可展示的曲线");
-            return;
+            var mv = metrics[i];
+            var color = Palette[i % Palette.Length];
+            var on = mv.HasData && _shown.Contains(mv.Metric.Key) && chosen.Count < MaxCharts;
+            if (on) chosen.Add((mv, color));
+            legend.Add(new LegendItem(mv.Metric.Key, mv.Metric.Label, color, on, mv.HasData));
         }
 
         var count = _view.Times.Count;
@@ -335,98 +382,170 @@ public sealed partial class GameMonitorRecordsPage : Page
         var to = Math.Clamp((int)Math.Round(SliderTo.Value), 0, count - 1);
         if (to < from) (from, to) = (to, from);
 
-        var times = Slice(_view.Times, from, to);
-        _visibleTimes = times;
+        _visibleTimes = Slice(_view.Times, from, to);
 
-        var normalized = ChkNorm.IsChecked == true;
-        var fill = ChkFill.IsChecked == true;
+        SyncSlots(chosen.Count);
+        for (var i = 0; i < chosen.Count; i++)
+            RenderSlot(_slots[i], chosen[i].Metric, chosen[i].Color, from, to);
 
-        var series = new List<ISeries>();
-        var legend = new List<LegendItem>();
-        var index = 0;
+        BuildLegend(legend);
+        BuildHint(chosen.Count, metrics.Count);
 
-        foreach (var mv in metrics)
+        if (chosen.Count == 0)
         {
-            var color = Palette[index % Palette.Length];
-            index++;
-            if (_hidden.Contains(mv.Metric.Key) || !mv.HasData)
-            {
-                legend.Add(new LegendItem(mv.Metric.Key, mv.Metric.Label, color, true));
-                continue;
-            }
-
-            var values = Slice(mv.Values, from, to);
-            var data = normalized ? Normalize(values) : values;
-
-            series.Add(new LineSeries<double?>
-            {
-                Name = mv.Metric.Label,
-                Values = data,
-                Stroke = new SolidColorPaint(Sk(color)) { StrokeThickness = normalized ? 1.8f : 2f },
-                Fill = fill ? new SolidColorPaint(SkA(color, normalized ? (byte)18 : (byte)28)) : null,
-                GeometrySize = 0,
-                LineSmoothness = 0.15,
-                IsHoverable = true
-            });
-            legend.Add(new LegendItem(mv.Metric.Key, mv.Metric.Label, color, false));
+            ShowEmpty("\uE9D2", metrics.Count == 0
+                ? "当前分组没有可展示的指标"
+                : "未选择指标。\n点击上方指标标签即可添加对应的图表。");
+        }
+        else
+        {
+            PnlChartEmpty.Visibility = Visibility.Collapsed;
+            PnlCharts.Visibility = Visibility.Visible;
         }
 
-        Chart.Series = series;
-        Chart.AnimationsSpeed = TimeSpan.FromMilliseconds(160);
-        Chart.EasingFunction = null;
-        Chart.LegendPosition = LegendPosition.Hidden;
-        BuildAxes(normalized, times.Count);
-        BuildLegend(legend);
-        PnlChartEmpty.Visibility = Visibility.Collapsed;
-        Chart.Visibility = Visibility.Visible;
-
-        TxtChartTitle.Text = _group == AllGroups ? "全部指标" : _group;
-        TxtChartHint.Text = normalized
-            ? $"已归一化到 0–100%（各指标按自身量程缩放）· {plotted.Count} 条曲线 · {times.Count:N0} 个点"
-            : $"{plotted.Count} 条曲线 · {times.Count:N0} 个点 · 全量 {count:N0} 点";
+        RequestLayoutUpdate();
     }
 
-    private void BuildAxes(bool normalized, int visibleCount)
+    private void BuildHint(int chartCount, int metricCount)
+    {
+        TxtChartTitle.Text = _group == AllGroups ? "全部指标" : _group;
+        TxtChartHint.Text = metricCount == 0
+            ? "这份记录里没有可展示的指标"
+            : chartCount == 0
+                ? $"点击下方指标标签添加图表（一个指标一张图，最多同时 {MaxCharts} 个）"
+                : $"{chartCount} 张图表 · 每个指标独立纵轴量程 · {_visibleTimes.Count:N0} 个点 · 点击标签增减"
+                  + (chartCount >= MaxCharts && metricCount > MaxCharts ? $"（已达 {MaxCharts} 张上限）" : "");
+    }
+
+    /// <summary>按需增删图表卡片控件（指标增删时才动控件树）。</summary>
+    private void SyncSlots(int count)
+    {
+        while (_slots.Count > count)
+        {
+            PnlCharts.Children.Remove(_slots[^1].Card);
+            _slots.RemoveAt(_slots.Count - 1);
+        }
+
+        while (_slots.Count < count)
+        {
+            var slot = CreateSlot();
+            PnlCharts.Children.Add(slot.Card);
+            _slots.Add(slot);
+        }
+    }
+
+    private void RenderSlot(ChartSlot slot, GameMonitorRecordReader.MonitorMetricView mv, Color color, int from, int to)
     {
         var dark = ActualTheme == ElementTheme.Dark;
         var text = dark ? Color.FromArgb(255, 0xC8, 0xC8, 0xC8) : Color.FromArgb(255, 0x5A, 0x5A, 0x5A);
         var grid = new SolidColorPaint(SkA(text, 40));
+        var unit = string.IsNullOrEmpty(mv.Metric.Unit) ? "" : " " + mv.Metric.Unit;
 
-        var step = Math.Max(1, (int)Math.Ceiling(visibleCount / 8.0));
+        slot.Title.Text = mv.Metric.Label + unit;
+        slot.Title.Foreground = new SolidColorBrush(color);
+        slot.Stats.Text = $"最大 {mv.Max.Trim()}{unit} · 平均 {mv.Avg.Trim()}{unit} · 最小 {mv.Min.Trim()}{unit}"
+                          + $" · P1 {mv.P1.Trim()} · P99 {mv.P99.Trim()} · {mv.Count:N0} 样本";
 
-        Chart.XAxes =
-        [
-            new Axis
+        var fill = ChkFill.IsChecked == true;
+        slot.Chart.Series = new List<ISeries>
+        {
+            new LineSeries<double?>
             {
-                Labeler = value =>
-                {
-                    var i = (int)Math.Round(value);
-                    return i >= 0 && i < _visibleTimes.Count ? FormatTime(_visibleTimes[i]) : "";
-                },
-                LabelsPaint = new SolidColorPaint(Sk(text)),
-                SeparatorsPaint = grid,
-                TextSize = 10,
-                TicksPaint = null,
-                MinStep = step,
-                ShowSeparatorLines = true
+                Name = mv.Metric.Label,
+                Values = Slice(mv.Values, from, to),
+                Stroke = new SolidColorPaint(Sk(color)) { StrokeThickness = 1.8f },
+                Fill = fill ? new SolidColorPaint(SkA(color, 26)) : null,
+                GeometrySize = 0,
+                LineSmoothness = 0.15,
+                IsHoverable = true
             }
-        ];
-
-        Chart.YAxes =
-        [
-            new Axis
-            {
-                Labeler = value => normalized ? value.ToString("0") + "%" : FormatAxisValue(value),
-                LabelsPaint = new SolidColorPaint(Sk(text)),
-                SeparatorsPaint = grid,
-                TextSize = 10,
-                TicksPaint = null,
-                MinLimit = normalized ? 0 : null,
-                MaxLimit = normalized ? 100 : null,
-                ShowSeparatorLines = true
-            }
-        ];
+        };
+        slot.Chart.XAxes = new List<Axis> { CreateTimeAxis(text, grid) };
+        slot.Chart.YAxes = new List<Axis> { CreateValueAxis(text, grid) };
     }
+
+    /// <summary>创建一张指标图表卡片（标题 + 独立纵轴的图表）。</summary>
+    private ChartSlot CreateSlot()
+    {
+        var title = new TextBlock
+        {
+            FontSize = 12.5,
+            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+            TextTrimming = TextTrimming.CharacterEllipsis,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        var stats = new TextBlock
+        {
+            FontSize = 11,
+            Opacity = 0.62,
+            TextTrimming = TextTrimming.CharacterEllipsis,
+            TextAlignment = TextAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+
+        var header = new Grid { ColumnSpacing = 10 };
+        header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        header.Children.Add(title);
+        Grid.SetColumn(stats, 1);
+        header.Children.Add(stats);
+
+        var chart = new CartesianChart
+        {
+            Background = new SolidColorBrush(Color.FromArgb(0, 0, 0, 0)),
+            LegendPosition = LegendPosition.Hidden,
+            // 区间拖动会连续换数据，动画只会拖后腿
+            AnimationsSpeed = TimeSpan.Zero,
+            EasingFunction = null
+        };
+
+        var body = new Grid { RowSpacing = 6 };
+        body.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        body.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+        body.Children.Add(header);
+        Grid.SetRow(chart, 1);
+        body.Children.Add(chart);
+
+        var card = new Border
+        {
+            Style = (Style)Resources["CardBorder"],
+            Padding = new Thickness(10, 8, 10, 6),
+            Height = 180,
+            Child = body
+        };
+
+        return new ChartSlot { Card = card, Title = title, Stats = stats, Chart = chart };
+    }
+
+    private Axis CreateTimeAxis(Color text, SolidColorPaint grid)
+    {
+        var step = Math.Max(1, (int)Math.Ceiling(_visibleTimes.Count / 8.0));
+        return new Axis
+        {
+            Labeler = value =>
+            {
+                var i = (int)Math.Round(value);
+                return i >= 0 && i < _visibleTimes.Count ? FormatTime(_visibleTimes[i]) : "";
+            },
+            LabelsPaint = new SolidColorPaint(Sk(text)),
+            SeparatorsPaint = grid,
+            TextSize = 10,
+            TicksPaint = null,
+            MinStep = step,
+            ShowSeparatorLines = true
+        };
+    }
+
+    /// <summary>纵轴不设上下限：每个指标按自己的量程自适应，最高点即刻度尺顶部。</summary>
+    private static Axis CreateValueAxis(Color text, SolidColorPaint grid) => new()
+    {
+        Labeler = FormatAxisValue,
+        LabelsPaint = new SolidColorPaint(Sk(text)),
+        SeparatorsPaint = grid,
+        TextSize = 10,
+        TicksPaint = null,
+        ShowSeparatorLines = true
+    };
 
     private void BuildLegend(List<LegendItem> items)
     {
@@ -442,10 +561,10 @@ public sealed partial class GameMonitorRecordsPage : Page
                 Padding = new Thickness(8, 4, 10, 4),
                 BorderThickness = new Thickness(1),
                 BorderBrush = new SolidColorBrush(borderTint),
-                Background = new SolidColorBrush(dark
-                    ? Color.FromArgb(20, 0xFF, 0xFF, 0xFF)
-                    : Color.FromArgb(14, 0, 0, 0)),
-                Opacity = item.Hidden ? 0.4 : 1,
+                Background = new SolidColorBrush(item.On
+                    ? (dark ? Color.FromArgb(34, 0xFF, 0xFF, 0xFF) : Color.FromArgb(16, 0, 0, 0))
+                    : (dark ? Color.FromArgb(14, 0xFF, 0xFF, 0xFF) : Color.FromArgb(8, 0, 0, 0))),
+                Opacity = item.Enabled ? item.On ? 1 : 0.55 : 0.25,
                 Tag = item.Key
             };
 
@@ -462,12 +581,15 @@ public sealed partial class GameMonitorRecordsPage : Page
             chip.Child = row;
 
             var key = item.Key;
-            ToolTipService.SetToolTip(chip, item.Hidden ? "点击显示该曲线" : "点击隐藏该曲线");
-            chip.Tapped += (_, _) =>
+            if (!item.Enabled)
             {
-                if (!_hidden.Remove(key)) _hidden.Add(key);
-                RenderChart();
-            };
+                ToolTipService.SetToolTip(chip, "该指标在这份记录里没有数据");
+            }
+            else
+            {
+                ToolTipService.SetToolTip(chip, item.On ? "点击移除这张图表" : "点击添加这张图表");
+                chip.Tapped += (_, _) => ToggleMetric(key);
+            }
             _legendChips.Add(chip);
         }
 
@@ -475,7 +597,7 @@ public sealed partial class GameMonitorRecordsPage : Page
         LayoutLegend();
     }
 
-    /// <summary>按可用宽度把图例标签排成多行（WinUI 没有现成的 WrapPanel，这里手动分行）。</summary>
+    /// <summary>按可用宽度把指标标签排成多行（WinUI 没有现成的 WrapPanel，这里手动分行）。</summary>
     private bool _legendLayingOut;
 
     private void LayoutLegend()
@@ -521,28 +643,60 @@ public sealed partial class GameMonitorRecordsPage : Page
         }
     }
 
-    private void Legend_SizeChanged(object sender, SizeChangedEventArgs e)
+    private bool _layoutUpdateQueued;
+
+    /// <summary>
+    /// 把「跟随窗口尺寸的重排」并成一次、延后到本轮布局结束之后再执行。
+    /// 在 SizeChanged 回调里直接动控件树（改图表高度、重排图例）等于在布局过程中重入布局，
+    /// 而拖动窗口一秒能触发几十次 —— 实测这种重入会让进程被系统直接带走
+    /// （事件日志 0xc000027b，故障模块 CoreMessagingXP/Microsoft.UI.Xaml，错误码 800f1000/80004003/80070057）。
+    /// </summary>
+    private void RequestLayoutUpdate()
     {
-        // 延迟到布局完成后再重排，避免 SizeChanged 重入时容器处于中间态
-        DispatcherQueue.TryEnqueue(() => LayoutLegend());
+        if (_layoutUpdateQueued) return;
+        _layoutUpdateQueued = true;
+
+        DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+        {
+            _layoutUpdateQueued = false;
+
+            // 窗口已关闭 / 页面已卸载：控件树已经断开，再动它只会抛异常
+            if (!IsLoaded) return;
+
+            try
+            {
+                UpdateChartHeight();
+                LayoutLegend();
+            }
+            catch (Exception ex)
+            {
+                // 重排失败最多是图不好看，绝不能让异常从回调里逃出去把进程带崩
+                System.Diagnostics.Debug.WriteLine($"[GameMonitorRecords] 尺寸变化重排失败（已忽略）: {ex.Message}");
+            }
+        });
     }
 
-    private void RightScroll_SizeChanged(object sender, SizeChangedEventArgs e) => UpdateChartHeight();
+    private void Legend_SizeChanged(object sender, SizeChangedEventArgs e) => RequestLayoutUpdate();
+
+    private void RightScroll_SizeChanged(object sender, SizeChangedEventArgs e) => RequestLayoutUpdate();
 
     /// <summary>
     /// 右列整体放在 ScrollViewer 里（窗口再矮也不会把图表挤出可视区），
-    /// 这里让图表卡片在空间富余时自动长高、空间不足时退到最小高度，剩下的交给滚动。
+    /// 这里让每张图表按剩余空间和图表数量自动定高，放不下的交给滚动。
     /// </summary>
     private void UpdateChartHeight()
     {
         var viewport = RightScroll.ViewportHeight;
-        if (viewport <= 0) return;
+        if (viewport <= 0 || _slots.Count == 0) return;
 
         var chrome = PnlMeta.ActualHeight + PnlCards.ActualHeight + PnlTabs.ActualHeight
-                     + LegendCard.ActualHeight + 4 * 10;
-        var target = Math.Clamp(viewport - chrome, 280, 640);
-        if (Math.Abs(ChartCard.Height - target) < 8) return;
-        ChartCard.Height = target;
+                     + ControlCard.ActualHeight + StatsCard.ActualHeight + 6 * 10;
+        var target = Math.Clamp((viewport - chrome) / Math.Min(_slots.Count, 3), 132, 320);
+        foreach (var slot in _slots)
+        {
+            if (Math.Abs(slot.Card.Height - target) < 6) continue;
+            slot.Card.Height = target;
+        }
     }
 
     private void RenderStats()
@@ -576,7 +730,7 @@ public sealed partial class GameMonitorRecordsPage : Page
     private void ChartOption_Changed(object sender, RoutedEventArgs e)
     {
         if (!_ready || _view is null) return;
-        RenderChart();
+        RenderCharts();
     }
 
     private void Range_Changed(object sender, RangeBaseValueChangedEventArgs e)
@@ -592,7 +746,7 @@ public sealed partial class GameMonitorRecordsPage : Page
         }
 
         UpdateRangeLabels();
-        RenderChart();
+        RenderCharts();
     }
 
     private void ResetRange_Click(object sender, RoutedEventArgs e)
@@ -603,7 +757,7 @@ public sealed partial class GameMonitorRecordsPage : Page
         SliderTo.Value = SliderTo.Maximum;
         _suspendRange = false;
         UpdateRangeLabels();
-        RenderChart();
+        RenderCharts();
     }
 
     private void SetupRange(int count)
@@ -652,19 +806,25 @@ public sealed partial class GameMonitorRecordsPage : Page
         _legendChips.Clear();
         _legendWidth = -1;
         StatsList.ItemsSource = null;
-        Chart.Series = Array.Empty<ISeries>();
-        _visibleTimes = [];
+        ClearCharts();
         TxtChartTitle.Text = "图表";
         TxtChartHint.Text = "";
         TxtFrom.Text = "—";
         TxtTo.Text = "—";
-        DispatcherQueue.TryEnqueue(UpdateChartHeight);
+        RequestLayoutUpdate();
+    }
+
+    private void ClearCharts()
+    {
+        PnlCharts.Children.Clear();
+        _slots.Clear();
+        _visibleTimes = [];
     }
 
     private void ShowEmpty(string glyph, string message)
     {
-        Chart.Series = Array.Empty<ISeries>();
-        Chart.Visibility = Visibility.Collapsed;
+        ClearCharts();
+        PnlCharts.Visibility = Visibility.Collapsed;
         IcoEmpty.Glyph = glyph;
         TxtEmpty.Text = message;
         PnlChartEmpty.Visibility = Visibility.Visible;
@@ -758,30 +918,6 @@ public sealed partial class GameMonitorRecordsPage : Page
         return source.GetRange(from, count);
     }
 
-    /// <summary>把一组曲线压到统一的 0–100% 量程，便于跨量纲对比（null 保持为断点）。</summary>
-    private static List<double?> Normalize(List<double?> values)
-    {
-        double min = double.MaxValue, max = double.MinValue;
-        foreach (var v in values)
-        {
-            if (v is not { } d) continue;
-            if (d < min) min = d;
-            if (d > max) max = d;
-        }
-
-        var result = new List<double?>(values.Count);
-        if (min == double.MaxValue || max - min < 1e-9)
-        {
-            foreach (var v in values) result.Add(v is null ? null : 50d);
-            return result;
-        }
-
-        var span = max - min;
-        foreach (var v in values)
-            result.Add(v is { } d ? Math.Round((d - min) / span * 100, 2) : null);
-        return result;
-    }
-
     private static string FormatTime(double seconds)
     {
         if (seconds < 0) seconds = 0;
@@ -832,5 +968,14 @@ public sealed partial class GameMonitorRecordsPage : Page
         public string Count { get; init; } = "0";
     }
 
-    private sealed record LegendItem(string Key, string Label, Color Color, bool Hidden);
+    /// <summary>一张指标图表卡片（一个指标对应一张图，纵轴各自独立）。</summary>
+    private sealed class ChartSlot
+    {
+        public required Border Card { get; init; }
+        public required TextBlock Title { get; init; }
+        public required TextBlock Stats { get; init; }
+        public required CartesianChart Chart { get; init; }
+    }
+
+    private sealed record LegendItem(string Key, string Label, Color Color, bool On, bool Enabled);
 }

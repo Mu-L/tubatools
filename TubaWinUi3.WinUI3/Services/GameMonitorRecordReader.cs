@@ -214,6 +214,41 @@ public static class GameMonitorRecordReader
         public bool HasData => Count > 0;
     }
 
+    // --------------------------------------------------------- 展示选择
+
+    /// <summary>记录查看页默认展示的指标（FPS）。</summary>
+    public const string DefaultMetricKey = "fps";
+
+    /// <summary>
+    /// 「默认展示 FPS」：优先返回 <paramref name="preferred"/> 对应的指标（前提是该指标有数据），
+    /// 记录里没有这个指标时退回第一条有数据的指标；一条都没有则返回 null。
+    /// </summary>
+    public static string? PickDefaultMetricKey(
+        IReadOnlyList<MonitorMetricView> metrics, string preferred = DefaultMetricKey)
+    {
+        string? first = null;
+        foreach (var mv in metrics)
+        {
+            if (!mv.HasData) continue;
+            first ??= mv.Metric.Key;
+            if (string.Equals(mv.Metric.Key, preferred, StringComparison.OrdinalIgnoreCase)) return mv.Metric.Key;
+        }
+        return first;
+    }
+
+    /// <summary>按定义顺序取前 <paramref name="max"/> 条有数据的指标（切换分组时的默认展示集）。</summary>
+    public static List<string> PickMetricKeys(IReadOnlyList<MonitorMetricView> metrics, int max)
+    {
+        var keys = new List<string>();
+        if (max <= 0) return keys;
+        foreach (var mv in metrics)
+        {
+            if (keys.Count >= max) break;
+            if (mv.HasData) keys.Add(mv.Metric.Key);
+        }
+        return keys;
+    }
+
     /// <summary>把解析结果整理成 LiveCharts 直接可用的一组曲线（原生图表，不经过中间序列化）。</summary>
     public static MonitorRecordView BuildView(MonitorRecordData data, int maxPoints = MaxChartPoints)
     {
