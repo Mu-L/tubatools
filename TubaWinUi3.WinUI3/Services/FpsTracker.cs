@@ -257,7 +257,14 @@ internal sealed class FpsTracker
         {
             // 窗口内最早帧的时间戳（list.Count 个 = 从最新数第 list.Count 个）
             var oldestTick = _frameWindow[(_windowIndex - list.Count + FrameWindowCapacity * 2) % FrameWindowCapacity].Ticks;
-            filled = newestTick - oldestTick >= windowTicks;
+            // 「填满」判定带一帧容差：帧时间戳不会正好落在窗口边界上，按严格 >= windowTicks
+            // 判定只有帧恰好等于 newest-window 时才成立 —— 实时读数会因此永远显示 "--"。
+            // 容差取当前帧间隔（最新两帧之差）；停帧后第一帧的间隔混着停帧时长，不能当容差。
+            long frameGap = _windowCount >= 2
+                ? newestTick - _frameWindow[(_windowIndex - 2 + FrameWindowCapacity * 2) % FrameWindowCapacity].Ticks
+                : 0;
+            if (frameGap > windowTicks / 2) frameGap = 0;
+            filled = newestTick - oldestTick >= windowTicks - frameGap;
         }
         return list;
     }

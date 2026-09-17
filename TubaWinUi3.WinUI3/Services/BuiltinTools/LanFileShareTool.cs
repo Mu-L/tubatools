@@ -188,6 +188,7 @@ public sealed partial class LanFileSharePage : Page
         _webViewHost.Visibility = Visibility.Collapsed;
         if (_webView is not null)
         {
+            try { _webView.CoreWebView2?.Stop(); _webView.Close(); } catch { }
             _webViewHost.Children.Remove(_webView);
             _webView = null;
         }

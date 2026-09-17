@@ -25,6 +25,12 @@ public sealed class DocumentEngineService
         _webView = webView;
     }
 
+    /// <summary>关闭宿主 WebView2（页面卸载时调用）：不关闭会让渲染进程在页面重建后持续累积。</summary>
+    public void Close()
+    {
+        try { _webView.CoreWebView2?.Stop(); _webView.Close(); } catch { }
+    }
+
     public static string HostFolder
         => Path.Combine(AppContext.BaseDirectory, "Assets", "DocEngine");
 

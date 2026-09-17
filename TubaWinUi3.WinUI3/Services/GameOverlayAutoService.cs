@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using TubaWinUi3.Services.ActiveIntercept;
 using Windows.System;
 
 namespace TubaWinUi3.Services;
@@ -21,6 +22,7 @@ public sealed class GameOverlayAutoService
 
     private const string SignalFileName = "game_overlay_signal.json";
     private const string SettingsPrefix = "GameOverlay_";
+    private const long MaxLogBytes = 2 * 1024 * 1024;
     /// <summary>信号超过该时长未刷新视为后端已退出/失效（后端每 ≤6s 刷新一次时间戳）。</summary>
     private static readonly TimeSpan SignalStaleAfter = TimeSpan.FromSeconds(60);
 
@@ -47,6 +49,19 @@ public sealed class GameOverlayAutoService
         try
         {
             var path = Path.Combine(ConfigManager.GetDataDir(), "game_overlay_auto.log");
+            // 采样持续失败时会每秒写一条，超过上限就轮转一份 .1
+            try
+            {
+                var file = new FileInfo(path);
+                if (file.Exists && file.Length > MaxLogBytes)
+                {
+                    var old = path + ".1";
+                    if (File.Exists(old)) File.Delete(old);
+                    File.Move(path, old);
+                }
+            }
+            catch { }
+
             File.AppendAllText(path, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}{Environment.NewLine}");
         }
         catch { }
@@ -88,6 +103,10 @@ public sealed class GameOverlayAutoService
 
     private void PollSignal()
     {
+        // 「游戏后台监控」未开启时后端进程不会运行、更不会写信号文件（App.OnLaunched 统一同步后端），
+        // 跳过每秒一次的磁盘探测；开启后功能行为不变。
+        if (!GameMonitorBackendService.IsEnabled) return;
+
         var path = Path.Combine(ConfigManager.GetDataDir(), SignalFileName);
         if (!File.Exists(path)) return;
 

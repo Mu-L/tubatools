@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Diagnostics;
@@ -42,6 +43,9 @@ public sealed partial class AiAgentPage : UserControl
 
     /// <summary>当前会话待持久化的消息（user/assistant 文本按发送顺序）。</summary>
     private readonly List<PersistedMessage> _persisted = [];
+
+    /// <summary>每条助手消息的定稿订阅（定稿或页面卸载时退订，避免页面被消息对象钉住）。</summary>
+    private readonly List<(ChatMessage Msg, PropertyChangedEventHandler Handler)> _msgSubs = [];
 
     private string _conversationId = Guid.NewGuid().ToString("N")[..12];
     private string _title = "新对话";
@@ -368,6 +372,8 @@ public sealed partial class AiAgentPage : UserControl
         StopGazePolling();
         SaveNow();
         _saveTimer?.Stop();
+        foreach (var (m, h) in _msgSubs) m.PropertyChanged -= h;
+        _msgSubs.Clear();
         Chat.UserMessageSubmitted -= OnUserMessageSubmitted;
         Chat.MessageAdded -= OnMessageAdded;
         TubaChatProvider.UsageReported -= OnUsageReported;
@@ -411,11 +417,19 @@ public sealed partial class AiAgentPage : UserControl
         {
             // 工具调用包装消息（中间轮，同流渲染）不入持久化
             if (msg.ToolCalls is { Count: > 0 }) return;
-            msg.PropertyChanged += (_, e) =>
+            // 命名委托：定稿或页面卸载时要能退订（匿名 lambda 退不掉，会一直钉住页面）
+            PropertyChangedEventHandler? handler = null;
+            handler = (_, e) =>
             {
                 if (e.PropertyName == nameof(ChatMessage.IsStreaming) && !msg.IsStreaming)
+                {
+                    msg.PropertyChanged -= handler;
+                    _msgSubs.RemoveAll(s => ReferenceEquals(s.Msg, msg));
                     OnAssistantFinalized(msg);
+                }
             };
+            msg.PropertyChanged += handler;
+            _msgSubs.Add((msg, handler));
         }
         ScheduleSave();
     }

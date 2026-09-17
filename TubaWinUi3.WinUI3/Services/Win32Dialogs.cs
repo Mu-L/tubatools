@@ -89,8 +89,9 @@ public static class Win32Dialogs
         return GetSaveFileName(ref ofn) ? ofn.lpstrFile.TrimEnd('\0') : null;
     }
 
-    /// <summary>选择文件夹：优先 WinRT 原生选择器（InitializeWithWindow），失败时回退 Win32 浏览对话框。</summary>
-    public static string? PickFolder()
+    /// <summary>选择文件夹：优先 WinRT 原生选择器（InitializeWithWindow），失败时回退 Win32 浏览对话框。
+    /// 必须异步等待——同步阻塞 UI 线程会让消息泵停转，选择器永远不会返回。</summary>
+    public static async Task<string?> PickFolderAsync()
     {
         try
         {
@@ -100,7 +101,7 @@ public static class Win32Dialogs
             };
             picker.FileTypeFilter.Add("*");
             WinRT.Interop.InitializeWithWindow.Initialize(picker, Hwnd());
-            var folder = picker.PickSingleFolderAsync().AsTask().GetAwaiter().GetResult();
+            var folder = await picker.PickSingleFolderAsync();
             return folder?.Path;
         }
         catch

@@ -196,6 +196,10 @@ public sealed partial class FormatConverterPage : Page
         }
         _engineTimer?.Stop();
         _cts?.Cancel();
+        // 页面默认不缓存（NavigationCacheMode=Disabled），卸载即废弃：关闭宿主 WebView2
+        _docEngine?.Close();
+        _docEngine = null;
+        _docService = null;
     }
 
     private void OnFilesDropped(IReadOnlyList<string> files)

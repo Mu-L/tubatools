@@ -2748,9 +2748,9 @@ public sealed partial class SettingsPage : Page
         });
     }
 
-    private void HttpDownloadBrowseButton_Click(object sender, RoutedEventArgs e)
+    private async void HttpDownloadBrowseButton_Click(object sender, RoutedEventArgs e)
     {
-        var dir = Win32Dialogs.PickFolder();
+        var dir = await Win32Dialogs.PickFolderAsync();
         if (string.IsNullOrEmpty(dir))
             return;
 

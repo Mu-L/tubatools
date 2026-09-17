@@ -758,6 +758,7 @@ public sealed class BenchmarkHistoryWindow : Window
 			};
 			var timer = DispatcherQueue.CreateTimer();
 			timer.Interval = TimeSpan.FromSeconds(4);
+			timer.IsRepeating = false; // 单次触发：4 秒后自动解除确认态，窗口关闭后不再回调
 			timer.Tick += (_, _) => DisarmClear();
 			timer.Start();
 			return;

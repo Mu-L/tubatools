@@ -56,14 +56,16 @@ public static class BenchmarkCloudService
 	};
 
 	private static readonly HttpClient _apiClient;
+	// UI 刷新与后台分页会并发读写这些缓存：普通 Dictionary 并发写会抛异常，统一加锁/换并发容器
+	private static readonly object CacheLock = new();
 	private static List<BenchmarkReportEntry>? _cache;
 	private static DateTimeOffset _cacheTime;
 	private static readonly TimeSpan CacheDuration;
 	private static BenchmarkLeaderboardData? _leaderboardCache;
-	private static readonly Dictionary<string, BenchmarkReportEntry> _reportDetailCache = new(StringComparer.OrdinalIgnoreCase);
+	private static readonly ConcurrentDictionary<string, BenchmarkReportEntry> _reportDetailCache = new(StringComparer.OrdinalIgnoreCase);
 	private static DateTimeOffset _leaderboardCacheTime;
-	private static readonly Dictionary<string, int> _pagedTotalPages = new();
-	private static readonly Dictionary<string, int> _pagedTotalEntries = new();
+	private static readonly ConcurrentDictionary<string, int> _pagedTotalPages = new();
+	private static readonly ConcurrentDictionary<string, int> _pagedTotalEntries = new();
 	private static readonly TimeSpan LatencyListCacheTtl = TimeSpan.FromMinutes(10);
 	private static List<LatencyImageInfo>? _latencyListCache;
 	private static DateTimeOffset _latencyListCacheTime;
@@ -83,15 +85,18 @@ public static class BenchmarkCloudService
 
 	public static void InvalidateCache()
 	{
-		_cache = null;
-		_cacheTime = DateTimeOffset.MinValue;
-		_leaderboardCache = null;
-		_leaderboardCacheTime = DateTimeOffset.MinValue;
-		_reportDetailCache.Clear();
-		_latencyListCache = null;
-		_latencyListCacheTime = DateTimeOffset.MinValue;
-		_pagedTotalPages.Clear();
-		_pagedTotalEntries.Clear();
+		lock (CacheLock)
+		{
+			_cache = null;
+			_cacheTime = DateTimeOffset.MinValue;
+			_leaderboardCache = null;
+			_leaderboardCacheTime = DateTimeOffset.MinValue;
+			_reportDetailCache.Clear();
+			_latencyListCache = null;
+			_latencyListCacheTime = DateTimeOffset.MinValue;
+			_pagedTotalPages.Clear();
+			_pagedTotalEntries.Clear();
+		}
 	}
 
 	public static List<BenchmarkReportEntry> LoadLocalCacheOnly()
@@ -101,8 +106,11 @@ public static class BenchmarkCloudService
 
 	public static void SaveToCache(List<BenchmarkReportEntry> reports)
 	{
-		_cache = reports.OrderByDescending(r => r.GamingScore).ToList();
-		_cacheTime = DateTimeOffset.UtcNow;
+		lock (CacheLock)
+		{
+			_cache = reports.OrderByDescending(r => r.GamingScore).ToList();
+			_cacheTime = DateTimeOffset.UtcNow;
+		}
 		SaveLocalCache(reports);
 	}
 
@@ -193,13 +201,22 @@ public static class BenchmarkCloudService
 	/// <summary>Lists all uploaded core-to-core latency heatmap images, following the current data source (GitHub / GitCode). Results are cached for 10 minutes.</summary>
 	public static async Task<List<LatencyImageInfo>> GetLatencyImagesAsync(CancellationToken ct, bool refresh = false)
 	{
-		if (!refresh && _latencyListCache != null && DateTimeOffset.UtcNow - _latencyListCacheTime < LatencyListCacheTtl)
+		if (!refresh)
 		{
-			return _latencyListCache;
+			lock (CacheLock)
+			{
+				if (_latencyListCache != null && DateTimeOffset.UtcNow - _latencyListCacheTime < LatencyListCacheTtl)
+				{
+					return _latencyListCache;
+				}
+			}
 		}
 		var result = await FetchLatencyImagesAsync(ct);
-		_latencyListCache = result;
-		_latencyListCacheTime = DateTimeOffset.UtcNow;
+		lock (CacheLock)
+		{
+			_latencyListCache = result;
+			_latencyListCacheTime = DateTimeOffset.UtcNow;
+		}
 		return result;
 	}
 
@@ -531,9 +548,12 @@ public static class BenchmarkCloudService
 
 	public static async Task<List<BenchmarkReportEntry>> GetAllReportsAsync(CancellationToken ct)
 	{
-		if (_cache != null && DateTimeOffset.UtcNow - _cacheTime < CacheDuration)
+		lock (CacheLock)
 		{
-			return _cache;
+			if (_cache != null && DateTimeOffset.UtcNow - _cacheTime < CacheDuration)
+			{
+				return _cache;
+			}
 		}
 		Exception? lastError = null;
 		try
@@ -568,9 +588,12 @@ public static class BenchmarkCloudService
 				if (reports is not null)
 				{
 					SaveLocalCache(reports);
-					_cache = reports;
-					_cacheTime = DateTimeOffset.UtcNow;
-					return _cache;
+					lock (CacheLock)
+					{
+						_cache = reports;
+						_cacheTime = DateTimeOffset.UtcNow;
+					}
+					return reports;
 				}
 			}
 		}
@@ -592,9 +615,12 @@ public static class BenchmarkCloudService
 
 	public static async Task<BenchmarkLeaderboardData?> GetLeaderboardDataAsync(CancellationToken ct)
 	{
-		if (_leaderboardCache != null && DateTimeOffset.UtcNow - _leaderboardCacheTime < CacheDuration)
+		lock (CacheLock)
 		{
-			return _leaderboardCache;
+			if (_leaderboardCache != null && DateTimeOffset.UtcNow - _leaderboardCacheTime < CacheDuration)
+			{
+				return _leaderboardCache;
+			}
 		}
 		using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
 		client.DefaultRequestHeaders.Add("User-Agent", "TubaWinUi3-Benchmark");
@@ -626,8 +652,11 @@ public static class BenchmarkCloudService
 		});
 		if (data == null)
 			throw new JsonException("排行榜数据解析失败");
-		_leaderboardCache = data;
-		_leaderboardCacheTime = DateTimeOffset.UtcNow;
+		lock (CacheLock)
+		{
+			_leaderboardCache = data;
+			_leaderboardCacheTime = DateTimeOffset.UtcNow;
+		}
 		return data;
 	}
 
@@ -820,9 +849,13 @@ public static class BenchmarkCloudService
 		{
 			if (localCache.Count > 0)
 			{
-				_cache = localCache.OrderByDescending(r => r.GamingScore).ToList();
-				_cacheTime = DateTimeOffset.UtcNow;
-				return _cache;
+				var fallbackReports = localCache.OrderByDescending(r => r.GamingScore).ToList();
+				lock (CacheLock)
+				{
+					_cache = fallbackReports;
+					_cacheTime = DateTimeOffset.UtcNow;
+				}
+				return fallbackReports;
 			}
 			throw new Exception("无法获取仓库信息: " + ex.Message, ex);
 		}
@@ -830,9 +863,13 @@ public static class BenchmarkCloudService
 		{
 			if (localCache.Count > 0)
 			{
-				_cache = localCache.OrderByDescending(r => r.GamingScore).ToList();
-				_cacheTime = DateTimeOffset.UtcNow;
-				return _cache;
+				var fallbackReports = localCache.OrderByDescending(r => r.GamingScore).ToList();
+				lock (CacheLock)
+				{
+					_cache = fallbackReports;
+					_cacheTime = DateTimeOffset.UtcNow;
+				}
+				return fallbackReports;
 			}
 			throw new Exception("无法获取仓库树信息");
 		}
@@ -841,9 +878,13 @@ public static class BenchmarkCloudService
 		{
 			if (localCache.Count > 0)
 			{
-				_cache = localCache.OrderByDescending(r => r.GamingScore).ToList();
-				_cacheTime = DateTimeOffset.UtcNow;
-				return _cache;
+				var fallbackReports = localCache.OrderByDescending(r => r.GamingScore).ToList();
+				lock (CacheLock)
+				{
+					_cache = fallbackReports;
+					_cacheTime = DateTimeOffset.UtcNow;
+				}
+				return fallbackReports;
 			}
 			throw new Exception("仓库中暂无报告数据");
 		}
@@ -891,9 +932,13 @@ public static class BenchmarkCloudService
 			});
 		}
 		SaveLocalCache(reports.ToList());
-		_cache = reports.OrderByDescending(r => r.GamingScore).ToList();
-		_cacheTime = DateTimeOffset.UtcNow;
-		return _cache;
+		var allReports = reports.OrderByDescending(r => r.GamingScore).ToList();
+		lock (CacheLock)
+		{
+			_cache = allReports;
+			_cacheTime = DateTimeOffset.UtcNow;
+		}
+		return allReports;
 	}
 
 	private static string LocalCachePath => Path.Combine(

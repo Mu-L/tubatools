@@ -226,7 +226,8 @@ function Build-ArchPackage {
         return $null
     }
 
-    Copy-Item -Path "$WinUI3Dir\Assets\*" -Destination "$archDir\Assets\" -Recurse -Force
+    # Assets / Metadata / CertBlock 已由 csproj 的 Content 项（CopyToOutputDirectory=PreserveNewest）
+    # 随 publish 一并输出，无需在此重复拷贝。
 
     $buildPriPattern = Join-Path $WinUI3Dir "bin\$Arch\Release\*\win-$Arch\TubaWinUi3.pri"
     $foundPri = Get-Item $buildPriPattern -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -235,11 +236,16 @@ function Build-ArchPackage {
         Write-Host "  Restored TubaWinUi3.pri from build output" -ForegroundColor Gray
     }
 
-    if (Test-Path -LiteralPath "$WinUI3Dir\Metadata") {
-        Copy-Item -Path "$WinUI3Dir\Metadata" -Destination $archDir -Recurse -Force
-    }
-    if (Test-Path -LiteralPath "$WinUI3Dir\CertBlock") {
-        Copy-Item -Path "$WinUI3Dir\CertBlock" -Destination $archDir -Recurse -Force
+    # 非中英语言的框架 .mui 删除：csproj 的 SatelliteResourceLanguages 只作用于托管卫星程序集，
+    # WinAppSDK 的 Microsoft.ui.xaml 等 .mui 不受其影响（实测 172 个 / 85 种语言）；
+    # 缺失语言由 Windows 资源加载器回退到中性（英文）资源，不报错。
+    $keepLangs = @('zh-CN', 'zh-TW', 'en-us', 'en-GB')
+    $removedMui = Get-ChildItem -LiteralPath $archDir -Recurse -Filter '*.mui' -Force -ErrorAction SilentlyContinue |
+        Where-Object { $keepLangs -notcontains $_.Directory.Name }
+    $removedMuiCount = @($removedMui).Count
+    $removedMui | Remove-Item -Force -ErrorAction SilentlyContinue
+    if ($removedMuiCount -gt 0) {
+        Write-Host "  Removed $removedMuiCount non-zh/en framework .mui files" -ForegroundColor Gray
     }
 
     Get-ChildItem -LiteralPath $archDir -Filter '*.pdb' -Recurse -Force -ErrorAction SilentlyContinue |

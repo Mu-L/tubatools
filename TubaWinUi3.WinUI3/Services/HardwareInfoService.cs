@@ -148,6 +148,7 @@ public static class HardwareInfoService
 
     private static IReadOnlyList<HardwareInfoSection>? _cache;
     private static readonly object _lock = new();
+    private static readonly SemaphoreSlim _buildGate = new(1, 1);
 
     private static string GetSeparator()
     {
@@ -189,20 +190,36 @@ public static class HardwareInfoService
                 return _cache;
         }
 
-        var sections = CreateEmptySections();
-
-        var summaryTask = Task.Run(() => FillSummary(sections[0]));
-        var systemTask = Task.Run(() => FillSystem(sections[1]));
-        var detailsTask = Task.Run(() => FillDetails(sections[2]));
-
-        Task.WaitAll(summaryTask, systemTask, detailsTask);
-
-        lock (_lock)
+        // 合并并发盘点（启动预热与硬件页首开可能同时到达，避免重复跑 20+ 条 WMI 查询）：
+        // 等锁期间别人构建完成 → 直接复用其结果
+        _buildGate.Wait();
+        try
         {
-            _cache = sections;
-        }
+            lock (_lock)
+            {
+                if (!forceRefresh && _cache != null)
+                    return _cache;
+            }
 
-        return sections;
+            var sections = CreateEmptySections();
+
+            var summaryTask = Task.Run(() => FillSummary(sections[0]));
+            var systemTask = Task.Run(() => FillSystem(sections[1]));
+            var detailsTask = Task.Run(() => FillDetails(sections[2]));
+
+            Task.WaitAll(summaryTask, systemTask, detailsTask);
+
+            lock (_lock)
+            {
+                _cache = sections;
+            }
+
+            return sections;
+        }
+        finally
+        {
+            _buildGate.Release();
+        }
     }
 
     public static IReadOnlyList<HardwareInfoSection> ApplyCpuzOverride(IReadOnlyList<HardwareInfoSection> wmiSections, CpuzInfo cpuz)

@@ -440,25 +440,29 @@ public sealed partial class GameOverlayPage : Page
         e.DragUIOverride.IsContentVisible = true;
     }
 
-    private void Canvas_Drop(object sender, DragEventArgs e)
+    private async void Canvas_Drop(object sender, DragEventArgs e)
     {
         try
         {
             var def = e.GetDeferral();
-            var pos = e.GetPosition(DesignCanvas);
-
-            // Try to get the widget type from the data
-            if (e.DataView.Contains("StandardText"))
+            try
             {
-                var task = e.DataView.GetTextAsync().AsTask();
-                task.Wait();
-                var text = task.Result;
-                if (Enum.TryParse<OverlayWidgetType>(text, out var type))
+                var pos = e.GetPosition(DesignCanvas);
+
+                // Try to get the widget type from the data
+                if (e.DataView.Contains("StandardText"))
                 {
-                    AddWidgetToCanvas(type, pos.X, pos.Y);
+                    var text = await e.DataView.GetTextAsync();
+                    if (Enum.TryParse<OverlayWidgetType>(text, out var type))
+                    {
+                        AddWidgetToCanvas(type, pos.X, pos.Y);
+                    }
                 }
             }
-            def.Complete();
+            finally
+            {
+                def.Complete();
+            }
         }
         catch { }
     }

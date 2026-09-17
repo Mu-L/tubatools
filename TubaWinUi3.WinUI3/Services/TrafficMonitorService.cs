@@ -316,6 +316,7 @@ public static class TrafficMonitorService
 
     // 域名来源优先级：系统 DNS 缓存表（ipconfig /displaydns）> PTR 反向解析
     private const int DnsTableRefreshEveryTicks = 5; // 每 5 秒刷一次系统 DNS 缓存表
+    private const int MaxPtrCacheEntries = 4096;     // PTR 结果软缓存上限（超限整体清空，按需重建）
     private static readonly Dictionary<string, string> s_domainCache = new(); // ip -> 域名（缓存表）
     private static readonly Dictionary<string, string> s_ptrCache = new();   // ip -> 域名（PTR 结果）
     private static readonly HashSet<string> s_ptrPending = new();             // 正在 PTR 解析的 ip
@@ -380,6 +381,7 @@ public static class TrafficMonitorService
                 lock (s_domainLock)
                 {
                     s_ptrPending.Remove(ip);
+                    if (s_ptrCache.Count >= MaxPtrCacheEntries) s_ptrCache.Clear();
                     if (!string.IsNullOrWhiteSpace(domain)) s_ptrCache[ip] = domain;
                     else s_ptrCache[ip] = ip; // 占位防重试：解析失败记原 IP
                 }

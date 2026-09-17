@@ -105,26 +105,15 @@
                     </Grid.ColumnDefinitions>
 
                     <Grid Grid.Column="0" Width="320">
-                        <TextBox
-                            x:Name="SearchTextBox"
+                        <AutoSuggestBox
+                            x:Name="SearchBox"
                             PlaceholderText="搜索工具、设置..."
-                            MinHeight="30"
+                            QueryIcon="Find"
                             VerticalAlignment="Center"
-                            GotFocus="SearchTextBox_GotFocus"
-                            LostFocus="SearchTextBox_LostFocus"
-                            TextChanged="SearchTextBox_TextChanged"
-                            KeyDown="SearchTextBox_KeyDown" />
-                        <Button
-                            x:Name="SearchSubmitButton"
-                            VerticalAlignment="Center"
-                            HorizontalAlignment="Right"
-                            Width="30" Height="30"
-                            Padding="0"
-                            BorderThickness="0"
-                            Background="Transparent"
-                            Click="SearchSubmitButton_Click">
-                            <FontIcon FontSize="14" Glyph="&#xE721;" />
-                        </Button>
+                            GotFocus="SearchBox_GotFocus"
+                            LostFocus="SearchBox_LostFocus"
+                            TextChanged="SearchBox_TextChanged"
+                            QuerySubmitted="SearchBox_QuerySubmitted" />
                         <Popup
                             x:Name="SearchPopup"
                             VerticalOffset="32"

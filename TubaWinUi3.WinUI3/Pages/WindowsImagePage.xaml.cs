@@ -523,9 +523,9 @@ public sealed partial class WindowsImagePage : Page
         UupResetDirBtn.Visibility = isCustom ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    private void UupBrowseDirBtn_Click(object sender, RoutedEventArgs e)
+    private async void UupBrowseDirBtn_Click(object sender, RoutedEventArgs e)
     {
-        var dir = Win32Dialogs.PickFolder();
+        var dir = await Win32Dialogs.PickFolderAsync();
         if (string.IsNullOrEmpty(dir)) return;
 
         AppSettings.Set("WindowsImageDownloadDir", dir);

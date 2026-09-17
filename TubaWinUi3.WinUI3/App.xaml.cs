@@ -345,9 +345,10 @@ public partial class App : Application
             });
         }
 
-        // 图标缓存清理与硬件盘点都不再抢启动窗口：图标清理延迟到空闲期执行，
+        // 图标缓存清理与硬件盘点都不再抢启动窗口：图标清理延迟到空闲期执行（后台线程，
+        // 内部是纯文件 IO + 线程安全缓存，不能留在 UI 线程上扫盘），
         // 硬件 WMI 盘点（20+ 条查询）延迟 10s 后台预热，打开硬件信息页时直接命中缓存。
-        _ = DelayThenRunAsync(TimeSpan.FromSeconds(15), () => { ToolIconService.CleanExpiredCache(); return Task.CompletedTask; });
+        _ = DelayThenRunAsync(TimeSpan.FromSeconds(15), () => Task.Run(() => ToolIconService.CleanExpiredCache()));
         _ = DelayThenRunAsync(TimeSpan.FromSeconds(10), () => { HardwareInfoService.PreloadAsync(); return Task.CompletedTask; });
         _ = Task.Run(() => ConfigManager.AutoMigratePathsIfNeeded());
 

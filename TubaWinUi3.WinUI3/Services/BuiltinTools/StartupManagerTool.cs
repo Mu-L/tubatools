@@ -1552,6 +1552,22 @@ internal static class StartupIconService
     private static readonly Dictionary<string, string> MemoryCache = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, BitmapImage> BitmapCache = new(StringComparer.OrdinalIgnoreCase);
 
+    // 软缓存上限：超出即整体清空按需重建（自启动条目数远低于上限，正常不会触发）
+    private const int MaxMemoryCacheEntries = 512;
+    private const int MaxBitmapCacheEntries = 256;
+
+    private static void CacheIconPath(string path, string iconPath)
+    {
+        if (MemoryCache.Count >= MaxMemoryCacheEntries) MemoryCache.Clear();
+        MemoryCache[path] = iconPath;
+    }
+
+    private static void CacheBitmap(string path, BitmapImage bitmap)
+    {
+        if (BitmapCache.Count >= MaxBitmapCacheEntries) BitmapCache.Clear();
+        BitmapCache[path] = bitmap;
+    }
+
     /// <summary>同步查询已加载的 BitmapImage（命中 → 列表重建时图标不闪回退样式）。</summary>
     public static bool TryGetBitmap(string imagePath, out BitmapImage? bitmap)
     {
@@ -1569,7 +1585,7 @@ internal static class StartupIconService
         var png = await GetIconPathAsync(path);
         if (png is null) return null;
         var bmp = new BitmapImage(new Uri(png));
-        BitmapCache[path] = bmp;
+        CacheBitmap(path, bmp);
         return bmp;
     }
 
@@ -1592,7 +1608,7 @@ internal static class StartupIconService
             {
                 if (File.GetLastWriteTimeUtc(iconPath) >= File.GetLastWriteTimeUtc(path))
                 {
-                    MemoryCache[path] = iconPath;
+                    CacheIconPath(path, iconPath);
                     return iconPath;
                 }
             }
@@ -1608,7 +1624,7 @@ internal static class StartupIconService
                 if (icon is null) return null;
                 using var bitmap = System.Drawing.Bitmap.FromHicon(icon.Handle);
                 bitmap.Save(iconPath, System.Drawing.Imaging.ImageFormat.Png);
-                MemoryCache[path] = iconPath;
+                CacheIconPath(path, iconPath);
                 return iconPath;
             }
             catch

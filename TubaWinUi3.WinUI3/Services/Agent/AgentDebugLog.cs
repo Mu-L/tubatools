@@ -6,6 +6,8 @@ namespace TubaWinUi3.Services.Agent;
 /// </summary>
 internal static class AgentDebugLog
 {
+    private const long MaxLogBytes = 2 * 1024 * 1024;
+
     private static readonly object Lock = new();
     private static string? _path;
 
@@ -21,6 +23,19 @@ internal static class AgentDebugLog
             _path ??= Path.Combine(ConfigManager.GetDataDir(), "agent-debug.log");
             lock (Lock)
             {
+                // 超过上限就轮转一份 .1（保留最近日志），避免失败诊断体把文件撑到无限大
+                try
+                {
+                    var file = new FileInfo(_path);
+                    if (file.Exists && file.Length > MaxLogBytes)
+                    {
+                        var old = _path + ".1";
+                        if (File.Exists(old)) File.Delete(old);
+                        File.Move(_path, old);
+                    }
+                }
+                catch { }
+
                 File.AppendAllText(_path,
                     $"[{DateTime.Now:HH:mm:ss.fff}] {level} {message}\n");
             }

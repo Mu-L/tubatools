@@ -150,6 +150,13 @@ public sealed class TubaChatProvider : IAiProvider
 
             var body = string.Join("\n", BuildMessages(request)
                 .Select(m => System.ClientModel.Primitives.ModelReaderWriter.Write(m).ToString()));
+            const int maxBodyChars = 8000;
+            if (body.Length > maxBodyChars)
+            {
+                var cut = maxBodyChars;
+                if (char.IsHighSurrogate(body[cut - 1])) cut--; // 不切断代理对
+                body = body[..cut] + "…（已截断）";
+            }
             AgentDebugLog.Info($"[ChatProvider] 失败请求完整体（{request.Messages?.Count ?? 0} 条树消息 → {BuildMessages(request).Count} 条协议消息）：\n{body}");
         }
         catch (Exception logEx)

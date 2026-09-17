@@ -131,6 +131,9 @@ public sealed partial class MainWindow : Window
 
         SearchListView.ItemsSource = _searchResults;
 
+        // AutoSuggestBox 会先于实例处理 Escape（置 Handled），键盘导航必须用 handledEventsToo 注册
+        SearchBox.AddHandler(UIElement.KeyDownEvent, new KeyEventHandler(SearchBox_KeyDown), handledEventsToo: true);
+
         _searchDebounceTimer = DispatcherQueue.CreateTimer();
         _searchDebounceTimer.Interval = TimeSpan.FromMilliseconds(100);
         _searchDebounceTimer.Tick += OnSearchDebounceTick;
@@ -374,6 +377,11 @@ public sealed partial class MainWindow : Window
         NavLayoutModeService.NavLayoutModeChanged -= OnNavLayoutModeChanged;
         // AppSettings 落盘是去抖的（500ms 合并），退出前同步刷一次避免丢最后变更
         AppSettings.Flush();
+
+        // 硬件监控句柄与 FPS 的 ETW 会话必须显式释放：内核 ETW 会话不会随进程终止自动回收，
+        // 残留会让下次启动的 FPS 采集失效；轮询定时器/自动覆盖层/未落盘记录一并收尾。
+        try { LiteMonitorService.Instance.Dispose(); } catch { }
+        try { GameOverlayAutoService.Instance.Stop(); } catch { }
     }
 
     private void OnDownloadQueueChanged()
@@ -806,30 +814,30 @@ public sealed partial class MainWindow : Window
         e.TryCancel();
     }
 
-    private void SearchTextBox_GotFocus(object sender, RoutedEventArgs e)
+    private void SearchBox_GotFocus(object sender, RoutedEventArgs e)
     {
         if (_suppressSearch || _searchDismissed) return;
-        var query = SearchTextBox.Text.Trim();
+        var query = SearchBox.Text.Trim();
         if (query.Length == 0)
             PopulateSearchSuggestions();
         ShowSearchPopup();
     }
 
-    private void SearchTextBox_LostFocus(object sender, RoutedEventArgs e)
+    private void SearchBox_LostFocus(object sender, RoutedEventArgs e)
     {
         DispatcherQueue.TryEnqueue(() =>
         {
-            if (!SearchTextBox.FocusState.HasFlag(FocusState.Programmatic))
+            if (!SearchBox.FocusState.HasFlag(FocusState.Programmatic))
                 HideSearchPopup();
         });
     }
 
-    private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
         if (_suppressSearch) return;
 
         _searchDismissed = false;
-        var query = SearchTextBox.Text.Trim();
+        var query = SearchBox.Text.Trim();
 
         if (query.Length == 0)
         {
@@ -846,7 +854,7 @@ public sealed partial class MainWindow : Window
     private void OnSearchDebounceTick(DispatcherQueueTimer sender, object args)
     {
         sender.Stop();
-        var query = SearchTextBox.Text.Trim();
+        var query = SearchBox.Text.Trim();
         if (query.Length == 0) return;
 
         _ = SearchInBackgroundAsync(query);
@@ -877,36 +885,25 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private void SearchSubmitButton_Click(object sender, RoutedEventArgs e)
+    private void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
     {
-        var first = _searchResults.FirstOrDefault();
-        if (first is not null)
-        {
-            HideSearchPopup();
-            HandleSearchResult(first);
-        }
+        var idx = SearchListView.SelectedIndex;
+        SearchResult? result = idx >= 0 && idx < _searchResults.Count
+            ? _searchResults[idx]
+            : _searchResults.FirstOrDefault();
+
+        if (result is null) return;
+
+        HideSearchPopup();
+        HandleSearchResult(result);
     }
 
-    private void SearchTextBox_KeyDown(object sender, KeyRoutedEventArgs e)
+    private void SearchBox_KeyDown(object sender, KeyRoutedEventArgs e)
     {
         if (e.Key == Windows.System.VirtualKey.Escape)
         {
             SearchListView.SelectedIndex = -1;
             HideSearchPopup();
-            e.Handled = true;
-        }
-        else if (e.Key == Windows.System.VirtualKey.Enter)
-        {
-            var idx = SearchListView.SelectedIndex;
-            SearchResult? result = idx >= 0 && idx < _searchResults.Count
-                ? _searchResults[idx]
-                : _searchResults.Count > 0 ? _searchResults[0] : null;
-
-            if (result is not null)
-            {
-                HideSearchPopup();
-                HandleSearchResult(result);
-            }
             e.Handled = true;
         }
         else if (e.Key == Windows.System.VirtualKey.Down)
@@ -942,7 +939,7 @@ public sealed partial class MainWindow : Window
             if (SearchListView.SelectedItem is SearchResult result)
             {
                 _suppressSearch = true;
-                SearchTextBox.Text = string.Empty;
+                SearchBox.Text = string.Empty;
                 _suppressSearch = false;
                 HideSearchPopup();
                 HandleSearchResult(result);
