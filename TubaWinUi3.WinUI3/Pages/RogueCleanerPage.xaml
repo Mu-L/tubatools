@@ -471,6 +471,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Grid Grid.Row="0" ColumnSpacing="8">
                             <Grid.ColumnDefinitions>
@@ -491,6 +492,20 @@
                             <HyperlinkButton x:Name="CmJumpSpecialBtn" FontSize="12" Click="CmJumpSpecial_Click"/>
                             <HyperlinkButton x:Name="CmJumpAdvancedBtn" FontSize="12" Click="CmJumpAdvanced_Click"/>
                         </StackPanel>
+
+                        <!-- 生效提示：右键菜单改动需要重启资源管理器（三个视图共用，改动后就地可见） -->
+                        <Grid Grid.Row="2" ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap" FontSize="12"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       Text="提示：显示、隐藏或修改右键菜单后，必须重启资源管理器才会生效（已打开的文件夹窗口会被关闭，任务栏与桌面会短暂消失后自动恢复）。" />
+                            <Button Grid.Column="1" x:Name="CmRestartExplorerBtn" Content="重启资源管理器"
+                                    FontSize="12" Click="CmRestartExplorer_Click"
+                                    ToolTipService.ToolTip="结束并重新启动 explorer.exe，让右键菜单改动立即生效"/>
+                        </Grid>
                     </Grid>
 
                     <!-- 主管理视图（对应原版 ContextMenuManagerForm） -->

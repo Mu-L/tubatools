@@ -2563,14 +2563,17 @@ public sealed partial class RogueCleanerPage : Page
         // 主管理列表的「显示」列开关：已显示=开(绿)，已隐藏=关(灰)
         if (args.Item is ContextMenuEntry entry && args.ItemContainer.ContentTemplateRoot is FrameworkElement root)
         {
-            if (root.FindName("ToggleBtn") is Button btn)
-            {
-                btn.Content = entry.Enabled ? "开" : "关";
-                btn.Background = new SolidColorBrush(entry.Enabled ? ParseHex("#16A34A") : ParseHex("#6B7280"));
-                btn.Foreground = new SolidColorBrush(ParseHex("#FFFFFF"));
-                btn.IsEnabled = !entry.ReadOnly;
-            }
+            if (root.FindName("ToggleBtn") is Button btn) ApplyCmRowToggleVisual(btn, entry);
         }
+    }
+
+    /// <summary>行内「显示」列开关的文案与配色：已显示=开(绿)，已隐藏=关(灰)。</summary>
+    private static void ApplyCmRowToggleVisual(Button btn, ContextMenuEntry entry)
+    {
+        btn.Content = entry.Enabled ? "开" : "关";
+        btn.Background = new SolidColorBrush(entry.Enabled ? ParseHex("#16A34A") : ParseHex("#6B7280"));
+        btn.Foreground = new SolidColorBrush(ParseHex("#FFFFFF"));
+        btn.IsEnabled = !entry.ReadOnly;
     }
 
     #endregion
@@ -2905,6 +2908,39 @@ public sealed partial class RogueCleanerPage : Page
 
     private void CmRefresh_Click(object sender, RoutedEventArgs e) => RefreshContextMenus();
 
+    /// <summary>重启资源管理器：右键菜单改动要重启外壳才会刷新，这里提供一键入口。</summary>
+    private async void CmRestartExplorer_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new ContentDialog
+        {
+            Title = "重启资源管理器？",
+            Content = new TextBlock { Text = "将关闭所有已打开的文件资源管理器窗口，任务栏与桌面会短暂消失后自动恢复。\n\n正在运行的程序不受影响。", TextWrapping = TextWrapping.Wrap },
+            PrimaryButtonText = "立即重启",
+            CloseButtonText = "取消",
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = XamlRoot,
+            RequestedTheme = ThemeService.CurrentElementTheme
+        };
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
+        CmRestartExplorerBtn.IsEnabled = false;
+        CmStatusText.Text = "正在重启资源管理器……";
+        try
+        {
+            await Task.Run(ExplorerShellService.Restart);
+            CmStatusText.Text = "资源管理器已重启，右键菜单改动已生效。";
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("重启资源管理器失败", ex);
+            CmStatusText.Text = "重启资源管理器失败：" + ex.Message;
+            await ShowInfo("重启失败", ex.Message);
+        }
+        finally
+        {
+            CmRestartExplorerBtn.IsEnabled = true;
+        }
+    }
+
     private void RefreshContextMenus()
     {
         if (!CmRefreshBtn.IsEnabled) return;
@@ -2974,34 +3010,7 @@ public sealed partial class RogueCleanerPage : Page
             : pool.Where(e => e.Scene == _cmSceneFilter).ToList();
 
         // 3) 统计文案
-        if (searching)
-        {
-            CmSummaryText.Text = "搜索“" + _cmSearchKeyword + "”：主列表匹配 " + _visibleCmEntries.Count + " 项（含系统内置与未识别项）";
-            CmStatusText.Text = "当前为搜索模式，按名称、软件、命令、位置或组件编号过滤；清空搜索框返回常规列表。";
-        }
-        else
-        {
-            int resolved = _cmInventory.Entries.Count(e => !e.AdvancedOnly && e.PresentationResolved);
-            int enabled = _visibleCmEntries.Count(e => e.Enabled);
-            if (!string.IsNullOrEmpty(_cmSceneFilter))
-            {
-                int hiddenInScene = _cmInventory.Entries.Count(e =>
-                    e.Scene == _cmSceneFilter && !_cmAllMode && !RogueCleanerViewFilters.MatchesMainMenuList(e));
-                CmSummaryText.Text = "场景「" + _cmSceneFilter + "」：第三方 " + _visibleCmEntries.Count + " 项  ·  已显示 " + enabled
-                    + "  ·  已隐藏 " + (_visibleCmEntries.Count - enabled) + "  ·  同场景另有 " + hiddenInScene + " 项系统/未识别";
-                CmStatusText.Text = "正在按场景分类浏览，点击左侧“全部场景”可查看完整列表。";
-            }
-            else
-            {
-                int hiddenSystem = _cmInventory.Entries.Count(e => !e.AdvancedOnly && e.PresentationResolved && !e.IsThirdParty);
-                int hiddenInternal = _cmInventory.Entries.Count - _cmPresentationCandidates;
-                CmSummaryText.Text = "第三方菜单 " + _visibleCmEntries.Count + " 项  ·  已显示 " + enabled + "  ·  已隐藏 "
-                    + (_visibleCmEntries.Count - enabled) + "  ·  系统内置不显示";
-                CmStatusText.Text = resolved < _cmPresentationCandidates
-                    ? "正在识别软件来源 " + resolved + " / " + _cmPresentationCandidates + "……"
-                    : "已隐藏 " + hiddenSystem + " 项系统菜单、" + hiddenInternal + " 项内部技术记录；" + _cmInventory.Warnings.Count + " 个受保护位置未读取。";
-            }
-        }
+        UpdateCmSummary(searching);
 
         // 4) 按场景分区展示：先按固定场景顺序分组，再拍平为“分区标题 + 条目”列表，
         //    由 CmRowSelector 按项类型选择模板（避免同场景条目在视觉上混在一起）。
@@ -3025,6 +3034,38 @@ public sealed partial class RogueCleanerPage : Page
         UpdateCmFooter();
         UpdateCmSearchHint();
         UpdateCmSceneNav();
+    }
+
+    /// <summary>统计文案：列表内容未变、只有条目开关状态变化时也能单独刷新（不重建列表）。</summary>
+    private void UpdateCmSummary(bool searching)
+    {
+        if (_cmInventory == null) return;
+        if (searching)
+        {
+            CmSummaryText.Text = "搜索“" + _cmSearchKeyword + "”：主列表匹配 " + _visibleCmEntries.Count + " 项（含系统内置与未识别项）";
+            CmStatusText.Text = "当前为搜索模式，按名称、软件、命令、位置或组件编号过滤；清空搜索框返回常规列表。";
+            return;
+        }
+        int resolved = _cmInventory.Entries.Count(e => !e.AdvancedOnly && e.PresentationResolved);
+        int enabled = _visibleCmEntries.Count(e => e.Enabled);
+        if (!string.IsNullOrEmpty(_cmSceneFilter))
+        {
+            int hiddenInScene = _cmInventory.Entries.Count(e =>
+                e.Scene == _cmSceneFilter && !_cmAllMode && !RogueCleanerViewFilters.MatchesMainMenuList(e));
+            CmSummaryText.Text = "场景「" + _cmSceneFilter + "」：第三方 " + _visibleCmEntries.Count + " 项  ·  已显示 " + enabled
+                + "  ·  已隐藏 " + (_visibleCmEntries.Count - enabled) + "  ·  同场景另有 " + hiddenInScene + " 项系统/未识别";
+            CmStatusText.Text = "正在按场景分类浏览，点击左侧“全部场景”可查看完整列表。";
+        }
+        else
+        {
+            int hiddenSystem = _cmInventory.Entries.Count(e => !e.AdvancedOnly && e.PresentationResolved && !e.IsThirdParty);
+            int hiddenInternal = _cmInventory.Entries.Count - _cmPresentationCandidates;
+            CmSummaryText.Text = "第三方菜单 " + _visibleCmEntries.Count + " 项  ·  已显示 " + enabled + "  ·  已隐藏 "
+                + (_visibleCmEntries.Count - enabled) + "  ·  系统内置不显示";
+            CmStatusText.Text = resolved < _cmPresentationCandidates
+                ? "正在识别软件来源 " + resolved + " / " + _cmPresentationCandidates + "……"
+                : "已隐藏 " + hiddenSystem + " 项系统菜单、" + hiddenInternal + " 项内部技术记录；" + _cmInventory.Warnings.Count + " 个受保护位置未读取。";
+        }
     }
 
     /// <summary>左侧“场景分类”导航：从当前搜索/「展示全部」候选集统计各场景数量。</summary>
@@ -3160,13 +3201,31 @@ public sealed partial class RogueCleanerPage : Page
         try
         {
             new ContextMenuMutationService(_store).SetEnabled(entry, enabled);
-            RefreshContextMenus();
-            CmStatusText.Text = "已" + (enabled ? "启用：" : "禁用：") + entry.Name + "，恢复记录已生成。";
+            // 就地更新这一个条目：不重新枚举、不重建列表，滚动位置与图标/软件识别结果都保持原样
+            // （原先整表刷新会把列表拉回顶部，用户每次都得重新往下翻）。
+            entry.Enabled = enabled;
+            entry.Status = enabled ? "已启用" : "已禁用";
+            UpdateCmSummary(!string.IsNullOrWhiteSpace(_cmSearchKeyword));
+            ShowCmDetails();
+            UpdateCmActions();
+            RefreshCmRowToggle(entry);
+            CmStatusText.Text = "已" + (enabled ? "启用：" : "禁用：") + entry.Name + "，恢复记录已生成。右键菜单未立即变化时，请点上方「重启资源管理器」。";
         }
         catch (Exception ex)
         {
             Logger.Error("修改右键菜单失败", ex);
             await ShowInfo("修改失败", ex.Message);
+        }
+    }
+
+    /// <summary>就地刷新指定条目的行内「显示」开关，不重建列表（滚动位置保持不变）。</summary>
+    private void RefreshCmRowToggle(ContextMenuEntry entry)
+    {
+        if (CmList.ContainerFromItem(entry) is ListViewItem container
+            && container.ContentTemplateRoot is FrameworkElement root
+            && root.FindName("ToggleBtn") is Button btn)
+        {
+            ApplyCmRowToggleVisual(btn, entry);
         }
     }
 
