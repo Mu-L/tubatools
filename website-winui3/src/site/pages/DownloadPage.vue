@@ -94,6 +94,50 @@
 
         <div class="site-card dl-card">
           <div class="dl-card-header">
+            <span class="icon" aria-hidden="true">&#xE81E;</span>
+            <h3>{{ t('download.lite') }}</h3>
+            <span class="dl-badge">{{ t('download.lite-badge') }}</span>
+          </div>
+          <p class="dl-card-desc">{{ t('download.lite-desc') }}</p>
+          <div class="dl-card-section">
+            <h5>{{ t('download.gitcode') }} <span class="dl-badge">{{ t('download.gitcode-badge') }}</span></h5>
+            <div class="dl-btns">
+              <template v-if="gcLoaded">
+                <WinButton
+                  v-for="s in liteSources.filter(x => x.group === 'gc')"
+                  :key="s.id"
+                  Style="AccentButtonStyle"
+                  :Content="s.label"
+                  Height="36"
+                  HorizontalContentAlignment="Stretch"
+                  @Click="handleDownload($event, s)" />
+              </template>
+              <template v-else>
+                <span class="dl-muted">{{ t('download.loading') }}</span>
+              </template>
+            </div>
+          </div>
+          <div class="dl-card-section">
+            <h5>{{ t('download.github') }}</h5>
+            <div class="dl-btns">
+              <template v-if="ghLoaded">
+                <WinButton
+                  v-for="s in liteSources.filter(x => x.group === 'gh')"
+                  :key="s.id"
+                  :Content="s.label"
+                  Height="36"
+                  HorizontalContentAlignment="Stretch"
+                  @Click="handleDownload($event, s)" />
+              </template>
+              <template v-else>
+                <span class="dl-muted">{{ t('download.loading') }}</span>
+              </template>
+            </div>
+          </div>
+        </div>
+
+        <div class="site-card dl-card">
+          <div class="dl-card-header">
             <span class="icon" aria-hidden="true">&#xE7B8;</span>
             <h3>{{ t('download.setup') }}</h3>
           </div>
@@ -149,6 +193,56 @@
               class="dl-store-badge">
               <img src="https://get.microsoft.com/images/zh-cn%20dark.svg" width="186" alt="Microsoft Store" />
             </a>
+          </div>
+        </div>
+
+        <div class="site-card dl-card dl-preview-card">
+          <div class="dl-card-header">
+            <span class="icon" aria-hidden="true">&#xE945;</span>
+            <h3>{{ t('download.preview') }}</h3>
+            <span v-if="previewVersion" class="dl-badge dl-preview-version">v{{ previewVersion }}</span>
+          </div>
+          <p class="dl-card-desc">{{ t('download.preview-desc') }}</p>
+          <p class="dl-preview-warning" role="note">⚠ {{ t('download.preview-warning') }}</p>
+          <div class="dl-card-section">
+            <h5>
+              {{ t('download.gitcode') }}
+              <span class="dl-badge">{{ t('download.gitcode-badge') }}</span>
+              <span v-if="gcPreviewTag" class="dl-preview-tag">v{{ gcPreviewTag }}</span>
+              <span v-if="gcPreviewIsPrerelease" class="dl-badge dl-badge-pre">{{ t('download.prerelease') }}</span>
+            </h5>
+            <div class="dl-btns">
+              <template v-if="gcPreviewLoaded">
+                <WinButton
+                  v-for="s in previewSources.filter(x => x.group === 'gc')"
+                  :key="s.id"
+                  Style="AccentButtonStyle"
+                  :Content="s.label"
+                  Height="36"
+                  HorizontalContentAlignment="Stretch"
+                  @Click="handleDownload($event, s)" />
+              </template>
+              <span v-else class="dl-muted">{{ t('download.loading') }}</span>
+            </div>
+          </div>
+          <div class="dl-card-section">
+            <h5>
+              {{ t('download.github') }}
+              <span v-if="ghPreviewTag" class="dl-preview-tag">v{{ ghPreviewTag }}</span>
+              <span v-if="ghPreviewIsPrerelease" class="dl-badge dl-badge-pre">{{ t('download.prerelease') }}</span>
+            </h5>
+            <div class="dl-btns">
+              <template v-if="ghPreviewLoaded">
+                <WinButton
+                  v-for="s in previewSources.filter(x => x.group === 'gh')"
+                  :key="s.id"
+                  :Content="s.label"
+                  Height="36"
+                  HorizontalContentAlignment="Stretch"
+                  @Click="handleDownload($event, s)" />
+              </template>
+              <span v-else class="dl-muted">{{ t('download.loading') }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -282,32 +376,82 @@ const detectedArchLabel = computed(() => {
   return m[detectedArch.value] || m.unknown;
 });
 
-async function fetchGitCode() {
+async function fetchJson(url) {
   try {
-    const r = await fetch(`https://api.gitcode.com/api/v5/repos/${GC_OWNER}/${GC_REPO}/releases/latest`);
-    if (!r.ok) throw new Error();
-    const d = await r.json();
-    if (!version.value) version.value = d.tag_name?.replace(/^v/, '') || d.name || '';
-    gcAssets.value = (d.assets || []).filter(a => a.type !== 'source');
-  } catch { /* ignore */ }
+    const r = await fetch(url);
+    return r.ok ? await r.json() : null;
+  } catch {
+    return null;
+  }
+}
+
+function pickNewestRelease(list, { stableOnly = false } = {}) {
+  if (!Array.isArray(list)) return null;
+  const usable = list.filter(r =>
+    r && r.tag_name && !r.draft && (!stableOnly || r.prerelease !== true));
+  if (!usable.length) return null;
+  const timeOf = r => Date.parse(r.published_at || r.created_at || '') || 0;
+  return usable.reduce((newest, r) => (timeOf(r) > timeOf(newest) ? r : newest));
+}
+
+const previewTag = release => (release?.tag_name || release?.name || '').replace(/^v/, '');
+
+/* 正式版渠道：只用正式版（GitCode 的 /latest 不保证跳过预发布，改从列表挑最新正式版） */
+async function fetchGitCode() {
+  let release = pickNewestRelease(
+    await fetchJson(`https://api.gitcode.com/api/v5/repos/${GC_OWNER}/${GC_REPO}/releases?per_page=30&direction=desc`),
+    { stableOnly: true });
+
+  if (!release) {
+    const latest = await fetchJson(`https://api.gitcode.com/api/v5/repos/${GC_OWNER}/${GC_REPO}/releases/latest`);
+    if (latest && latest.prerelease !== true) release = latest;
+  }
+
+  if (release) {
+    if (!version.value) version.value = previewTag(release);
+    gcAssets.value = (release.assets || []).filter(a => a.type !== 'source');
+  }
   gcLoaded.value = true;
 }
 
 async function fetchGitHub() {
-  try {
-    const r = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/releases/latest`);
-    if (!r.ok) throw new Error();
-    const d = await r.json();
-    if (!version.value) version.value = d.tag_name?.replace(/^v/, '') || d.name || '';
-    ghAssets.value = (d.assets || []).filter(a => a.type !== 'source');
-  } catch { /* ignore */ }
+  const release = await fetchJson(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/releases/latest`);
+  if (release && release.prerelease !== true) {
+    if (!version.value) version.value = previewTag(release);
+    ghAssets.value = (release.assets || []).filter(a => a.type !== 'source');
+  }
   ghLoaded.value = true;
 }
 
+/* 预览版：两平台各自时间最新的已发布版本（GitCode 列表默认升序，需 direction=desc） */
+const ghPreview = ref(null);
+const gcPreview = ref(null);
+const ghPreviewLoaded = ref(false);
+const gcPreviewLoaded = ref(false);
+
+async function fetchGitHubPreview() {
+  ghPreview.value = pickNewestRelease(
+    await fetchJson(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/releases?per_page=30`));
+  ghPreviewLoaded.value = true;
+}
+
+async function fetchGitCodePreview() {
+  gcPreview.value = pickNewestRelease(
+    await fetchJson(`https://api.gitcode.com/api/v5/repos/${GC_OWNER}/${GC_REPO}/releases?per_page=30&direction=desc`));
+  gcPreviewLoaded.value = true;
+}
+
+const gcPreviewTag = computed(() => previewTag(gcPreview.value));
+const ghPreviewTag = computed(() => previewTag(ghPreview.value));
+const previewVersion = computed(() => gcPreviewTag.value || ghPreviewTag.value);
+const gcPreviewIsPrerelease = computed(() => gcPreview.value?.prerelease === true);
+const ghPreviewIsPrerelease = computed(() => ghPreview.value?.prerelease === true);
+
 function findAssetUrl(list, arch, type) {
-  const pattern = type === 'portable'
-    ? new RegExp(`Portable.*${arch}\\.zip$`)
-    : new RegExp(`Setup.*${arch}\\.exe$`);
+  const kind = { portable: 'Portable', setup: 'Setup', lite: 'Lite' }[type] || 'Portable';
+  const pattern = type === 'setup'
+    ? new RegExp(`${kind}.*${arch}\\.exe$`)
+    : new RegExp(`${kind}.*${arch}\\.zip$`);
   const a = list.find(x => pattern.test(x.name));
   return a?.browser_download_url || '';
 }
@@ -342,11 +486,70 @@ const setupSources = computed(() => {
   ];
 });
 
+/* 精简版：只内置必要工具，官方仅提供 x64 便携包 */
+const liteSources = computed(() => {
+  const arch = 'x64';
+  const tag = version.value ? `v${version.value}` : '';
+  const gcUrl = findAssetUrl(gcAssets.value, arch, 'lite')
+    || (tag ? `https://gitcode.com/${GC_OWNER}/${GC_REPO}/releases/${tag}` : `https://gitcode.com/${GC_OWNER}/${GC_REPO}/releases`);
+  const ghUrl = findAssetUrl(ghAssets.value, arch, 'lite')
+    || `https://github.com/${GH_OWNER}/${GH_REPO}/releases`;
+
+  return [
+    { id: 'gc-lite', label: `${t('download.now')} (${arch})`, url: gcUrl, group: 'gc', dlType: 'lite' },
+    { id: 'gh-lite', label: `${t('download.github')} ${arch}`, url: ghUrl, group: 'gh', dlType: 'lite' },
+    { id: 'gh-mirror-lite', label: `${t('download.mirror')} ${arch}`, url: `https://hub.tubawinui3.cn/${GH_OWNER}/${GH_REPO}/releases/`, group: 'gh', dlType: 'lite' }
+  ];
+});
+
+function buildPreviewSources(release, group) {
+  const arch = selectedArch.value;
+  const assets = release?.assets || [];
+  const tag = release?.tag_name || '';
+  const fallback = group === 'gc'
+    ? `https://gitcode.com/${GC_OWNER}/${GC_REPO}/releases${tag ? `/${tag}` : ''}`
+    : `https://github.com/${GH_OWNER}/${GH_REPO}/releases${tag ? `/tag/${tag}` : ''}`;
+  const releaseVersion = previewTag(release);
+
+  return [
+    {
+      id: `${group}-preview-portable`,
+      label: `${t('download.portable')} (${arch})`,
+      url: findAssetUrl(assets, arch, 'portable') || fallback,
+      group,
+      dlType: 'portable',
+      version: releaseVersion
+    },
+    {
+      id: `${group}-preview-lite`,
+      label: `${t('download.lite')} (x64)`,
+      url: findAssetUrl(assets, 'x64', 'lite') || fallback,
+      group,
+      dlType: 'lite',
+      version: releaseVersion
+    },
+    {
+      id: `${group}-preview-setup`,
+      label: `${t('download.setup')} (${arch})`,
+      url: findAssetUrl(assets, arch, 'setup') || fallback,
+      group,
+      dlType: 'setup',
+      version: releaseVersion
+    }
+  ];
+}
+
+const previewSources = computed(() => [
+  ...buildPreviewSources(gcPreview.value, 'gc'),
+  ...buildPreviewSources(ghPreview.value, 'gh')
+]);
+
 function handleDownload(e, source) {
   e.preventDefault();
   window.open(source.url, '_blank', 'noopener');
   const params = new URLSearchParams();
-  if (version.value) params.set('version', version.value);
+  const downloadVersion = source.version || version.value;
+  if (downloadVersion) params.set('version', downloadVersion);
   if (selectedArch.value) params.set('arch', selectedArch.value);
   if (source.dlType) params.set('type', source.dlType);
   params.set('url', source.url);
@@ -391,6 +594,8 @@ onMounted(() => {
   selectedArch.value = detectedArch.value === 'unknown' ? 'x64' : detectedArch.value;
   fetchGitCode();
   fetchGitHub();
+  fetchGitCodePreview();
+  fetchGitHubPreview();
 });
 </script>
 
@@ -491,6 +696,43 @@ onMounted(() => {
   font-weight: 600;
   line-height: 19px;
   color: var(--SystemFillColorCriticalBrush, #C42B1C);
+}
+
+.dl-preview-card {
+  border-color: var(--SystemFillColorCautionBrush, rgba(157, 93, 0, 0.45));
+}
+
+.dl-preview-card .dl-card-header .icon {
+  color: var(--SystemFillColorCautionBrush, #9D5D00);
+}
+
+.dl-preview-warning {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: var(--SystemFillColorCautionBackgroundBrush, rgba(157, 93, 0, 0.14));
+  border: 1px solid var(--SystemFillColorCautionBrush, rgba(157, 93, 0, 0.5));
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 19px;
+  color: var(--SystemFillColorCautionBrush, #9D5D00);
+}
+
+.dl-preview-version,
+.dl-badge-pre {
+  background: var(--SystemFillColorCautionBackgroundBrush, rgba(157, 93, 0, 0.14));
+  color: var(--SystemFillColorCautionBrush, #9D5D00);
+}
+
+.dl-preview-version {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.dl-preview-tag {
+  color: var(--text-tertiary);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
 }
 
 .dl-card-section h5 {

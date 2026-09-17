@@ -35,6 +35,8 @@ public sealed partial class BenchmarkCloudPage : Page
 
 	private bool _hasMorePages;
 
+	private bool _isReportDetailBusy;
+
 	private string _currentSortBy = "gaming";
 
 	private Pivot MainPivot = null!;
@@ -988,6 +990,7 @@ public sealed partial class BenchmarkCloudPage : Page
 		if (LeaderboardList.SelectedItem is BenchmarkLeaderboardEntry benchmarkLeaderboardEntry)
 		{
 			ShowReportDetailDialog(benchmarkLeaderboardEntry.Report);
+			LeaderboardList.SelectedItem = null;
 		}
 	}
 
@@ -1511,6 +1514,27 @@ public sealed partial class BenchmarkCloudPage : Page
 	}
 
 	private async void ShowReportDetailDialog(BenchmarkReportEntry report)
+	{
+		// 详情可能要走网络加载，期间用户再点卡片会再次进入本方法并弹出第二个
+		// ContentDialog（COMException: Only a single ContentDialog can be open at any time），
+		// 因此加载与弹窗期间禁止再次点击卡片
+		if (_isReportDetailBusy) return;
+		_isReportDetailBusy = true;
+		LeaderboardList.IsEnabled = false;
+		SameHwList.IsEnabled = false;
+		try
+		{
+			await ShowReportDetailDialogCoreAsync(report);
+		}
+		finally
+		{
+			_isReportDetailBusy = false;
+			LeaderboardList.IsEnabled = true;
+			SameHwList.IsEnabled = true;
+		}
+	}
+
+	private async Task ShowReportDetailDialogCoreAsync(BenchmarkReportEntry report)
 	{
 		// 新 leaderboard.json 的条目只含摘要，硬件详情拆到了详情文件：
 		// 摘要缺 OS 字段时按需加载补全（旧格式字段齐全则直接跳过）

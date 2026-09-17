@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
 using TubaWinUi3.Models;
 using TubaWinUi3.Services;
@@ -69,37 +70,44 @@ public sealed class QueueItem : INotifyPropertyChanged
 public sealed partial class FormatConverterPage : Page
 {
     private sealed record ConvertSettings(
-        bool Compress, int Crf, string Preset, int AudioKbps,
-        int ImageQuality, int MaxEdge,
-        int VideoWidth, int SampleRate, int Channels,
-        int[] IcoSizes, int ImageVideoSeconds, int ZipLevel,
-        bool ExportZip, bool MergeImages, bool CombineImagesToPdf,
-        int DocImageEdge, int DocJpgQuality, string DocPageRange, string DocRenderMode);
+        FormatParamValues Params,
+        int ZipLevel, bool ExportZip, bool MergeImages, bool CombineImagesToPdf,
+        int DocImageEdge, int DocJpgQuality, string DocPageRange, string DocRenderMode,
+        int[] IcoSizes);
 
-    /// <summary>压缩区控件句柄（从对话框内容中读取值）。</summary>
-    private sealed class CompressUi
+    /// <summary>目标格式专属参数的一行控件（按 FormatParam.Kind 生成）。</summary>
+    private sealed class ParamRow
     {
-        public FrameworkElement? Root;       // 压缩区整体（toggle+panel）
-        public ToggleSwitch? Toggle;
+        public required FormatParam Param { get; init; }
+        public FrameworkElement Root { get; set; } = null!;
         public Slider? Slider;
-        public ComboBox? Combo;              // 视频: 编码预设 / 音频: 码率
-        public ComboBox? Combo2;             // 视频: 分辨率 / 音频: 采样率
-        public ComboBox? Combo3;             // 音频: 声道
         public NumberBox? Box;
-        public StackPanel? IcoSizesPanel;
-        public CheckBox[]? IcoChecks;
-        public FrameworkElement? DurationPanel;   // 图片转视频时长
-        public NumberBox? DurationBox;
-        public FrameworkElement? ZipPanel;        // ZIP 压缩级别
+        public ComboBox? Combo;
+        public ToggleSwitch? Toggle;
+
+        public double Value => Param.Kind switch
+        {
+            FormatParamKind.Combo => Combo?.SelectedItem is ComboBoxItem { Tag: double v } ? v : Param.Default,
+            FormatParamKind.Toggle => Toggle?.IsOn == true ? 1 : 0,
+            _ => Box is { Value: var value } && !double.IsNaN(value) ? value : Param.Default
+        };
+    }
+
+    /// <summary>对话框通用选项的控件句柄（导出 / ZIP / ICO 尺寸 / 文档参数）。</summary>
+    private sealed class DialogUi
+    {
+        public FrameworkElement? ZipPanel;
         public Slider? ZipSlider;
-        public ToggleSwitch? ExportZipToggle;     // 导出为 ZIP 压缩包（通用导出选项）
-        public CheckBox? MergeImagesCheck;        // 合并为一张长图
-        public CheckBox? CombineImagesCheck;      // 多张图片合成为一份 PDF
-        public FrameworkElement? DocImagePanel;   // 文档参数: 清晰度/页码范围/渲染模式
+        public ToggleSwitch? ExportZipToggle;
+        public CheckBox? MergeImagesCheck;
+        public CheckBox? CombineImagesCheck;
+        public FrameworkElement? IcoSizesPanel;
+        public CheckBox[]? IcoChecks;
+        public FrameworkElement? DocImagePanel;
         public NumberBox? DocMaxEdgeBox;
         public TextBox? DocRangeBox;
         public ComboBox? DocRenderCombo;
-        public FrameworkElement? DocJpgPanel;     // 文档参数: JPG 质量
+        public FrameworkElement? DocJpgPanel;
         public Slider? DocJpgSlider;
     }
 
@@ -309,7 +317,7 @@ public sealed partial class FormatConverterPage : Page
             return;
         }
 
-        var panel = new StackPanel { Spacing = 12, Width = 470 };
+        var panel = new StackPanel { Spacing = 12, Width = 500 };
 
         var sourceLabel = _queue.Count == 1
             ? _queue[0].Name
@@ -326,7 +334,7 @@ public sealed partial class FormatConverterPage : Page
         var grid = new GridView
         {
             SelectionMode = ListViewSelectionMode.Single,
-            MaxHeight = 210
+            MaxHeight = 184
         };
         foreach (var fmt in formats)
         {
@@ -358,86 +366,68 @@ public sealed partial class FormatConverterPage : Page
         // 输出预览（提前声明：下方事件处理器引用的 UpdatePreview 会用到它）
         var outPreview = new TextBlock { FontSize = 11, Opacity = 0.7, TextWrapping = TextWrapping.Wrap };
 
-        // 压缩 / 参数区（视频、音频、图片），ZIP 目标显示压缩级别
-        var (compressRoot, compressUi) = BuildCompressArea(_category);
-        if (compressRoot is not null)
-        {
-            panel.Children.Add(new TextBlock { Text = "压缩选项：", FontSize = 11, Opacity = 0.6 });
-            panel.Children.Add(compressRoot);
-        }
+        // 目标格式专属参数（随所选格式重建：滑块 + 数值输入框 / 下拉框 / 开关）
+        var paramsTitle = new TextBlock { Text = "格式参数：", FontSize = 11, Opacity = 0.6, Visibility = Visibility.Collapsed };
+        var paramsHost = new StackPanel { Spacing = 12 };
+        var paramsSummary = new TextBlock { FontSize = 11, Opacity = 0.7, TextWrapping = TextWrapping.Wrap, Visibility = Visibility.Collapsed };
+        panel.Children.Add(paramsTitle);
+        panel.Children.Add(paramsHost);
+        panel.Children.Add(paramsSummary);
 
-        // 图片转视频时长
-        if (_category == SourceCategory.Image)
-        {
-            var durationPanel = new StackPanel { Spacing = 4, Visibility = Visibility.Collapsed };
-            durationPanel.Children.Add(new TextBlock
-            {
-                FontSize = 11, Opacity = 0.6,
-                Text = "视频时长（秒，静态图片循环展示；GIF 动图按原帧率）"
-            });
-            var durationBox = new NumberBox
-            {
-                Value = 5, Minimum = 1, Maximum = 600, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Compact
-            };
-            durationPanel.Children.Add(durationBox);
-            panel.Children.Add(durationPanel);
-            if (compressUi is not null)
-            {
-                compressUi.DurationPanel = durationPanel;
-                compressUi.DurationBox = durationBox;
-            }
-        }
+        var ui = new DialogUi();
+        var paramRows = new List<ParamRow>();
+        FormatOption? renderedTarget = null;
 
         // 导出选项：把转换产物整合为 ZIP / 多页图片合并为一张长图 / 多张图片合成一份 PDF
+        var exportZip = new ToggleSwitch
         {
-            var exportZip = new ToggleSwitch
-            {
-                Header = "导出为 ZIP 压缩包（把输出的一个或多个文件整合打包）",
-                OffContent = "关闭", OnContent = "开启"
-            };
-            var mergeImages = new CheckBox
-            {
-                Content = "合并为一张长图（多页文档导出图片时纵向拼接）",
-                FontSize = 11, Visibility = Visibility.Collapsed
-            };
-            var combineImages = new CheckBox
-            {
-                Content = "把多张图片合成为一份 PDF（按队列顺序逐页拼接）",
-                FontSize = 11, Visibility = Visibility.Collapsed
-            };
-            var optsPanel = new StackPanel { Spacing = 6, Children = { exportZip, mergeImages, combineImages } };
-            panel.Children.Add(new TextBlock { Text = "导出选项：", FontSize = 11, Opacity = 0.6 });
-            panel.Children.Add(optsPanel);
-            compressUi ??= new CompressUi();
-            compressUi.ExportZipToggle = exportZip;
-            compressUi.MergeImagesCheck = mergeImages;
-            compressUi.CombineImagesCheck = combineImages;
-            exportZip.Toggled += (_, _) => UpdatePreview();
-            mergeImages.Checked += (_, _) => UpdatePreview();
-            mergeImages.Unchecked += (_, _) => UpdatePreview();
-            combineImages.Checked += (_, _) => UpdatePreview();
-            combineImages.Unchecked += (_, _) => UpdatePreview();
-        }
+            Header = "导出为 ZIP 压缩包（把输出的一个或多个文件整合打包）",
+            OffContent = "关闭", OnContent = "开启"
+        };
+        var mergeImages = new CheckBox
+        {
+            Content = "合并为一张长图（多页文档导出图片时纵向拼接）",
+            FontSize = 11, Visibility = Visibility.Collapsed
+        };
+        var combineImages = new CheckBox
+        {
+            Content = "把多张图片合成为一份 PDF（按队列顺序逐页拼接）",
+            FontSize = 11, Visibility = Visibility.Collapsed
+        };
+        panel.Children.Add(new TextBlock { Text = "导出选项：", FontSize = 11, Opacity = 0.6 });
+        panel.Children.Add(new StackPanel { Spacing = 6, Children = { exportZip, mergeImages, combineImages } });
+        ui.ExportZipToggle = exportZip;
+        ui.MergeImagesCheck = mergeImages;
+        ui.CombineImagesCheck = combineImages;
 
         // ZIP 压缩级别（所有类别的 ZIP 目标通用）
+        var zipPanel = new StackPanel { Spacing = 4, Visibility = Visibility.Collapsed };
+        zipPanel.Children.Add(new TextBlock
         {
-            var zipPanel = new StackPanel { Spacing = 4, Visibility = Visibility.Collapsed };
-            zipPanel.Children.Add(new TextBlock
-            {
-                FontSize = 11, Opacity = 0.6,
-                Text = "ZIP 压缩级别（0 = 仅打包不压缩，9 = 压缩最强最慢）"
-            });
-            var zipSlider = new Slider
-            {
-                Minimum = 0, Maximum = 9, Value = 6, StepFrequency = 1, IsThumbToolTipEnabled = true
-            };
-            zipPanel.Children.Add(zipSlider);
-            panel.Children.Add(zipPanel);
-            if (compressUi is null)
-                compressUi = new CompressUi();
-            compressUi.ZipPanel = zipPanel;
-            compressUi.ZipSlider = zipSlider;
-        }
+            FontSize = 11, Opacity = 0.6,
+            Text = "ZIP 压缩级别（0 = 仅打包不压缩，9 = 压缩最强最慢）"
+        });
+        var zipSlider = new Slider
+        {
+            Minimum = 0, Maximum = 9, Value = 6, StepFrequency = 1, IsThumbToolTipEnabled = true
+        };
+        zipPanel.Children.Add(zipSlider);
+        panel.Children.Add(zipPanel);
+        ui.ZipPanel = zipPanel;
+        ui.ZipSlider = zipSlider;
+
+        // ICO 多尺寸（仅目标为 ICO 时显示）
+        var icoPanel = new StackPanel { Spacing = 4, Visibility = Visibility.Collapsed };
+        icoPanel.Children.Add(new TextBlock { FontSize = 11, Opacity = 0.6, Text = "图标尺寸（多选，打包进同一 .ico）" });
+        var icoWrap = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
+        var icoChecks = new[] { 256, 128, 64, 48, 32, 24, 16 }
+            .Select(s => new CheckBox { Content = $"{s}×{s}", Tag = s, IsChecked = true, FontSize = 11 })
+            .ToArray();
+        foreach (var check in icoChecks) icoWrap.Children.Add(check);
+        icoPanel.Children.Add(icoWrap);
+        panel.Children.Add(icoPanel);
+        ui.IcoSizesPanel = icoPanel;
+        ui.IcoChecks = icoChecks;
 
         // 文档参数：文档类导出 PDF/图片时的渲染选项（OfficeCLI 原生参数）
         {
@@ -487,80 +477,124 @@ public sealed partial class FormatConverterPage : Page
 
             panel.Children.Add(docImagePanel);
             panel.Children.Add(docJpgPanel);
-            compressUi ??= new CompressUi();
-            compressUi.DocImagePanel = docImagePanel;
-            compressUi.DocMaxEdgeBox = docMaxEdgeBox;
-            compressUi.DocRangeBox = docRangeBox;
-            compressUi.DocRenderCombo = docRenderCombo;
-            compressUi.DocJpgPanel = docJpgPanel;
-            compressUi.DocJpgSlider = docJpgSlider;
+            ui.DocImagePanel = docImagePanel;
+            ui.DocMaxEdgeBox = docMaxEdgeBox;
+            ui.DocRangeBox = docRangeBox;
+            ui.DocRenderCombo = docRenderCombo;
+            ui.DocJpgPanel = docJpgPanel;
+            ui.DocJpgSlider = docJpgSlider;
         }
 
         var outLabel = new TextBlock { Text = "输出：", FontSize = 11, Opacity = 0.6 };
         panel.Children.Add(outLabel);
         panel.Children.Add(outPreview);
 
+        FormatOption SelectedTarget()
+            => (grid.SelectedItem as GridViewItem)?.Tag as FormatOption ?? formats[0];
+
+        void RefreshSummary()
+        {
+            var summary = FormatConvertParams.Summarize(SelectedTarget(), ReadParamValues(paramRows));
+            paramsSummary.Text = summary;
+            paramsSummary.Visibility = string.IsNullOrEmpty(summary) ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        void OnParamsChanged()
+        {
+            RefreshSummary();
+            UpdatePreview();
+        }
+
+        void EnsureParams()
+        {
+            var target = SelectedTarget();
+            if (!ReferenceEquals(target, renderedTarget))
+            {
+                renderedTarget = target;
+                paramRows.Clear();
+                paramsHost.Children.Clear();
+                var parameters = target.ParamList;
+                paramsTitle.Visibility = parameters.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+                if (parameters.Count > 0)
+                {
+                    var (root, rows) = BuildFormatParams(parameters, OnParamsChanged);
+                    paramsHost.Children.Add(root);
+                    paramRows.AddRange(rows);
+                }
+            }
+            RefreshSummary();
+        }
+
         void UpdatePreview()
         {
-            var target = (grid.SelectedItem as GridViewItem)?.Tag as FormatOption ?? formats[0];
-            outPreview.Text = DescribeOutput(target, compressUi);
+            var target = SelectedTarget();
+            outPreview.Text = DescribeOutput(target, ui);
             bool isZip = target.Special == ConvertSpecial.ZipArchive;
-            bool isImageVideo = _category == SourceCategory.Image
-                                && (target.Ext == ".mp4" || target.Ext == ".webm");
             bool hasMergeSplit = target.Special is ConvertSpecial.MergePdf or ConvertSpecial.SplitPdf;
 
-            if (compressUi?.Root is not null)
-                compressUi.Root.Visibility =
-                    isZip || hasMergeSplit ? Visibility.Collapsed : Visibility.Visible;
-            if (compressUi?.DurationPanel is not null)
-                compressUi.DurationPanel.Visibility = isImageVideo ? Visibility.Visible : Visibility.Collapsed;
-            if (compressUi?.ZipPanel is not null)
-                compressUi.ZipPanel.Visibility = isZip ? Visibility.Visible : Visibility.Collapsed;
+            if (ui.ZipPanel is not null)
+                ui.ZipPanel.Visibility = isZip ? Visibility.Visible : Visibility.Collapsed;
 
             // ICO 多尺寸面板仅在目标为 ICO 时显示
-            if (compressUi?.IcoSizesPanel is not null)
-                compressUi.IcoSizesPanel.Visibility =
-                    target.Ext == ".ico" && !isZip ? Visibility.Visible : Visibility.Collapsed;
+            if (ui.IcoSizesPanel is not null)
+                ui.IcoSizesPanel.Visibility = target.Ext == ".ico" && !isZip ? Visibility.Visible : Visibility.Collapsed;
 
             // 导出为 ZIP：合并/拆分/ZIP 打包等特殊操作本身就是压缩/整合，不再叠加
-            if (compressUi?.ExportZipToggle is not null)
-                compressUi.ExportZipToggle.Visibility =
+            if (ui.ExportZipToggle is not null)
+                ui.ExportZipToggle.Visibility =
                     hasMergeSplit || isZip ? Visibility.Collapsed : Visibility.Visible;
 
             // 合并为一张长图：仅文档/PDF 类导出图片（含页面压缩包）时可用
-            if (compressUi?.MergeImagesCheck is not null)
+            if (ui.MergeImagesCheck is not null)
             {
                 bool docImage = _category is SourceCategory.Word or SourceCategory.Excel or SourceCategory.Ppt
                         or SourceCategory.Markdown or SourceCategory.Text or SourceCategory.Html
                         or SourceCategory.Json or SourceCategory.Pdf
                     && ((target.Ext is ".png" or ".jpg" or ".pdf")
                         || (isZip && _category == SourceCategory.Pdf && target.Tag is not null));
-                compressUi.MergeImagesCheck.Visibility =
+                ui.MergeImagesCheck.Visibility =
                     docImage && target.Ext != ".pdf" ? Visibility.Visible : Visibility.Collapsed;
 
                 // 文档参数：清晰度/页码范围/渲染模式（PDF/图片目标），JPG 质量（仅 JPG）
-                if (compressUi.DocImagePanel is not null)
-                    compressUi.DocImagePanel.Visibility = docImage ? Visibility.Visible : Visibility.Collapsed;
-                if (compressUi.DocJpgPanel is not null)
-                    compressUi.DocJpgPanel.Visibility =
+                if (ui.DocImagePanel is not null)
+                    ui.DocImagePanel.Visibility = docImage ? Visibility.Visible : Visibility.Collapsed;
+                if (ui.DocJpgPanel is not null)
+                    ui.DocJpgPanel.Visibility =
                         docImage && target.Ext == ".jpg" ? Visibility.Visible : Visibility.Collapsed;
             }
 
             // 多张图片合成一份 PDF：仅「图片→PDF」且队列多于一张时可用
-            if (compressUi?.CombineImagesCheck is not null)
+            if (ui.CombineImagesCheck is not null)
             {
                 bool combine = _category == SourceCategory.Image && target.Ext == ".pdf"
                     && _queue.Count(i => i.Category == SourceCategory.Image) > 1;
-                compressUi.CombineImagesCheck.Visibility = combine ? Visibility.Visible : Visibility.Collapsed;
+                ui.CombineImagesCheck.Visibility = combine ? Visibility.Visible : Visibility.Collapsed;
             }
         }
-        grid.SelectionChanged += (_, _) => UpdatePreview();
+
+        grid.SelectionChanged += (_, _) => { EnsureParams(); UpdatePreview(); };
+        exportZip.Toggled += (_, _) => UpdatePreview();
+        mergeImages.Checked += (_, _) => UpdatePreview();
+        mergeImages.Unchecked += (_, _) => UpdatePreview();
+        combineImages.Checked += (_, _) => UpdatePreview();
+        combineImages.Unchecked += (_, _) => UpdatePreview();
+
+        EnsureParams();
         UpdatePreview();
 
         var dialog = new ContentDialog
         {
             Title = $"转换为…（{CategoryName(_category)}）",
-            Content = panel,
+            // 参数较多的格式（如视频 11 项）会超出弹窗高度，必须放进滚动容器
+            Content = new ScrollViewer
+            {
+                Content = panel,
+                MaxHeight = DialogContentMaxHeight(),
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                VerticalScrollMode = ScrollMode.Auto,
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+                HorizontalScrollMode = ScrollMode.Disabled
+            },
             PrimaryButtonText = "开始转换",
             CloseButtonText = "取消",
             DefaultButton = ContentDialogButton.Primary,
@@ -571,9 +605,19 @@ public sealed partial class FormatConverterPage : Page
         if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
         if (_queue.Count == 0) return;
 
-        var chosen = (grid.SelectedItem as GridViewItem)?.Tag as FormatOption ?? formats[0];
-        var settings = ReadCompressSettings(compressUi, _category);
-        await RunConversionAsync(chosen, settings);
+        await RunConversionAsync(SelectedTarget(), BuildConvertSettings(ReadParamValues(paramRows), ui));
+    }
+
+    /// <summary>对话框内容的最大高度（跟随窗口高度，避免长内容被裁掉）。</summary>
+    private double DialogContentMaxHeight()
+    {
+        try
+        {
+            var height = Content.XamlRoot?.Size.Height ?? 0;
+            if (height > 0) return Math.Clamp(height - 220, 260, 620);
+        }
+        catch { }
+        return 620;
     }
 
     /// <summary>构建目标格式列表：类别目标 + PDF 合并/拆分动态项；过滤与源同扩展名的普通目标。</summary>
@@ -601,7 +645,7 @@ public sealed partial class FormatConverterPage : Page
         return formats;
     }
 
-    private string DescribeOutput(FormatOption target, CompressUi? ui)
+    private string DescribeOutput(FormatOption target, DialogUi? ui)
     {
         var first = _queue.FirstOrDefault(i => i.Category != SourceCategory.Unsupported) ?? _queue[0];
         var multi = _queue.Count > 1 ? $" 等 {_queue.Count} 个文件" : "";
@@ -638,161 +682,186 @@ public sealed partial class FormatConverterPage : Page
         return $"输出：{output}{extra}{notes}";
     }
 
-    /// <summary>按类别构建压缩选项 UI（视频/音频/图片），文档类返回 null。</summary>
-    private static (FrameworkElement? Root, CompressUi? Ui) BuildCompressArea(SourceCategory category)
+    /// <summary>
+    /// 按目标格式的参数描述生成控件：滑块（可拖动 + 直接输入数值）/ 输入框 / 下拉框 / 开关，
+    /// 并处理 VisibleWhen 联动显隐。
+    /// </summary>
+    private static (StackPanel Root, List<ParamRow> Rows) BuildFormatParams(
+        IReadOnlyList<FormatParam> parameters, Action onChanged)
     {
-        switch (category)
+        var root = new StackPanel { Spacing = 10 };
+        var rows = new List<ParamRow>();
+
+        foreach (var param in parameters)
         {
-            case SourceCategory.Video:
+            var row = new ParamRow { Param = param };
+            var host = new StackPanel { Spacing = 4 };
+
+            var labelText = param.Unit.Length > 0 && param.Kind is FormatParamKind.Slider or FormatParamKind.Number
+                ? $"{param.Label}（{param.Unit}）"
+                : param.Label;
+            var label = new TextBlock { FontSize = 11, Opacity = 0.75, TextWrapping = TextWrapping.Wrap };
+            label.Inlines.Add(new Run { Text = labelText });
+            if (param.Hint is { Length: > 0 } hint)
+                label.Inlines.Add(new Run { Text = "　" + hint, FontSize = 10, Foreground = ThemeBrush("TextFillColorTertiaryBrush") });
+            host.Children.Add(label);
+
+            var step = param.Step <= 0 ? 1 : param.Step;
+            switch (param.Kind)
             {
-                var ui = new CompressUi();
-                var toggle = new ToggleSwitch { Header = "压缩体积（降低码率）", OffContent = "关闭", OnContent = "开启" };
-                var panel = new StackPanel { Spacing = 8, Visibility = Visibility.Collapsed };
-
-                var crfText = new TextBlock { FontSize = 11, Opacity = 0.6, Text = "画质 CRF（0-51，越低越好，默认 23）" };
-                var crf = new Slider { Minimum = 0, Maximum = 51, Value = 23, StepFrequency = 1, IsThumbToolTipEnabled = true };
-                var presetText = new TextBlock { FontSize = 11, Opacity = 0.6, Text = "编码预设（越慢体积越小）" };
-                var preset = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch };
-                foreach (var p in new[] { "ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow" })
-                    preset.Items.Add(p);
-                preset.SelectedIndex = 5; // medium
-
-                var resText = new TextBlock { FontSize = 11, Opacity = 0.6, Text = "输出分辨率（最长边，保持比例）" };
-                var res = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch };
-                res.Items.Add(new ComboBoxItem { Content = "不缩放", Tag = 0 });
-                res.Items.Add(new ComboBoxItem { Content = "1920P", Tag = 1920 });
-                res.Items.Add(new ComboBoxItem { Content = "1280P", Tag = 1280 });
-                res.Items.Add(new ComboBoxItem { Content = "854P", Tag = 854 });
-                res.Items.Add(new ComboBoxItem { Content = "640P", Tag = 640 });
-                res.Items.Add(new ComboBoxItem { Content = "480P", Tag = 480 });
-                res.SelectedIndex = 0;
-
-                panel.Children.Add(crfText); panel.Children.Add(crf);
-                panel.Children.Add(presetText); panel.Children.Add(preset);
-                panel.Children.Add(resText); panel.Children.Add(res);
-
-                toggle.Toggled += (_, _) => panel.Visibility = toggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
-                ui.Root = new StackPanel { Spacing = 6, Children = { toggle, panel } };
-                ui.Toggle = toggle; ui.Slider = crf; ui.Combo = preset; ui.Combo2 = res;
-                return (ui.Root, ui);
+                case FormatParamKind.Slider:
+                {
+                    var slider = new Slider
+                    {
+                        Minimum = param.Min, Maximum = param.Max, Value = param.Default,
+                        StepFrequency = step, IsThumbToolTipEnabled = true
+                    };
+                    var box = new NumberBox
+                    {
+                        Value = param.Default, Minimum = param.Min, Maximum = param.Max,
+                        SmallChange = step, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Compact,
+                        Width = 116, HorizontalAlignment = HorizontalAlignment.Right
+                    };
+                    slider.ValueChanged += (_, e) =>
+                    {
+                        if (Math.Abs(box.Value - e.NewValue) > 0.0001) box.Value = e.NewValue;
+                    };
+                    var composite = new Grid { ColumnSpacing = 10 };
+                    composite.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                    composite.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                    Grid.SetColumn(box, 1);
+                    composite.Children.Add(slider);
+                    composite.Children.Add(box);
+                    host.Children.Add(composite);
+                    row.Slider = slider;
+                    row.Box = box;
+                    break;
+                }
+                case FormatParamKind.Number:
+                {
+                    var box = new NumberBox
+                    {
+                        Value = param.Default, Minimum = param.Min, Maximum = param.Max,
+                        SmallChange = step, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Compact
+                    };
+                    host.Children.Add(box);
+                    row.Box = box;
+                    break;
+                }
+                case FormatParamKind.Combo:
+                {
+                    var combo = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch };
+                    var choices = param.Choices ?? Array.Empty<FormatParamChoice>();
+                    foreach (var choice in choices)
+                        combo.Items.Add(new ComboBoxItem { Content = choice.Label, Tag = choice.Value });
+                    var index = 0;
+                    for (var i = 0; i < choices.Count; i++)
+                    {
+                        if (Math.Abs(choices[i].Value - param.Default) < 0.0001) { index = i; break; }
+                    }
+                    combo.SelectedIndex = index;
+                    host.Children.Add(combo);
+                    row.Combo = combo;
+                    break;
+                }
+                case FormatParamKind.Toggle:
+                {
+                    var toggle = new ToggleSwitch
+                    {
+                        OnContent = "开启", OffContent = "关闭", IsOn = param.Default >= 0.5, FontSize = 12
+                    };
+                    host.Children.Add(toggle);
+                    row.Toggle = toggle;
+                    break;
+                }
             }
-            case SourceCategory.Audio:
-            {
-                var ui = new CompressUi();
-                var toggle = new ToggleSwitch { Header = "压缩（降低码率）", OffContent = "关闭", OnContent = "开启" };
-                var panel = new StackPanel { Spacing = 8, Visibility = Visibility.Collapsed };
 
-                panel.Children.Add(new TextBlock { FontSize = 11, Opacity = 0.6, Text = "码率" });
-                var combo = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch, MinWidth = 140 };
-                foreach (var k in new[] { 96, 128, 160, 192, 256, 320 })
-                    combo.Items.Add($"{k} kbps");
-                combo.SelectedIndex = 3; // 192
-
-                panel.Children.Add(new TextBlock { FontSize = 11, Opacity = 0.6, Text = "采样率" });
-                var sr = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch, MinWidth = 140 };
-                sr.Items.Add(new ComboBoxItem { Content = "保持不变", Tag = 0 });
-                sr.Items.Add(new ComboBoxItem { Content = "44100 Hz", Tag = 44100 });
-                sr.Items.Add(new ComboBoxItem { Content = "48000 Hz", Tag = 48000 });
-                sr.Items.Add(new ComboBoxItem { Content = "96000 Hz", Tag = 96000 });
-                sr.SelectedIndex = 0;
-
-                panel.Children.Add(new TextBlock { FontSize = 11, Opacity = 0.6, Text = "声道" });
-                var ch = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch, MinWidth = 140 };
-                ch.Items.Add(new ComboBoxItem { Content = "保持不变", Tag = 0 });
-                ch.Items.Add(new ComboBoxItem { Content = "单声道", Tag = 1 });
-                ch.Items.Add(new ComboBoxItem { Content = "立体声", Tag = 2 });
-                ch.SelectedIndex = 0;
-
-                panel.Children.Add(combo);
-                panel.Children.Add(sr);
-                panel.Children.Add(ch);
-                toggle.Toggled += (_, _) => panel.Visibility = toggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
-                ui.Root = new StackPanel { Spacing = 6, Children = { toggle, panel } };
-                ui.Toggle = toggle; ui.Combo = combo; ui.Combo2 = sr; ui.Combo3 = ch;
-                return (ui.Root, ui);
-            }
-            case SourceCategory.Image:
-            {
-                var ui = new CompressUi();
-                var toggle = new ToggleSwitch { Header = "压缩（降低质量 / 去除元数据 / 缩小尺寸）", OffContent = "关闭", OnContent = "开启" };
-                var panel = new StackPanel { Spacing = 8, Visibility = Visibility.Collapsed };
-
-                var qText = new TextBlock { FontSize = 11, Opacity = 0.6, Text = "质量（1-100，JPG/WebP 默认 85）" };
-                var slider = new Slider { Minimum = 1, Maximum = 100, Value = 85, StepFrequency = 1 };
-                var dText = new TextBlock { FontSize = 11, Opacity = 0.6, Text = "最长边像素（0 = 不缩放，建议 1920；图片转视频时作为分辨率上限）" };
-                var box = new NumberBox { Value = 0, Minimum = 0, Maximum = 20000, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Compact };
-                panel.Children.Add(qText); panel.Children.Add(slider);
-                panel.Children.Add(dText); panel.Children.Add(box);
-
-                // ICO 多尺寸（仅目标为 ICO 时显示）
-                var icoPanel = new StackPanel { Spacing = 4, Visibility = Visibility.Collapsed };
-                icoPanel.Children.Add(new TextBlock { FontSize = 11, Opacity = 0.6, Text = "图标尺寸（多选，打包进同一 .ico）" });
-                var checkWrap = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
-                var checks = new[] { 256, 128, 64, 48, 32, 24, 16 }
-                    .Select(s => new CheckBox { Content = $"{s}×{s}", Tag = s, IsChecked = true, FontSize = 11 })
-                    .ToArray();
-                foreach (var c in checks) checkWrap.Children.Add(c);
-                icoPanel.Children.Add(checkWrap);
-                panel.Children.Add(icoPanel);
-                ui.IcoSizesPanel = icoPanel;
-                ui.IcoChecks = checks;
-
-                toggle.Toggled += (_, _) => panel.Visibility = toggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
-                ui.Root = new StackPanel { Spacing = 6, Children = { toggle, panel } };
-                ui.Toggle = toggle; ui.Slider = slider; ui.Box = box;
-                return (ui.Root, ui);
-            }
-            default:
-                return (null, null); // 文档/PDF/文本类：无压缩选项
+            row.Root = host;
+            root.Children.Add(host);
+            rows.Add(row);
         }
+
+        void ApplyVisibility()
+        {
+            foreach (var row in rows)
+            {
+                if (row.Param.VisibleWhenId is null) continue;
+                var driver = rows.FirstOrDefault(r => r.Param.Id == row.Param.VisibleWhenId);
+                var show = driver is null
+                    || Math.Abs(driver.Value - (row.Param.VisibleWhenValue ?? 0)) < 0.001;
+                row.Root.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+
+        void HandleChange()
+        {
+            ApplyVisibility();
+            onChanged();
+        }
+
+        foreach (var row in rows)
+        {
+            switch (row.Param.Kind)
+            {
+                case FormatParamKind.Slider:
+                    row.Box!.ValueChanged += (_, _) => HandleChange();
+                    break;
+                case FormatParamKind.Number:
+                    row.Box!.ValueChanged += (_, _) => HandleChange();
+                    break;
+                case FormatParamKind.Combo:
+                    row.Combo!.SelectionChanged += (_, _) => HandleChange();
+                    break;
+                case FormatParamKind.Toggle:
+                    row.Toggle!.Toggled += (_, _) => HandleChange();
+                    break;
+            }
+        }
+
+        ApplyVisibility();
+        return (root, rows);
     }
 
-    private static ConvertSettings ReadCompressSettings(CompressUi? ui, SourceCategory category)
+    private static FormatParamValues ReadParamValues(IReadOnlyList<ParamRow> rows)
     {
-        if (ui?.Root is null && ui?.ZipSlider is null)
-            return new ConvertSettings(false, 23, "medium", 192, 85, 0, 0, 0, 0,
-                new[] { 256, 128, 64, 48, 32, 16 }, 5, 6, false, false, false, 1600, 90, "", "auto");
+        var values = new Dictionary<string, double>(StringComparer.Ordinal);
+        foreach (var row in rows)
+            values[row.Param.Id] = row.Value;
+        return new FormatParamValues(values);
+    }
 
-        var compress = ui?.Toggle?.IsOn == true;
-        var crf = ui?.Slider is not null ? (int)ui.Slider.Value : 23;
-        var preset = ui?.Combo?.SelectedItem as string ?? "medium";
-        var kbps = ui?.Combo?.SelectedItem as string;
-        var bitrate = kbps is not null && int.TryParse(kbps.Replace(" kbps", ""), out var k) ? k : 192;
-        var quality = ui?.Slider is not null ? (int)ui.Slider.Value : 85;
-        var maxEdge = ui?.Box is not null ? (int)ui.Box.Value : 0;
-
-        int videoWidth = 0, sampleRate = 0, channels = 0;
-        if (category == SourceCategory.Video && ui?.Combo2?.SelectedItem is ComboBoxItem ri)
-            videoWidth = ri.Tag is int iw ? iw : 0;
-        if (category == SourceCategory.Audio)
+    private static Brush? ThemeBrush(string key)
+    {
+        try
         {
-            if (ui?.Combo2?.SelectedItem is ComboBoxItem si)
-                sampleRate = si.Tag is int sr ? sr : 0;
-            if (ui?.Combo3?.SelectedItem is ComboBoxItem ci)
-                channels = ci.Tag is int cc ? cc : 0;
+            if (Application.Current.Resources.TryGetValue(key, out var value) && value is Brush brush)
+                return brush;
         }
-        var icoSizes = ui?.IcoChecks?.Where(c => c.IsChecked == true).Select(c => (int)c.Tag!).ToArray() ?? [];
-        if (icoSizes.Length == 0) icoSizes = new[] { 256 }; // 全不选时兜底 256
+        catch { }
+        return null;
+    }
 
-        var duration = ui?.DurationBox is not null ? (int)ui.DurationBox.Value : 5;
-        var zipLevel = ui?.ZipSlider is not null ? (int)ui.ZipSlider.Value : 6;
-        var exportZip = ui?.ExportZipToggle?.IsOn == true;
-        var mergeImages = ui?.MergeImagesCheck?.IsChecked == true;
-        var combineImages = ui?.CombineImagesCheck?.IsChecked == true;
-        var docImageEdge = ui?.DocMaxEdgeBox is not null
+    private static ConvertSettings BuildConvertSettings(FormatParamValues parameters, DialogUi ui)
+    {
+        var zipLevel = ui.ZipSlider is not null ? (int)ui.ZipSlider.Value : 6;
+        var exportZip = ui.ExportZipToggle?.IsOn == true;
+        var mergeImages = ui.MergeImagesCheck?.IsChecked == true;
+        var combineImages = ui.CombineImagesCheck?.IsChecked == true;
+        var docImageEdge = ui.DocMaxEdgeBox is not null
             ? Math.Clamp((int)ui.DocMaxEdgeBox.Value, 400, 8000)
             : 1600;
-        var docJpgQuality = ui?.DocJpgSlider is not null
+        var docJpgQuality = ui.DocJpgSlider is not null
             ? Math.Clamp((int)ui.DocJpgSlider.Value, 50, 100)
             : 90;
-        var docPageRange = ui?.DocRangeBox?.Text?.Trim() ?? "";
-        var docRenderMode = ui?.DocRenderCombo?.SelectedItem is ComboBoxItem ri2
-            ? ri2.Tag as string ?? "auto"
+        var docPageRange = ui.DocRangeBox?.Text?.Trim() ?? "";
+        var docRenderMode = ui.DocRenderCombo?.SelectedItem is ComboBoxItem { Tag: string tag }
+            ? tag
             : "auto";
+        var icoSizes = ui.IcoChecks?.Where(c => c.IsChecked == true).Select(c => (int)c.Tag!).ToArray() ?? [];
+        if (icoSizes.Length == 0) icoSizes = new[] { 256 }; // 全不选时兜底 256
 
-        return new ConvertSettings(compress, crf, preset, bitrate, quality, maxEdge,
-            videoWidth, sampleRate, channels, icoSizes, duration, zipLevel, exportZip, mergeImages, combineImages,
-            docImageEdge, docJpgQuality, docPageRange, docRenderMode);
+        return new ConvertSettings(parameters, zipLevel, exportZip, mergeImages, combineImages,
+            docImageEdge, docJpgQuality, docPageRange, docRenderMode, icoSizes);
     }
 
     // ══════════════ 转换执行 ══════════════
@@ -989,9 +1058,8 @@ public sealed partial class FormatConverterPage : Page
                                    && (target.Ext == ".mp4" || target.Ext == ".webm");
                 var isGifTarget = target.Ext == ".gif";
                 var args = isImageVideo
-                    ? FormatConvertPlanner.BuildImageVideoArgs(source, target, settings.ImageVideoSeconds, settings.MaxEdge)
-                    : FormatConvertPlanner.BuildFfmpegArgs(source, target, settings.Crf, settings.Preset,
-                        settings.AudioKbps, settings.Compress, settings.VideoWidth, settings.SampleRate, settings.Channels);
+                    ? FormatConvertPlanner.BuildImageVideoArgs(source, target, settings.Params)
+                    : FormatConvertPlanner.BuildFfmpegArgs(source, target, settings.Params);
                 var outputPath = FormatConvertPlanner.BuildOutputPath(source, target.Ext);
                 try
                 {
@@ -1002,7 +1070,8 @@ public sealed partial class FormatConverterPage : Page
                     // palette filter_complex 导致 FFmpeg 崩溃，用最简参数重试
                     TryDeleteQuiet(outputPath);
                     docProgress.Report($"GIF 调色板模式失败，正在用简化模式重试...");
-                    var fallbackArgs = FormatConvertPlanner.BuildFfmpegGifFallbackArgs(source, settings.VideoWidth);
+                    var fallbackArgs = FormatConvertPlanner.BuildFfmpegGifFallbackArgs(
+                        source, settings.Params.GetInt(FormatParamIds.GifWidth, 480));
                     await FfmpegService.RunFfmpegAsync(fallbackArgs, null, ct);
                 }
                 catch
@@ -1014,8 +1083,7 @@ public sealed partial class FormatConverterPage : Page
             }
             case ConvertEngine.Magick:
             {
-                var args = FormatConvertPlanner.BuildMagickArgs(source, target, settings.ImageQuality,
-                    settings.MaxEdge, settings.Compress, settings.IcoSizes);
+                var args = FormatConvertPlanner.BuildMagickArgs(source, target, settings.Params, settings.IcoSizes);
                 var outputPath = FormatConvertPlanner.BuildOutputPath(source, target.Ext);
                 try
                 {
@@ -1063,7 +1131,9 @@ public sealed partial class FormatConverterPage : Page
         try
         {
             var args = FormatConvertPlanner.BuildMagickMergePdfArgs(images, outPath,
-                settings.ImageQuality, settings.MaxEdge, settings.Compress);
+                settings.Params.GetInt(FormatParamIds.ImageQuality, 0),
+                settings.Params.GetInt(FormatParamIds.ImageMaxEdge, 0),
+                settings.Params.GetFlag(FormatParamIds.ImageStrip));
             await MagickService.RunMagickAsync(args, token);
 
             if (!File.Exists(outPath) || new FileInfo(outPath).Length == 0)

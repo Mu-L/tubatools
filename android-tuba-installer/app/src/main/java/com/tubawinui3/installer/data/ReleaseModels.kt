@@ -10,6 +10,7 @@ import kotlinx.serialization.Serializable
 data class ReleaseDto(
     @SerialName("tag_name") val tagName: String = "",
     val draft: Boolean = false,
+    val prerelease: Boolean = false,
     @SerialName("assets") val assets: List<AssetDto> = emptyList(),
 )
 

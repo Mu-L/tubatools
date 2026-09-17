@@ -291,10 +291,18 @@ public class FormatConvertPlannerTests
     private static readonly FormatOption Gif = new("GIF", ".gif", "", "");
     private static readonly FormatOption Jpg = new("JPG", ".jpg", "", "");
 
+    private static FormatOption Target(SourceCategory category, string ext)
+        => FormatConvertCatalog.GetTargetFormats(category).First(f => f.Ext == ext);
+
+    private static FormatParamValues V(params (string Id, double Value)[] values)
+        => new(values.ToDictionary(v => v.Id, v => v.Value));
+
     [Fact]
-    public void BuildFfmpegArgs_VideoTranscode_WithCompression()
+    public void BuildFfmpegArgs_VideoTranscode_AppliesCrfPresetAndAudio()
     {
-        var args = FormatConvertPlanner.BuildFfmpegArgs(@"C:\in\m.mp4", Mp4, 28, "slow", 192, true);
+        var args = FormatConvertPlanner.BuildFfmpegArgs(@"C:\in\m.mp4", Mp4, V(
+            (FormatParamIds.VideoCrf, 28), (FormatParamIds.VideoPreset, 6),
+            (FormatParamIds.VideoAudioBitrate, 192)));
         Assert.Contains("-i \"C:\\in\\m.mp4\"", args);
         Assert.Contains("-c:v libx264", args);
         Assert.Contains("-crf 28 -preset slow", args);
@@ -304,56 +312,182 @@ public class FormatConvertPlannerTests
     }
 
     [Fact]
-    public void BuildFfmpegArgs_VideoTranscode_NoCompression_OmitCrf()
+    public void BuildFfmpegArgs_VideoRateMode_UsesBitrateInsteadOfCrf()
     {
-        var args = FormatConvertPlanner.BuildFfmpegArgs(@"C:\in\m.mp4", Mp4, 23, "medium", 192, false);
+        var args = FormatConvertPlanner.BuildFfmpegArgs(@"C:\in\m.mp4", Mp4, V(
+            (FormatParamIds.VideoRateMode, 1), (FormatParamIds.VideoBitrate, 8000)));
+        Assert.Contains("-b:v 8000k", args);
         Assert.DoesNotContain("-crf", args);
-        Assert.DoesNotContain("-b:a", args);
-        Assert.Contains("-c:a aac", args);
+    }
+
+    [Fact]
+    public void BuildFfmpegArgs_HevcInMp4_AddsHvc1Tag()
+    {
+        var args = FormatConvertPlanner.BuildFfmpegArgs(@"C:\in\m.mp4", Mp4, V(
+            (FormatParamIds.VideoCodec, FfmpegCodecs.H265)));
+        Assert.Contains("-c:v libx265", args);
+        Assert.Contains("-tag:v hvc1", args);
+    }
+
+    [Fact]
+    public void BuildFfmpegArgs_Vp9_UsesZeroBitrateCrfAndSpeed()
+    {
+        var webm = new FormatOption("WebM", ".webm", "libvpx-vp9", "libopus");
+        var args = FormatConvertPlanner.BuildFfmpegArgs(@"C:\in\m.mkv", webm, V(
+            (FormatParamIds.VideoCrf, 32), (FormatParamIds.VideoPreset, 5)));
+        Assert.Contains("-c:v libvpx-vp9", args);
+        Assert.Contains("-crf 32 -b:v 0", args);
+        Assert.Contains("-cpu-used 3", args);
+    }
+
+    [Fact]
+    public void BuildFfmpegArgs_Mpeg4_FallsBackToQuantizer()
+    {
+        var mkvmpeg4 = V((FormatParamIds.VideoCodec, FfmpegCodecs.Mpeg4), (FormatParamIds.VideoCrf, 51));
+        var args = FormatConvertPlanner.BuildFfmpegArgs(@"C:\in\m.mkv", Mp4, mkvmpeg4);
+        Assert.Contains("-c:v mpeg4", args);
+        Assert.Contains("-q:v 31", args);
+        Assert.DoesNotContain("-crf", args);
+        Assert.DoesNotContain("-preset", args);
+    }
+
+    [Fact]
+    public void BuildFfmpegArgs_AudioCodecNone_AddsAn()
+    {
+        var args = FormatConvertPlanner.BuildFfmpegArgs(@"C:\in\m.mp4", Mp4, V(
+            (FormatParamIds.VideoAudioCodec, FfmpegCodecs.NoAudio)));
+        Assert.Contains("-an", args);
+        Assert.DoesNotContain("-c:a", args);
+    }
+
+    [Fact]
+    public void BuildFfmpegArgs_WithResolutionScaleAndFps()
+    {
+        var args = FormatConvertPlanner.BuildFfmpegArgs(@"C:\in\m.mp4", Mp4,
+            V((FormatParamIds.VideoWidth, 1920), (FormatParamIds.VideoFps, 60)));
+        Assert.Contains("-vf \"scale=1920:1920:force_original_aspect_ratio=decrease,scale=trunc(iw/2)*2:trunc(ih/2)*2\"", args);
+        Assert.Contains("-r 60", args);
     }
 
     [Fact]
     public void BuildFfmpegArgs_ExtractAudio_FromVideo()
     {
-        var args = FormatConvertPlanner.BuildFfmpegArgs(@"C:\in\m.mp4", Mp3, 23, "medium", 192, true);
+        var args = FormatConvertPlanner.BuildFfmpegArgs(@"C:\in\m.mp4", Mp3, V(
+            (FormatParamIds.AudioBitrate, 192), (FormatParamIds.AudioSampleRate, 48000), (FormatParamIds.AudioChannels, 2)));
         Assert.Contains("-vn", args);
         Assert.Contains("-c:a libmp3lame", args);
         Assert.Contains("-b:a 192k", args);
+        Assert.Contains("-ar 48000", args);
+        Assert.Contains("-ac 2", args);
         Assert.DoesNotContain("-c:v", args);
+    }
+
+    [Fact]
+    public void BuildFfmpegArgs_Mp3Vbr_UsesQualityInsteadOfBitrate()
+    {
+        var args = FormatConvertPlanner.BuildFfmpegArgs(@"C:\in\s.wav", Mp3, V(
+            (FormatParamIds.AudioRateMode, 1), (FormatParamIds.AudioQuality, 2), (FormatParamIds.AudioBitrate, 192)));
+        Assert.Contains("-q:a 2", args);
+        Assert.DoesNotContain("-b:a", args);
+    }
+
+    [Fact]
+    public void BuildFfmpegArgs_Ogg_UsesVariableQuality()
+    {
+        var ogg = Target(SourceCategory.Audio, ".ogg");
+        var args = FormatConvertPlanner.BuildFfmpegArgs(@"C:\in\s.wav", ogg, V((FormatParamIds.AudioQuality, 7)));
+        Assert.Contains("-c:a libvorbis", args);
+        Assert.Contains("-q:a 7", args);
+        Assert.DoesNotContain("-b:a", args);
+    }
+
+    [Theory]
+    [InlineData(1, "pcm_u8")]
+    [InlineData(2, "pcm_s16le")]
+    [InlineData(3, "pcm_s24le")]
+    [InlineData(4, "pcm_s32le")]
+    [InlineData(5, "pcm_f32le")]
+    [InlineData(6, "pcm_f64le")]
+    public void BuildFfmpegArgs_WavBitDepth_SelectsPcmCodec(int depth, string expectedCodec)
+    {
+        var wav = Target(SourceCategory.Audio, ".wav");
+        var args = FormatConvertPlanner.BuildFfmpegArgs(@"C:\in\s.mp3", wav, V(
+            (FormatParamIds.AudioBitDepth, depth), (FormatParamIds.AudioSampleRate, 44100)));
+        Assert.Contains($"-c:a {expectedCodec}", args);
+        Assert.Contains("-ar 44100", args);
+        Assert.DoesNotContain("-b:a", args);
+    }
+
+    [Theory]
+    [InlineData(1, "adpcm_ms")]
+    [InlineData(2, "adpcm_ima_wav")]
+    [InlineData(3, "pcm_alaw")]
+    [InlineData(4, "pcm_mulaw")]
+    public void BuildFfmpegArgs_WavAlternativeEncoding(int mode, string expectedCodec)
+    {
+        var wav = Target(SourceCategory.Audio, ".wav");
+        var args = FormatConvertPlanner.BuildFfmpegArgs(@"C:\in\s.mp3", wav, V((FormatParamIds.AudioWavCodec, mode)));
+        Assert.Contains($"-c:a {expectedCodec}", args);
+    }
+
+    [Theory]
+    [InlineData(2, "pcm_s16be")]
+    [InlineData(3, "pcm_s24be")]
+    public void BuildFfmpegArgs_AiffBitDepth_SelectsBigEndianCodec(int depth, string expectedCodec)
+    {
+        var aiff = Target(SourceCategory.Audio, ".aiff");
+        var args = FormatConvertPlanner.BuildFfmpegArgs(@"C:\in\s.wav", aiff, V((FormatParamIds.AudioBitDepth, depth)));
+        Assert.Contains($"-c:a {expectedCodec}", args);
+    }
+
+    [Fact]
+    public void BuildFfmpegArgs_Flac_AppliesCompressionLevelAndSampleFormat()
+    {
+        var flac = Target(SourceCategory.Audio, ".flac");
+        var args = FormatConvertPlanner.BuildFfmpegArgs(@"C:\in\s.wav", flac, V(
+            (FormatParamIds.AudioCompressionLevel, 8), (FormatParamIds.AudioBitDepth, 3)));
+        Assert.Contains("-c:a flac", args);
+        Assert.Contains("-compression_level 8", args);
+        Assert.Contains("-sample_fmt s32", args);
+    }
+
+    [Fact]
+    public void BuildFfmpegArgs_Opus_AppliesApplication()
+    {
+        var opus = Target(SourceCategory.Audio, ".opus");
+        var args = FormatConvertPlanner.BuildFfmpegArgs(@"C:\in\s.wav", opus, V(
+            (FormatParamIds.AudioBitrate, 96), (FormatParamIds.AudioOpusApplication, 1)));
+        Assert.Contains("-c:a libopus", args);
+        Assert.Contains("-b:a 96k", args);
+        Assert.Contains("-application voip", args);
     }
 
     [Fact]
     public void BuildFfmpegArgs_Gif_AppliesPaletteFilter()
     {
-        var args = FormatConvertPlanner.BuildFfmpegArgs(@"C:\in\m.mp4", Gif, 23, "medium", 0, false);
+        var args = FormatConvertPlanner.BuildFfmpegArgs(@"C:\in\m.mp4", Gif, V(
+            (FormatParamIds.GifFps, 12), (FormatParamIds.GifWidth, 640)));
         // GIF 走 filter_complex 调色板路径（palettegen + paletteuse，单次完成避免编码器崩溃），
         // 缩放/帧率滤镜在 filter_complex 内部；旧的 -vf 直通格式已由 BuildFfmpegGifFallbackArgs 降级承载
         Assert.Contains("-filter_complex", args);
         Assert.Contains("palettegen=stats_mode=diff", args);
         Assert.Contains("paletteuse=dither=bayer", args);
-        Assert.Contains("fps=15,scale=480:-1:flags=lanczos", args);
+        Assert.Contains("fps=12,scale=640:-1:flags=lanczos", args);
         Assert.Contains("-an", args);
     }
 
     [Fact]
-    public void BuildFfmpegArgs_WithResolutionScale()
+    public void BuildFfmpegArgs_Gif_ZeroWidthKeepsOriginalSize()
     {
-        var args = FormatConvertPlanner.BuildFfmpegArgs(@"C:\in\m.mp4", Mp4, 23, "medium", 0, false, videoWidth: 1920);
-        Assert.Contains("-vf \"scale=1920:1920:force_original_aspect_ratio=decrease,scale=trunc(iw/2)*2:trunc(ih/2)*2\"", args);
-    }
-
-    [Fact]
-    public void BuildFfmpegArgs_WithAudioOptions()
-    {
-        var args = FormatConvertPlanner.BuildFfmpegArgs(@"C:\in\s.mp3", Mp3, 23, "medium", 192, true, sampleRate: 48000, channels: 2);
-        Assert.Contains("-ar 48000", args);
-        Assert.Contains("-ac 2", args);
+        var args = FormatConvertPlanner.BuildFfmpegArgs(@"C:\in\m.mp4", Gif, V((FormatParamIds.GifWidth, 0)));
+        Assert.Contains("scale=trunc(iw/2)*2:trunc(ih/2)*2", args);
     }
 
     [Fact]
     public void BuildImageVideoArgs_StaticImage_LoopsWithDuration()
     {
-        var args = FormatConvertPlanner.BuildImageVideoArgs(@"C:\in\p.png", Mp4, 5, 0);
+        var mp4 = Target(SourceCategory.Image, ".mp4");
+        var args = FormatConvertPlanner.BuildImageVideoArgs(@"C:\in\p.png", mp4, V((FormatParamIds.VideoDuration, 5)));
         Assert.Contains("-loop 1 -t 5 -i \"C:\\in\\p.png\"", args);
         Assert.Contains("-c:v libx264", args);
         Assert.Contains("-pix_fmt yuv420p", args);
@@ -367,29 +501,33 @@ public class FormatConvertPlannerTests
     [Fact]
     public void BuildImageVideoArgs_GifSource_DoesNotLoop()
     {
-        var args = FormatConvertPlanner.BuildImageVideoArgs(@"C:\in\a.gif", Mp4, 5, 0);
+        var mp4 = Target(SourceCategory.Image, ".mp4");
+        var args = FormatConvertPlanner.BuildImageVideoArgs(@"C:\in\a.gif", mp4, V((FormatParamIds.VideoDuration, 5)));
         Assert.DoesNotContain("-loop 1", args);
         Assert.DoesNotContain("-tune stillimage", args);
         Assert.StartsWith("-i \"C:\\in\\a.gif\"", args);
     }
 
     [Fact]
-    public void BuildImageVideoArgs_Webm_UsesVp9()
+    public void BuildImageVideoArgs_Webm_UsesVp9AndCrf()
     {
-        var webm = new FormatOption("WebM", ".webm", "libvpx-vp9", "");
-        var args = FormatConvertPlanner.BuildImageVideoArgs(@"C:\in\p.png", webm, 8, 1280);
+        var webm = Target(SourceCategory.Image, ".webm");
+        var args = FormatConvertPlanner.BuildImageVideoArgs(@"C:\in\p.png", webm, V(
+            (FormatParamIds.VideoCrf, 32), (FormatParamIds.VideoWidth, 1280), (FormatParamIds.VideoFps, 24)));
         Assert.Contains("-c:v libvpx-vp9", args);
         Assert.Contains("-b:v 0 -crf 32", args);
         Assert.Contains("scale=1280:1280:force_original_aspect_ratio=decrease", args);
+        Assert.Contains("-r 24", args);
         Assert.EndsWith("\"C:\\in\\p_converted.webm\"", args);
     }
 
     [Fact]
     public void BuildImageVideoArgs_DurationClamped()
     {
-        var args = FormatConvertPlanner.BuildImageVideoArgs(@"C:\in\p.png", Mp4, 0, 0);
+        var mp4 = Target(SourceCategory.Image, ".mp4");
+        var args = FormatConvertPlanner.BuildImageVideoArgs(@"C:\in\p.png", mp4, V((FormatParamIds.VideoDuration, 0)));
         Assert.Contains("-t 5", args); // 0 → 默认 5 秒
-        var huge = FormatConvertPlanner.BuildImageVideoArgs(@"C:\in\p.png", Mp4, 99999, 0);
+        var huge = FormatConvertPlanner.BuildImageVideoArgs(@"C:\in\p.png", mp4, V((FormatParamIds.VideoDuration, 99999)));
         Assert.Contains("-t 600", huge); // 上限 600
     }
 
@@ -397,7 +535,7 @@ public class FormatConvertPlannerTests
     public void BuildMagickArgs_Ico_MultiSizeAutoResize()
     {
         var ico = new FormatOption("ICO", ".ico", "", "");
-        var args = FormatConvertPlanner.BuildMagickArgs(@"C:\in\p.png", ico, 85, 0, false, new[] { 256, 128, 64, 48, 32, 16 });
+        var args = FormatConvertPlanner.BuildMagickArgs(@"C:\in\p.png", ico, null, new[] { 256, 128, 64, 48, 32, 16 });
         Assert.Contains("-define icon:auto-resize=256,128,64,48,32,16", args);
         Assert.EndsWith("\"C:\\in\\p_converted.ico\"", args);
     }
@@ -406,24 +544,74 @@ public class FormatConvertPlannerTests
     public void BuildMagickArgs_Ico_NoSizesDefaults()
     {
         var ico = new FormatOption("ICO", ".ico", "", "");
-        var args = FormatConvertPlanner.BuildMagickArgs(@"C:\in\p.png", ico, 85, 0, false);
+        var args = FormatConvertPlanner.BuildMagickArgs(@"C:\in\p.png", ico);
         Assert.Contains("-define icon:auto-resize=256,128,64,48,32,16", args);
     }
 
     [Fact]
     public void BuildMagickArgs_ConvertOnly()
     {
-        var args = FormatConvertPlanner.BuildMagickArgs(@"C:\in\p.png", Jpg, 85, 0, false);
+        var args = FormatConvertPlanner.BuildMagickArgs(@"C:\in\p.png", Jpg);
         Assert.Equal("\"C:\\in\\p.png\" \"C:\\in\\p_converted.jpg\"", args);
     }
 
     [Fact]
-    public void BuildMagickArgs_WithCompression()
+    public void BuildMagickArgs_Jpeg_QualitySamplingProgressiveResize()
     {
-        var args = FormatConvertPlanner.BuildMagickArgs(@"C:\in\p.png", Jpg, 70, 1920, true);
+        var args = FormatConvertPlanner.BuildMagickArgs(@"C:\in\p.png", Jpg, V(
+            (FormatParamIds.ImageQuality, 70), (FormatParamIds.ImageSampling, 1),
+            (FormatParamIds.ImageProgressive, 1), (FormatParamIds.ImageStrip, 1),
+            (FormatParamIds.ImageMaxEdge, 1920)));
         Assert.Contains("-quality 70", args);
+        Assert.Contains("-sampling-factor 4:4:4", args);
+        Assert.Contains("-interlace Plane", args);
         Assert.Contains("-strip", args);
         Assert.Contains("-resize 1920x1920>", args);
+    }
+
+    [Fact]
+    public void BuildMagickArgs_Png_CompressionLevelAndColorType()
+    {
+        var png = Target(SourceCategory.Image, ".png");
+        var args = FormatConvertPlanner.BuildMagickArgs(@"C:\in\p.jpg", png, V(
+            (FormatParamIds.ImagePngLevel, 9), (FormatParamIds.ImagePngColorType, 3)));
+        Assert.Contains("-define png:compression-level=9", args);
+        Assert.Contains("-define png:color-type=3", args);
+    }
+
+    [Fact]
+    public void BuildMagickArgs_Webp_LosslessAndMethod()
+    {
+        var webp = Target(SourceCategory.Image, ".webp");
+        var args = FormatConvertPlanner.BuildMagickArgs(@"C:\in\p.png", webp, V(
+            (FormatParamIds.ImageLossless, 1), (FormatParamIds.ImageMethod, 6), (FormatParamIds.ImageQuality, 90)));
+        Assert.Contains("-define webp:lossless=true", args);
+        Assert.Contains("-define webp:method=6", args);
+        Assert.Contains("-quality 90", args);
+    }
+
+    [Fact]
+    public void BuildMagickArgs_Gif_ColorsAndDither()
+    {
+        var gif = Target(SourceCategory.Image, ".gif");
+        var withDither = FormatConvertPlanner.BuildMagickArgs(@"C:\in\p.png", gif, V(
+            (FormatParamIds.ImageGifColors, 64), (FormatParamIds.ImageGifDither, 1)));
+        Assert.Contains("-colors 64", withDither);
+        Assert.Contains("-dither Riemersma", withDither);
+
+        var noDither = FormatConvertPlanner.BuildMagickArgs(@"C:\in\p.png", gif, V(
+            (FormatParamIds.ImageGifDither, 0)));
+        Assert.Contains("-dither None", noDither);
+        Assert.DoesNotContain("-colors", noDither); // 256 = 不限制
+    }
+
+    [Fact]
+    public void BuildMagickArgs_Tiff_Compression()
+    {
+        var tiff = Target(SourceCategory.Image, ".tiff");
+        var args = FormatConvertPlanner.BuildMagickArgs(@"C:\in\p.png", tiff, V(
+            (FormatParamIds.ImageTiffCompress, 2)));
+        Assert.Contains("-compress Zip", args);
     }
 
     [Fact]
@@ -1059,5 +1247,204 @@ public class PptxToHtmlConverterTests
         using var reopened = new ZipArchive(new MemoryStream(ms.ToArray()));
         var html = PptxToHtmlConverter.ToHtml(reopened);
         Assert.Contains("<div class=\"pptx\">", html);
+    }
+}
+
+public class FormatConvertParamsTests
+{
+    public static IEnumerable<object[]> AllTargets()
+    {
+        foreach (var category in new[]
+        {
+            SourceCategory.Video, SourceCategory.Audio, SourceCategory.Image, SourceCategory.Pdf,
+            SourceCategory.Word, SourceCategory.Excel, SourceCategory.Ppt, SourceCategory.Markdown,
+            SourceCategory.Text, SourceCategory.Html, SourceCategory.Json, SourceCategory.Unsupported
+        })
+        {
+            foreach (var target in FormatConvertCatalog.GetTargetFormats(category))
+                yield return new object[] { category, target };
+        }
+        yield return new object[] { SourceCategory.Pdf, FormatConvertCatalog.MergePdfTarget };
+        yield return new object[] { SourceCategory.Pdf, FormatConvertCatalog.SplitPdfTarget };
+        yield return new object[] { SourceCategory.Unsupported, FormatConvertCatalog.ZipTarget };
+    }
+
+    private static FormatOption Target(SourceCategory category, string ext)
+        => FormatConvertCatalog.GetTargetFormats(category).First(f => f.Ext == ext);
+
+    private static FormatParamValues V(params (string Id, double Value)[] values)
+        => new(values.ToDictionary(v => v.Id, v => v.Value));
+
+    [Theory]
+    [MemberData(nameof(AllTargets))]
+    public void TargetParams_AreWellFormed(SourceCategory category, FormatOption target)
+    {
+        var ids = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var param in target.ParamList)
+        {
+            Assert.True(ids.Add(param.Id), $"{target.Name} 参数 id 重复：{param.Id}");
+            Assert.False(string.IsNullOrWhiteSpace(param.Label));
+            Assert.True(param.Step > 0, $"{target.Name}/{param.Id} 步长无效");
+
+            if (param.Kind == FormatParamKind.Combo)
+            {
+                Assert.NotNull(param.Choices);
+                Assert.NotEmpty(param.Choices!);
+                Assert.Contains(param.Choices!, c => Math.Abs(c.Value - param.Default) < 0.0001);
+            }
+            else if (param.Kind is FormatParamKind.Slider or FormatParamKind.Number)
+            {
+                Assert.True(param.Min < param.Max, $"{target.Name}/{param.Id} 取值范围无效");
+                Assert.InRange(param.Default, param.Min, param.Max);
+            }
+        }
+
+        foreach (var param in target.ParamList.Where(p => p.VisibleWhenId is not null))
+            Assert.Contains(ids, id => id == param.VisibleWhenId);
+    }
+
+    [Fact]
+    public void AudioVideoImageTargets_AllDeclareParams()
+    {
+        foreach (var category in new[] { SourceCategory.Video, SourceCategory.Audio, SourceCategory.Image })
+        {
+            foreach (var target in FormatConvertCatalog.GetTargetFormats(category).Where(f => !f.IsSpecial))
+            {
+                // ICO 的尺寸由对话框的专用多选面板提供
+                if (target.Ext == ".ico") continue;
+                Assert.NotEmpty(target.ParamList);
+            }
+        }
+    }
+
+    [Fact]
+    public void SpecialTargets_HaveNoParams()
+    {
+        Assert.Empty(FormatConvertCatalog.ZipTarget.ParamList);
+        Assert.Empty(FormatConvertCatalog.MergePdfTarget.ParamList);
+        Assert.Empty(FormatConvertCatalog.SplitPdfTarget.ParamList);
+        var ocr = Target(SourceCategory.Image, ".txt");
+        Assert.Empty(ocr.ParamList);
+    }
+
+    [Fact]
+    public void VideoTargets_ExposeCodecAndRateMode()
+    {
+        var mp4 = Target(SourceCategory.Video, ".mp4");
+        Assert.Contains(mp4.ParamList, p => p.Id == FormatParamIds.VideoCodec);
+        Assert.Contains(mp4.ParamList, p => p.Id == FormatParamIds.VideoRateMode);
+        Assert.Contains(mp4.ParamList, p => p.Id == FormatParamIds.VideoAudioCodec);
+        // H.264 / H.265 / AV1
+        Assert.Equal(3, mp4.ParamList.First(p => p.Id == FormatParamIds.VideoCodec).Choices!.Count);
+    }
+
+    [Fact]
+    public void VideoTargets_DefaultPresetIsMedium()
+    {
+        var preset = Target(SourceCategory.Video, ".mp4").ParamList.First(p => p.Id == FormatParamIds.VideoPreset);
+        Assert.Equal("medium", FfmpegCodecs.X264Presets[(int)preset.Default]);
+        Assert.Contains(preset.Choices!, c => Math.Abs(c.Value - preset.Default) < 0.0001);
+    }
+
+    [Fact]
+    public void GifTarget_DitherDefaultsOn()
+    {
+        var gif = Target(SourceCategory.Image, ".gif");
+        Assert.Equal(1, gif.ParamList.First(p => p.Id == FormatParamIds.ImageGifDither).Default);
+    }
+
+    [Fact]
+    public void Summarize_SkipsHiddenParams()
+    {
+        var mp3 = Target(SourceCategory.Audio, ".mp3");
+        var summary = FormatConvertParams.Summarize(mp3, V(
+            (FormatParamIds.AudioRateMode, 1), (FormatParamIds.AudioBitrate, 320)));
+        Assert.Contains("可变质量", summary);
+        Assert.DoesNotContain("320", summary); // VBR 模式下固定码率参数已隐藏
+
+        var video = Target(SourceCategory.Video, ".mp4");
+        var videoSummary = FormatConvertParams.Summarize(video, V(
+            (FormatParamIds.VideoRateMode, 1), (FormatParamIds.VideoBitrate, 8000), (FormatParamIds.VideoCrf, 40)));
+        Assert.Contains("8000", videoSummary);
+        Assert.DoesNotContain("CRF 40", videoSummary);
+    }
+
+    [Fact]
+    public void AudioTargets_ExposeBitrateAndBitDepth()
+    {
+        var mp3 = Target(SourceCategory.Audio, ".mp3");
+        Assert.Contains(mp3.ParamList, p => p.Id == FormatParamIds.AudioRateMode);
+        Assert.Contains(mp3.ParamList, p => p.Id == FormatParamIds.AudioQuality);
+
+        var wav = Target(SourceCategory.Audio, ".wav");
+        Assert.Contains(wav.ParamList, p => p.Id == FormatParamIds.AudioBitDepth);
+        Assert.Contains(wav.ParamList, p => p.Id == FormatParamIds.AudioWavCodec);
+        Assert.Contains(wav.ParamList, p => p.Id == FormatParamIds.AudioSampleRate);
+    }
+
+    [Fact]
+    public void ImageTargets_ExposeFormatSpecificOptions()
+    {
+        Assert.Contains(Target(SourceCategory.Image, ".png").ParamList, p => p.Id == FormatParamIds.ImagePngLevel);
+        Assert.Contains(Target(SourceCategory.Image, ".jpg").ParamList, p => p.Id == FormatParamIds.ImageProgressive);
+        Assert.Contains(Target(SourceCategory.Image, ".webp").ParamList, p => p.Id == FormatParamIds.ImageLossless);
+        Assert.Contains(Target(SourceCategory.Image, ".gif").ParamList, p => p.Id == FormatParamIds.ImageGifColors);
+        Assert.Contains(Target(SourceCategory.Image, ".tiff").ParamList, p => p.Id == FormatParamIds.ImageTiffCompress);
+        Assert.Contains(Target(SourceCategory.Image, ".avif").ParamList, p => p.Id == FormatParamIds.ImageAvifSpeed);
+    }
+
+    [Fact]
+    public void EstimatePcmBitrateKbps_CdQuality()
+        => Assert.Equal(1411.2, FormatConvertParams.EstimatePcmBitrateKbps(16, 44100, 2), 3);
+
+    [Fact]
+    public void EffectiveBits_FollowsBitDepthAndWavCodec()
+    {
+        var wav = Target(SourceCategory.Audio, ".wav");
+        Assert.Equal(16, FormatConvertParams.EffectiveBits(wav, FormatParamValues.Empty));
+        Assert.Equal(24, FormatConvertParams.EffectiveBits(wav, V((FormatParamIds.AudioBitDepth, 3))));
+        Assert.Equal(4, FormatConvertParams.EffectiveBits(wav, V((FormatParamIds.AudioWavCodec, 1))));
+        Assert.Equal(8, FormatConvertParams.EffectiveBits(wav, V((FormatParamIds.AudioWavCodec, 4))));
+    }
+
+    [Fact]
+    public void BitrateEstimate_NeedsRateAndChannels()
+    {
+        var wav = Target(SourceCategory.Audio, ".wav");
+        Assert.Null(FormatConvertParams.BitrateEstimate(wav, V((FormatParamIds.AudioSampleRate, 48000))));
+
+        var estimate = FormatConvertParams.BitrateEstimate(wav, V(
+            (FormatParamIds.AudioSampleRate, 44100), (FormatParamIds.AudioChannels, 2)));
+        Assert.NotNull(estimate);
+        Assert.Contains("1411", estimate);
+    }
+
+    [Fact]
+    public void Summarize_ReportsDefaultsAndCustomValues()
+    {
+        var wav = Target(SourceCategory.Audio, ".wav");
+        Assert.Equal("使用默认参数", FormatConvertParams.Summarize(wav, FormatParamValues.Empty));
+
+        var summary = FormatConvertParams.Summarize(wav, V(
+            (FormatParamIds.AudioSampleRate, 96000), (FormatParamIds.AudioChannels, 1)));
+        Assert.Contains("已自定义", summary);
+        Assert.Contains("96000", summary);
+        Assert.Contains("1536", summary); // 16 位 × 96000 Hz × 单声道
+
+        var mp3 = Target(SourceCategory.Audio, ".mp3");
+        var mp3Summary = FormatConvertParams.Summarize(mp3, V((FormatParamIds.AudioRateMode, 1)));
+        Assert.Contains("可变质量", mp3Summary);
+    }
+
+    [Fact]
+    public void FormatParamValues_MissingKeysUseFallbacks()
+    {
+        var values = new FormatParamValues(new Dictionary<string, double> { ["x"] = 5, ["flag"] = 1, ["off"] = 0 });
+        Assert.Equal(5, values.Get("x", 1));
+        Assert.Equal(1, values.Get("missing", 1));
+        Assert.True(values.Has("x"));
+        Assert.False(values.Has("missing"));
+        Assert.True(values.GetFlag("flag"));
+        Assert.False(values.GetFlag("off"));
     }
 }

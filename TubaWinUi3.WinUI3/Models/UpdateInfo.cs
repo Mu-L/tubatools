@@ -7,7 +7,6 @@ public sealed class UpdateInfo
     public string? Body { get; init; }
     public required DateTimeOffset PublishedAt { get; init; }
     public required List<UpdateAsset> Assets { get; init; }
-    public bool IsPrerelease { get; init; }
 }
 
 public sealed class UpdateAsset

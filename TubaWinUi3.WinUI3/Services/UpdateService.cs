@@ -96,6 +96,12 @@ public static class UpdateService
         if (gitCodeJson is not null && ParseUpdateJson(gitCodeJson) is not null)
             return gitCodeJson;
 
+        // GitCode 的 /latest 不保证跳过预发布版（返回预发布时上面的解析已判为不可用），
+        // 改为从发行版列表里挑最新正式版，避免国内用户拿不到更新。
+        var gitCodeStableJson = await FetchGitCodeLatestStableJsonAsync(ct);
+        if (gitCodeStableJson is not null && ParseUpdateJson(gitCodeStableJson) is not null)
+            return gitCodeStableJson;
+
         try
         {
             using var httpClient = CreateHttpClient(TimeSpan.FromSeconds(30));
@@ -117,6 +123,72 @@ public static class UpdateService
         catch { }
 
         return gitCodeJson;
+    }
+
+    /// <summary>
+    /// 取 GitCode 发行版列表里最新的正式版 JSON（跳过草稿与预发布），失败或无正式版时返回 null。
+    /// </summary>
+    private static async Task<string?> FetchGitCodeLatestStableJsonAsync(CancellationToken ct)
+    {
+        try
+        {
+            using var client = CreateHttpClient(TimeSpan.FromSeconds(15));
+            // direction=desc：GitCode 列表默认最旧在前，不能依赖数组顺序
+            var url = $"{GitCodeReleaseApiBase}?per_page=30&direction=desc";
+            var response = await client.GetAsync(url, ct);
+            if (!response.IsSuccessStatusCode) return null;
+
+            return PickNewestStableReleaseJson(await response.Content.ReadAsStringAsync(ct));
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// 从发行版列表 JSON 中挑出最新的正式版（单个发行版的原始 JSON）。
+    /// 与 /releases/latest 语义一致：跳过草稿和预发布，因此更新通道不会拿到预览版；
+    /// 也不依赖数组顺序（GitHub 最新在前、GitCode 最旧在前），统一按时间戳判定。
+    /// </summary>
+    internal static string? PickNewestStableReleaseJson(string releasesJson)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(releasesJson);
+            if (doc.RootElement.ValueKind != JsonValueKind.Array) return null;
+
+            string? best = null;
+            var bestTime = DateTimeOffset.MinValue;
+
+            foreach (var release in doc.RootElement.EnumerateArray())
+            {
+                if (release.TryGetProperty("draft", out var draftEl) && draftEl.GetBoolean()) continue;
+                if (release.TryGetProperty("prerelease", out var preEl) && preEl.GetBoolean()) continue;
+                if (!release.TryGetProperty("tag_name", out var tagEl) || string.IsNullOrEmpty(tagEl.GetString()))
+                    continue;
+
+                var time = release.TryGetProperty("published_at", out var publishedEl) &&
+                           publishedEl.TryGetDateTimeOffset(out var publishedAt)
+                    ? publishedAt
+                    : release.TryGetProperty("created_at", out var createdEl) &&
+                      createdEl.TryGetDateTimeOffset(out var createdAt)
+                        ? createdAt
+                        : DateTimeOffset.MinValue;
+
+                if (best is null || time > bestTime)
+                {
+                    best = release.GetRawText();
+                    bestTime = time;
+                }
+            }
+
+            return best;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     public static async Task<Dictionary<string, string>?> FetchGitCodeAssetsAsync(string tagName, CancellationToken ct = default)
@@ -152,12 +224,17 @@ public static class UpdateService
         }
     }
 
-    private static UpdateInfo? ParseUpdateJson(string json)
+    internal static UpdateInfo? ParseUpdateJson(string json)
     {
         try
         {
             var doc = JsonDocument.Parse(json);
             var root = doc.RootElement;
+
+            // 更新通道只跟随正式版：预发布版（预览版）不作为更新来源
+            if (root.TryGetProperty("prerelease", out var prereleaseEl) &&
+                prereleaseEl.ValueKind == JsonValueKind.True)
+                return null;
 
             var tagName = root.GetProperty("tag_name").GetString() ?? "";
             var versionStr = tagName.TrimStart('v', 'V');
@@ -212,8 +289,7 @@ public static class UpdateService
                 HtmlUrl = htmlUrl,
                 Body = root.TryGetProperty("body", out var body) ? body.GetString() : null,
                 PublishedAt = publishedAt,
-                Assets = assets,
-                IsPrerelease = root.TryGetProperty("prerelease", out var pre) && pre.GetBoolean()
+                Assets = assets
             };
         }
         catch

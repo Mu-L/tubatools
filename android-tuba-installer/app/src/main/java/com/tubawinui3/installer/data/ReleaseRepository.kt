@@ -25,12 +25,13 @@ class ReleaseRepository(
         "https://api.github.com/repos/luolangaga/tubatool/releases/latest",
     )
 
-    /** 依次尝试各源，返回第一个可用的非 draft release。全部失败则抛 IOException。 */
+    /** 依次尝试各源，返回第一个可用的正式版 release（跳过 draft 与预览版）。全部失败则抛 IOException。 */
     suspend fun fetchLatest(): FetchResult = withContext(Dispatchers.IO) {
         for (source in sources) {
             try {
                 val dto = fetchOne(source) ?: continue
-                if (dto.draft || dto.assets.isEmpty()) continue
+                // 预览版（prerelease）不作下载来源：装机器只应拿到正式版
+                if (dto.draft || dto.prerelease || dto.assets.isEmpty()) continue
                 return@withContext FetchResult(dto, sourceName(source))
             } catch (_: Exception) {
                 // 换下一个源

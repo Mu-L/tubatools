@@ -109,6 +109,7 @@ const downloadUrl = computed(() => String(route.query.url ?? ''));
 
 const typeLabel = computed(() => {
   if (type.value === 'setup') return t('download.setup');
+  if (type.value === 'lite') return t('download.lite');
   return t('download.portable');
 });
 

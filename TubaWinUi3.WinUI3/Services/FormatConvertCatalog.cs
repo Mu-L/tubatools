@@ -41,13 +41,16 @@ public enum ConvertSpecial
 
 /// <summary>目标格式选项（沿用原视频处理的 FormatOption 结构）。</summary>
 public sealed record FormatOption(string Name, string Ext, string DefaultVCodec, string DefaultACodec,
-    ConvertSpecial Special = ConvertSpecial.None, string? Tag = null)
+    ConvertSpecial Special = ConvertSpecial.None, string? Tag = null, IReadOnlyList<FormatParam>? Params = null)
 {
     /// <summary>纯音频输出（如视频提取 MP3、音频转 MP3）。</summary>
     public bool IsAudioOnly => DefaultVCodec == "" && DefaultACodec != "";
 
     /// <summary>特殊操作（合并/拆分/OCR/ZIP 等非普通格式输出）。</summary>
     public bool IsSpecial => Special != ConvertSpecial.None;
+
+    /// <summary>该目标格式的专属参数（页面据此生成滑块 / 输入框 / 下拉框）。</summary>
+    public IReadOnlyList<FormatParam> ParamList => Params ?? Array.Empty<FormatParam>();
 }
 
 /// <summary>
@@ -101,35 +104,65 @@ public static class FormatConvertCatalog
 
     public static readonly FormatOption[] VideoTargets =
     {
-        new("MP4", ".mp4", "libx264", "aac"), new("MKV", ".mkv", "libx264", "aac"),
-        new("AVI", ".avi", "libx264", "mp3"), new("MOV", ".mov", "libx264", "aac"),
-        new("WebM", ".webm", "libvpx-vp9", "libopus"), new("GIF", ".gif", "", ""),
-        new("TS", ".ts", "libx264", "aac"), new("FLV", ".flv", "libx264", "aac"),
-        new("WMV", ".wmv", "wmv2", "wmav2"),
-        new("MP3", ".mp3", "", "libmp3lame"), new("AAC", ".aac", "", "aac"),
-        new("FLAC", ".flac", "", "flac"), new("WAV", ".wav", "", "pcm_s16le"),
-        new("M4A", ".m4a", "", "aac"), new("OGG", ".ogg", "", "libvorbis"),
-        new("OPUS", ".opus", "", "libopus"),
+        new("MP4", ".mp4", "libx264", "aac",
+            Params: FormatConvertParams.VideoParams(51, 23, FormatConvertParams.Mp4VideoCodecs, FormatConvertParams.Mp4AudioCodecs)),
+        new("MKV", ".mkv", "libx264", "aac",
+            Params: FormatConvertParams.VideoParams(51, 23, FormatConvertParams.MkvVideoCodecs, FormatConvertParams.MkvAudioCodecs)),
+        new("AVI", ".avi", "libx264", "mp3",
+            Params: FormatConvertParams.VideoParams(51, 23, FormatConvertParams.AviVideoCodecs, FormatConvertParams.AviAudioCodecs)),
+        new("MOV", ".mov", "libx264", "aac",
+            Params: FormatConvertParams.VideoParams(51, 23, FormatConvertParams.Mp4VideoCodecs, FormatConvertParams.Mp4AudioCodecs)),
+        new("WebM", ".webm", "libvpx-vp9", "libopus",
+            Params: FormatConvertParams.VideoParams(63, 32, FormatConvertParams.WebmVideoCodecs, FormatConvertParams.WebmAudioCodecs)),
+        new("GIF", ".gif", "", "", Params: FormatConvertParams.GifVideoParams),
+        new("TS", ".ts", "libx264", "aac",
+            Params: FormatConvertParams.VideoParams(51, 23, FormatConvertParams.TsVideoCodecs, FormatConvertParams.TsAudioCodecs)),
+        new("FLV", ".flv", "libx264", "aac",
+            Params: FormatConvertParams.VideoParams(51, 23, FormatConvertParams.H264OnlyCodecs, FormatConvertParams.FlvAudioCodecs)),
+        new("WMV", ".wmv", "wmv2", "wmav2",
+            Params: FormatConvertParams.VideoParams(31, 23, FormatConvertParams.Wmv2OnlyCodecs, FormatConvertParams.WmaOnlyCodecs)),
+        new("MP3", ".mp3", "", "libmp3lame", Params: FormatConvertParams.Mp3Params),
+        new("AAC", ".aac", "", "aac", Params: FormatConvertParams.AacParams),
+        new("FLAC", ".flac", "", "flac", Params: FormatConvertParams.FlacParams),
+        new("WAV", ".wav", "", "pcm_s16le", Params: FormatConvertParams.WavParams),
+        new("M4A", ".m4a", "", "aac", Params: FormatConvertParams.AacParams),
+        new("OGG", ".ogg", "", "libvorbis", Params: FormatConvertParams.OggParams),
+        new("OPUS", ".opus", "", "libopus", Params: FormatConvertParams.OpusParams),
         ZipTarget,
     };
 
     public static readonly FormatOption[] AudioTargets =
     {
-        new("MP3", ".mp3", "", "libmp3lame"), new("AAC", ".aac", "", "aac"),
-        new("FLAC", ".flac", "", "flac"), new("WAV", ".wav", "", "pcm_s16le"),
-        new("M4A", ".m4a", "", "aac"), new("OGG", ".ogg", "", "libvorbis"),
-        new("OPUS", ".opus", "", "libopus"), new("AIFF", ".aiff", "", "pcm_s16be"),
-        new("WMA", ".wma", "", "wmav2"),
+        new("MP3", ".mp3", "", "libmp3lame", Params: FormatConvertParams.Mp3Params),
+        new("AAC", ".aac", "", "aac", Params: FormatConvertParams.AacParams),
+        new("FLAC", ".flac", "", "flac", Params: FormatConvertParams.FlacParams),
+        new("WAV", ".wav", "", "pcm_s16le", Params: FormatConvertParams.WavParams),
+        new("M4A", ".m4a", "", "aac", Params: FormatConvertParams.AacParams),
+        new("OGG", ".ogg", "", "libvorbis", Params: FormatConvertParams.OggParams),
+        new("OPUS", ".opus", "", "libopus", Params: FormatConvertParams.OpusParams),
+        new("AIFF", ".aiff", "", "pcm_s16be", Params: FormatConvertParams.AiffParams),
+        new("WMA", ".wma", "", "wmav2", Params: FormatConvertParams.WmaParams),
         ZipTarget,
     };
 
     public static readonly FormatOption[] ImageTargets =
     {
-        new("PNG", ".png", "", ""), new("JPG", ".jpg", "", ""), new("WebP", ".webp", "", ""),
-        new("GIF", ".gif", "", ""), new("BMP", ".bmp", "", ""), new("TIFF", ".tiff", "", ""),
-        new("HEIC", ".heic", "", ""), new("AVIF", ".avif", "", ""), new("TGA", ".tga", "", ""),
-        new("PSD", ".psd", "", ""), new("PDF", ".pdf", "", ""), new("ICO", ".ico", "", ""),
-        new("MP4 视频", ".mp4", "libx264", ""), new("WebM 视频", ".webm", "libvpx-vp9", ""),
+        new("PNG", ".png", "", "", Params: FormatConvertParams.PngParams),
+        new("JPG", ".jpg", "", "", Params: FormatConvertParams.JpegParams),
+        new("WebP", ".webp", "", "", Params: FormatConvertParams.WebpParams),
+        new("GIF", ".gif", "", "", Params: FormatConvertParams.GifImageParams),
+        new("BMP", ".bmp", "", "", Params: FormatConvertParams.PlainImageParams),
+        new("TIFF", ".tiff", "", "", Params: FormatConvertParams.TiffParams),
+        new("HEIC", ".heic", "", "", Params: FormatConvertParams.HeicParams),
+        new("AVIF", ".avif", "", "", Params: FormatConvertParams.AvifParams),
+        new("TGA", ".tga", "", "", Params: FormatConvertParams.PlainImageParams),
+        new("PSD", ".psd", "", "", Params: FormatConvertParams.PlainImageParams),
+        new("PDF", ".pdf", "", "", Params: FormatConvertParams.ImagePdfParams),
+        new("ICO", ".ico", "", ""),
+        new("MP4 视频", ".mp4", "libx264", "",
+            Params: FormatConvertParams.ImageVideoParams(23, FormatConvertParams.ImageToMp4Codecs)),
+        new("WebM 视频", ".webm", "libvpx-vp9", "",
+            Params: FormatConvertParams.ImageVideoParams(32, FormatConvertParams.ImageToWebmCodecs)),
         new("TXT 文字识别", ".txt", "", "", ConvertSpecial.OcrText),
         ZipTarget,
     };
