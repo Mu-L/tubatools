@@ -592,14 +592,9 @@ public sealed partial class SettingsPage : Page
             };
             await dialog.ShowDownloadAsync(info);
 
-            if (dialog.DownloadSucceeded)
-            {
-                ToolsBundleStatusText.Text = DescribeToolsBundleStatus();
-            }
-            else
-            {
-                ToolsBundleStatusText.Text = info.HasUpdate ? "点击检查内核是否有新版本" : DescribeToolsBundleStatus();
-            }
+            ToolsBundleStatusText.Text = dialog.DownloadEnqueued
+                ? "已加入下载队列，可在标题栏下载按钮查看进度"
+                : info.HasUpdate ? "点击检查内核是否有新版本" : DescribeToolsBundleStatus();
         }
         catch (Exception ex)
         {

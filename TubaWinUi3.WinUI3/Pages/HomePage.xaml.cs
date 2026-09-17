@@ -338,14 +338,9 @@ public sealed partial class HomePage : Page
                 XamlRoot = XamlRoot,
                 RequestedTheme = ThemeService.CurrentElementTheme
             };
+            // 下载全程在后台队列；安装完成后 ToolCatalog.RefreshToolsRoot() 会经
+            // ToolsChanged 通知本页重载工具列表，无需等对话框返回。
             await dialog.ShowDownloadAsync();
-
-            if (dialog.DownloadSucceeded)
-            {
-                ToolCatalog.RefreshToolsRoot();
-                ToolCatalog.InvalidateTagsCache();
-                _ = LoadToolsAsync();
-            }
         }
         catch { }
     }

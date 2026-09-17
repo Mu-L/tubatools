@@ -584,14 +584,39 @@ public sealed class ToolsBundleExtractProcessor : IDownloadPostProcessor
                 lastError = ex;
                 TryDeleteDirectory(extractDir);
                 if (attempt >= MaxAttempts)
-                {
-                    var message = ex.InnerException?.Message ?? ex.Message;
-                    throw new IOException($"解压工具包失败（已自动重试 {MaxAttempts - 1} 次）：{message}", ex);
-                }
+                    throw new IOException(DescribeFailure(ex), ex);
             }
         }
 
         if (lastError is not null) throw lastError;
+    }
+
+    /// <summary>
+    /// 失败文案：目标文件被占用/只读是内核安装最常见的失败原因（工具正在运行会锁住自身文件），
+    /// 单独给出可操作的中文提示；其余情况保留原始错误内容。
+    /// </summary>
+    private static string DescribeFailure(Exception ex)
+    {
+        for (var e = ex; e is not null; e = e.InnerException)
+        {
+            if (e is not UnauthorizedAccessException) continue;
+
+            var path = ExtractQuotedPath(e.Message);
+            return string.IsNullOrEmpty(path)
+                ? "内核安装失败：目标文件被占用或只读，请关闭正在运行的工具（如 DirectX Repair）后重试。"
+                : $"内核安装失败：无法写入 {path}（文件被占用或只读）。请关闭正在运行的工具（如 DirectX Repair）后重试。";
+        }
+
+        var message = ex.InnerException?.Message ?? ex.Message;
+        return $"解压工具包失败（已自动重试 {MaxAttempts - 1} 次）：{message}";
+    }
+
+    private static string? ExtractQuotedPath(string message)
+    {
+        var start = message.IndexOf('\'');
+        if (start < 0) return null;
+        var end = message.IndexOf('\'', start + 1);
+        return end > start ? message[(start + 1)..end] : null;
     }
 
     private void ExtractOnce(string downloadedFilePath, string destinationPath, string extractDir,

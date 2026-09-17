@@ -79,6 +79,19 @@ public static class ToolsBundleService
     public static string GetToolsBundleDir() => ToolsBundleDir;
 
     /// <summary>
+    /// 下载队列中是否已有内核包任务（含跨会话恢复的未完成任务）。
+    /// 内核包解压要整体替换 Tools 目录，同一目标并发执行会互相破坏，
+    /// 因此下载期间不再提供第二个下载入口。按后处理器类型识别，不依赖显示名称。
+    /// </summary>
+    public static bool HasPendingBundleDownload()
+    {
+        return DownloadQueueService.Queue.Any(item =>
+            item.PostProcessor is ToolsBundleExtractProcessor &&
+            item.State is DownloadItemState.Queued or DownloadItemState.Resolving
+                or DownloadItemState.Downloading or DownloadItemState.Processing or DownloadItemState.Paused);
+    }
+
+    /// <summary>
     /// 内核包解压目标目录：MSIX 恒为包外 LocalAppData 的内核目录；
     /// 精简版便携（Lite）已随包内置 Tools 时就地升级（替换应用目录下的 Tools），
     /// 否则（旧精简版无内置工具）回退 LocalAppData 内核目录。
