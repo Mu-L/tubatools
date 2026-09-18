@@ -755,6 +755,9 @@ public static class HardwareInfoService
 
         return cleaned.ToUpperInvariant() switch
         {
+            // SMBIOS/SPD 占位串：BIOS 未填模组厂商时的默认值（DDR5 上并不少见），不能当成品牌显示
+            "UNKNOWN" or "TO BE FILLED BY O.E.M." or "TO BE FILLED BY OEM" or "DEFAULT STRING"
+                or "NOT SPECIFIED" or "NOT AVAILABLE" or "N/A" or "NONE" or "UNDEFINED" => null,
             "KINGSTON" or "KINGSTON TECHNOLOGY" => "金士顿(Kingston)",
             "CORSAIR" => "海盗船(Corsair)",
             "CRUCIAL" or "CRUCIAL TECHNOLOGY" => "英睿达(Crucial)",
@@ -784,6 +787,17 @@ public static class HardwareInfoService
             "ASINT" => "ASint",
             "V-COLOR" or "VCOLOR" => "V-Color",
             "GLOWAY" => "光威(Gloway)",
+            "A-DATA" or "A-DATA TECHNOLOGY" => "威刚(ADATA)",
+            "ASGARD" => "阿斯加特(Asgard)",
+            "JUHOR" => "玖合(JUHOR)",
+            "TECLAST" => "台电(Teclast)",
+            "MAXSUN" => "铭瑄(Maxsun)",
+            "KIMTIGO" => "金泰克(Kimtigo)",
+            "AIGO" => "爱国者(aigo)",
+            "AVEXIR" => "宇帷(Avexir)",
+            "TWINMOS" => "勤茂(TwinMOS)",
+            "NEO FORZA" or "NEOFORZA" => "凌航(Neo Forza)",
+            "ESSENCORE" => "科赋(Essencore)",
             _ => cleaned
         };
     }
@@ -873,6 +887,8 @@ public static class HardwareInfoService
         // 历史版本误用了一套与 JEP106 错位的“DRAM 厂商”表（0x02=美光、0x0E=三星、
         // 0x2C=金士顿等均不成立），本表已按 JEP106 原表（decode-dimms @vendors）逐条核对：
         // page 0 的 0x2C 实为美光、0x4E 实为三星、0x2D 实为海力士。
+        // 这里的单字节裸值只收录明确的内存厂商：裸单字节也可能只是多字节 ID 的尾字节
+        // （如金百达的 0x92），对无法确证的 code 一律返回 null；多字节编码走 JedecVendorRegistry 全表。
         return code switch
         {
             0x04 => "富士通(Fujitsu)",
@@ -901,62 +917,15 @@ public static class HardwareInfoService
     internal static string? JedecVendorFromExtendedCode(int fullCode)
     {
         // fullCode 的两种表示（调用方需保持一致）：
-        //   - 小整数（如 0x2C）：去掉校验位后的单字节厂商码（等价 page 0，回退单字节表）；
+        //   - 小整数（如 0x2C）：去掉校验位后的单字节厂商码（等价 bank 0）；
         //   - 两字节打包值（如 0x0B12 / 0x120B）：把 [continuation/bank][vendor] 两个字节
         //     去掉奇校验位后拼接成的 16 位值，即 WMI Win32_PhysicalMemory.Manufacturer
         //     多字节 JEDEC ID 的常见形式（"0B12" 大端 / "120B" 小端经翻转后同样命中）。
-        // 主流内存模组厂大多注册在 page 1 以后，此表按 JEP106 原表核对：
-        // 三星 page0+0x4E、美光 page0+0x2C、海力士 page0+0x2D、金士顿 page1+0x18、
-        // 英睿达 page5+0x1B 等；packed 值 = (page << 8) | vendor。
-        // 注意：两字节打包码不得落入单字节表——否则 e.g. 0x120B (little-endian for
-        // Kingbank) 会被 0x0B 误判成“东芝(Toshiba)”。仅小整数（bank==0）才回退单字节表。
-        var vendorLow7 = (byte)(fullCode & 0x7F);
-        var bank = (fullCode >> 7) & 0x7F;
-        return fullCode switch
-        {
-            // page 1
-            0x0114 => "Smart Modular(智模)",
-            0x0118 => "金士顿(Kingston)",
-            0x013A => "必恩威(PNY)",
-            0x014F => "创见(Transcend)",
-            0x017A => "宇瞻(Apacer)",
-            // page 2
-            0x021E => "海盗船(Corsair)",
-            0x027E => "尔必达(Elpida)",
-            // page 3
-            0x030B => "南亚(Nanya)",
-            0x0325 => "胜创(Kingmax)",
-            // page 4
-            0x0443 => "记忆科技(Ramaxel)",
-            0x0448 => "力晶(Powerchip)",
-            0x044D => "芝奇(G.Skill)",
-            0x046F => "十铨(TeamGroup)",
-            0x0471 => "东芝(Toshiba)",
-            // page 5
-            0x0502 => "博帝(Patriot)",
-            0x051B => "英睿达(Crucial)",
-            0x0551 => "奇梦达(Qimonda)",
-            0x0577 => "Avant Technology",
-            // page 6
-            0x0653 => "广颖电通(Silicon Power)",
-            // page 7
-            0x075D => "Goodram(Wilk Elektronik)",
-            // page 8
-            0x0812 => "影驰(Galaxy)",
-            0x0818 => "科赋(Klevv/Essencore)",
-            0x0865 => "东芯(Dosilicon)",
-            // page 9
-            0x094D => "江波龙(Longsys)",
-            0x096C => "七彩虹(Colorful)",
-            0x0977 => "朗科(Netac)",
-            // page 10
-            0x0A11 => "长鑫存储(CXMT)",
-            0x0A2D => "PUSKILL",
-            0x0A31 => "佰维(Biwin)",
-            // page 11
-            0x0B12 => "金百达(Kingbank)",
-            _ => bank == 0 ? JedecVendorFromCode(vendorLow7) : null
-        };
+        // 查 JEP106 全表（bank 0-16，JEP106BL）：主流内存模组厂注册在 page 1 以后，
+        // 三星/美光/海力士在 bank 0，金士顿 page1、英睿达 page5、金百达 page11 等。
+        // 注意：两字节打包码不得回退单字节表——否则 e.g. 0x120B (little-endian for
+        // Kingbank) 会被 0x0B 误判成“东芝(Toshiba)”。
+        return JedecVendorRegistry.Get(fullCode);
     }
 
     private static string FormatDisks()

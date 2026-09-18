@@ -77,6 +77,27 @@ public class HardwareInfoServiceTests
     [InlineData("TEAMGROUP", "十铨(TeamGroup)")]
     [InlineData("Kingbank Technology", "金百达(Kingbank)")]
     [InlineData("KINGBANK", "金百达(Kingbank)")]
+    // 十六进制 JEDEC ID 走全表解码（不再原样显示 hex）
+    [InlineData("0746", "光威(Gloway)")]
+    [InlineData("120B", "金百达(Kingbank)")]
+    [InlineData("0B2E", "爱国者(aigo)")]
+    // 字符串形式的品牌名（CPU-Z 数据源 / BIOS 直接给字符串）
+    [InlineData("Asgard", "阿斯加特(Asgard)")]
+    [InlineData("JUHOR", "玖合(JUHOR)")]
+    [InlineData("Teclast", "台电(Teclast)")]
+    [InlineData("Maxsun", "铭瑄(Maxsun)")]
+    [InlineData("Kimtigo", "金泰克(Kimtigo)")]
+    [InlineData("aigo", "爱国者(aigo)")]
+    [InlineData("Avexir", "宇帷(Avexir)")]
+    [InlineData("TwinMOS", "勤茂(TwinMOS)")]
+    [InlineData("Neo Forza", "凌航(Neo Forza)")]
+    [InlineData("A-DATA Technology", "威刚(ADATA)")]
+    // SMBIOS/SPD 占位串（Issue #193：DDR5 主板 BIOS 未填厂商，界面显示 "Unknown"）视为无数据
+    [InlineData("Unknown", null)]
+    [InlineData("To be filled by O.E.M.", null)]
+    [InlineData("Default string", null)]
+    [InlineData("Not Specified", null)]
+    [InlineData("N/A", null)]
     [InlineData("UnknownBrand", "UnknownBrand")]
     [InlineData(null, null)]
     [InlineData("", null)]
@@ -130,6 +151,22 @@ public class HardwareInfoServiceTests
     [InlineData("0198", "金士顿(Kingston)")]
     // 英睿达 = page5+0x1B
     [InlineData("051B", "英睿达(Crucial)")]
+    // 全表适配（JEP106BL）：此前未收录的国产 / 常见模组品牌
+    [InlineData("044B", "威刚(ADATA)")] // Bank4 + 0x4B
+    [InlineData("0616", "宇帷(Avexir)")] // Bank6 + 0x16
+    [InlineData("066B", "勤茂(TwinMOS)")] // Bank6 + 0x6B
+    [InlineData("066D", "全何(V-Color)")] // Bank6 + 0x6D
+    [InlineData("0746", "光威(Gloway)")] // Bank7 + 0x46
+    [InlineData("0813", "光威(Gloway)")] // Bank8 + 0x13
+    [InlineData("0871", "阿斯加特(Asgard)")] // Bank8 + 0x71
+    [InlineData("0875", "玖合(JUHOR)")] // Bank8 + 0x75
+    [InlineData("091B", "长江存储(YMTC)")] // Bank9 + 0x1B
+    [InlineData("0921", "台电(Teclast)")] // Bank9 + 0x21
+    [InlineData("0922", "铭瑄(Maxsun)")] // Bank9 + 0x22
+    [InlineData("092D", "凌航(Neo Forza)")] // Bank9 + 0x2D
+    [InlineData("0968", "金泰克(Kimtigo)")] // Bank9 + 0x68
+    [InlineData("0B2E", "爱国者(aigo)")] // Bank11 + 0x2E
+    [InlineData("1003", "JoulWatt Technology Co Ltd")] // Bank16：全表最高 bank 也要能解
     public void DecodeJedecManufacturer_4DigitHex(string raw, string? expected)
     {
         Assert.Equal(expected, HardwareInfoService.DecodeJedecManufacturer(raw));
@@ -163,7 +200,16 @@ public class HardwareInfoServiceTests
     [InlineData(0x051B, "英睿达(Crucial)")] // Bank5 + 0x1B
     [InlineData(0x044D, "芝奇(G.Skill)")] // Bank4 + 0x4D
     [InlineData(0x0818, "科赋(Klevv/Essencore)")] // Bank8 + 0x18
-    [InlineData(0x002C, "美光(Micron)")] // Bank0 + 0x2C 回退单字节表
+    [InlineData(0x002C, "美光(Micron)")] // Bank0 + 0x2C
+    // 全表适配：新收录的 bank / 厂商
+    [InlineData(0x044B, "威刚(ADATA)")]
+    [InlineData(0x0616, "宇帷(Avexir)")]
+    [InlineData(0x0746, "光威(Gloway)")]
+    [InlineData(0x0921, "台电(Teclast)")]
+    [InlineData(0x0968, "金泰克(Kimtigo)")]
+    [InlineData(0x0B2E, "爱国者(aigo)")]
+    [InlineData(0x1003, "JoulWatt Technology Co Ltd")] // Bank16 最高 bank
+    [InlineData(0x0B7F, null)] // 未注册的 vendor code（bank 11 最大 id 为 126）；bank 17 同理不存在
     public void JedecVendorFromExtendedCode_MultiByte(int fullCode, string? expected)
     {
         Assert.Equal(expected, HardwareInfoService.JedecVendorFromExtendedCode(fullCode));
