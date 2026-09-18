@@ -1090,21 +1090,21 @@ public static class PerformanceBenchmarkService
 		return Environment.OSVersion.VersionString;
 	}
 
-	public static void PopulateHardwareInfo(PerformanceBenchmarkResult result)
+	/// <summary>
+	/// 采集硬件信息快照。数据统一来自 HardwareInfoService（与「硬件信息」页同源，含 CPU-Z 数据源设置），
+	/// 不再各自读取 WMI，避免性能测试报告与硬件信息页显示不一致。
+	/// </summary>
+	public static async Task PopulateHardwareInfoAsync(PerformanceBenchmarkResult result)
 	{
-		result.OsName = GetOsName();
 		try
 		{
-			var monitor = LiteMonitorService.Instance;
-			monitor.EnsureInit();
-			var sample = monitor.Read();
-			result.CpuName = sample.CpuName;
-			result.GpuName = sample.GpuName;
-		}
-		catch { }
-		try
-		{
-			var detail = HardwareInfoService.LoadDetailAsync().GetAwaiter().GetResult();
+			var detail = await HardwareInfoService.LoadDetailForDisplayAsync();
+
+			result.CpuName = detail.Cpu?.Name ?? "";
+			if (detail.Gpus.Count > 0)
+			{
+				result.GpuName = PickBestGpuName(detail.Gpus);
+			}
 			if (detail.Motherboard != null)
 			{
 				var mb = detail.Motherboard;
@@ -1125,17 +1125,19 @@ public static class PerformanceBenchmarkService
 				if (!string.IsNullOrWhiteSpace(mem.TotalCapacity)) memParts.Add(mem.TotalCapacity);
 				if (!string.IsNullOrWhiteSpace(mem.MemoryType)) memParts.Add(mem.MemoryType);
 				if (!string.IsNullOrWhiteSpace(mem.ChannelMode)) memParts.Add(mem.ChannelMode);
-				if (mem.Modules.Count > 0)
+				foreach (var module in mem.Modules)
 				{
-					foreach (var module in mem.Modules)
-					{
-						var modParts = new List<string>();
-						if (!string.IsNullOrWhiteSpace(module.Manufacturer)) modParts.Add(module.Manufacturer);
-						if (!string.IsNullOrWhiteSpace(module.PartNumber)) modParts.Add(module.PartNumber);
-						if (!string.IsNullOrWhiteSpace(module.Capacity)) modParts.Add(module.Capacity);
-						if (!string.IsNullOrWhiteSpace(module.Speed)) modParts.Add(module.Speed);
-						if (modParts.Count > 0) memParts.Add(string.Join(" ", modParts));
-					}
+					// 空插槽占位条目（无厂商/料号/频率）跳过
+					if (string.IsNullOrWhiteSpace(module.Manufacturer) &&
+						string.IsNullOrWhiteSpace(module.PartNumber) &&
+						string.IsNullOrWhiteSpace(module.Speed))
+						continue;
+					var modParts = new List<string>();
+					if (!string.IsNullOrWhiteSpace(module.Manufacturer)) modParts.Add(module.Manufacturer);
+					if (!string.IsNullOrWhiteSpace(module.PartNumber)) modParts.Add(module.PartNumber);
+					if (!string.IsNullOrWhiteSpace(module.Capacity)) modParts.Add(module.Capacity);
+					if (!string.IsNullOrWhiteSpace(module.Speed)) modParts.Add(module.Speed);
+					if (modParts.Count > 0) memParts.Add(string.Join(" ", modParts));
 				}
 				result.MemoryInfo = string.Join(" | ", memParts);
 			}
@@ -1167,16 +1169,25 @@ public static class PerformanceBenchmarkService
 				}
 				result.DisplayInfo = string.Join(" | ", displayParts);
 			}
-			if (string.IsNullOrWhiteSpace(result.CpuName) && detail.Cpu != null)
-			{
-				result.CpuName = detail.Cpu.Name ?? "";
-			}
-			if (string.IsNullOrWhiteSpace(result.GpuName) && detail.Gpus.Count > 0)
-			{
-				result.GpuName = PickBestGpuName(detail.Gpus);
-			}
 		}
 		catch { }
+
+		// 兜底：硬件信息读取失败时退回轻量监控（LibreHardwareMonitor）
+		if (string.IsNullOrWhiteSpace(result.CpuName) || string.IsNullOrWhiteSpace(result.GpuName))
+		{
+			try
+			{
+				var monitor = LiteMonitorService.Instance;
+				monitor.EnsureInit();
+				var sample = monitor.Read();
+				if (string.IsNullOrWhiteSpace(result.CpuName)) result.CpuName = sample.CpuName;
+				if (string.IsNullOrWhiteSpace(result.GpuName)) result.GpuName = sample.GpuName;
+			}
+			catch { }
+		}
+
+		result.OsName = await HardwareInfoService.GetSystemInfoTextAsync();
+		if (string.IsNullOrWhiteSpace(result.OsName)) result.OsName = GetOsName();
 	}
 
 	public static string BuildReportJson(PerformanceBenchmarkResult result, string? latencyHeatmapPath = null)

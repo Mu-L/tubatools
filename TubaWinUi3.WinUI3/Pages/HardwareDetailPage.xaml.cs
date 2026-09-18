@@ -318,26 +318,7 @@ public sealed partial class HardwareDetailPage : Page, ILocalizablePage
 
         try
         {
-            var data = await HardwareInfoService.LoadDetailAsync(forceRefresh);
-
-            var useCpuz = AppSettings.GetBool("UseCpuzDataSource", false);
-            if (useCpuz)
-            {
-                var cpuzInfo = CpuzInfoService.CachedInfo;
-                if (cpuzInfo == null)
-                {
-                    try
-                    {
-                        cpuzInfo = await CpuzInfoService.FetchAsync(timeoutMs: 30000);
-                    }
-                    catch { }
-                }
-
-                if (cpuzInfo != null)
-                {
-                    data = HardwareInfoService.ApplyCpuzDetailOverride(data, cpuzInfo);
-                }
-            }
+            var data = await HardwareInfoService.LoadDetailForDisplayAsync(forceRefresh);
 
             // 数据构建（WMI/LHM 可能耗时数秒）期间页面可能已被用户关闭：
             // 此时不能触碰已卸载的视觉树，否则在 async void 上下文中

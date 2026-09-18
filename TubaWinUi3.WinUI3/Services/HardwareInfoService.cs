@@ -1546,6 +1546,45 @@ public static class HardwareInfoService
         return Task.Run(() => BuildDetailData(forceRefresh));
     }
 
+    /// <summary>
+    /// 详情数据的统一入口：与硬件信息页同源，并遵循「使用 CPU-Z 数据源」设置。
+    /// 需要展示硬件参数的地方（硬件详情页、性能测试报告等）都应走这里，避免各取各的数据。
+    /// </summary>
+    public static async Task<HardwareDetailData> LoadDetailForDisplayAsync(bool forceRefresh = false)
+    {
+        var data = await LoadDetailAsync(forceRefresh);
+        if (!AppSettings.GetBool("UseCpuzDataSource", false)) return data;
+
+        var cpuz = CpuzInfoService.CachedInfo;
+        if (cpuz == null)
+        {
+            try
+            {
+                cpuz = await CpuzInfoService.FetchAsync(timeoutMs: 30000);
+            }
+            catch { }
+        }
+
+        return cpuz != null ? ApplyCpuzDetailOverride(data, cpuz) : data;
+    }
+
+    /// <summary>
+    /// 系统名称（与硬件信息页「系统信息」一致，如 "Microsoft Windows 11 专业版 64 位"）。
+    /// </summary>
+    public static async Task<string> GetSystemInfoTextAsync()
+    {
+        try
+        {
+            var sections = await LoadAsync();
+            if (sections.Count > 1)
+            {
+                return sections[1].Items.FirstOrDefault(item => item.Label == "系统")?.Value ?? "";
+            }
+        }
+        catch { }
+        return "";
+    }
+
     private static HardwareDetailData BuildDetailData(bool forceRefresh)
     {
         if (!forceRefresh && _detailCache != null)

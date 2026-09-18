@@ -817,7 +817,7 @@ public sealed partial class PerformanceBenchmarkPage : Page
 				TestTime = DateTime.Now,
 				DurationMode = "Deep"
 			};
-			PerformanceBenchmarkService.PopulateHardwareInfo(result);
+			await PerformanceBenchmarkService.PopulateHardwareInfoAsync(result);
 			Stopwatch sw = Stopwatch.StartNew();
 			var progress = new Progress<BenchmarkProgress>(p =>
 			{
@@ -2342,7 +2342,7 @@ public sealed partial class PerformanceBenchmarkPage : Page
 				}
 			}
 			var tmp = new PerformanceBenchmarkResult();
-			PerformanceBenchmarkService.PopulateHardwareInfo(tmp);
+			await PerformanceBenchmarkService.PopulateHardwareInfoAsync(tmp);
 			ContentDialog progressDlg = new()
 			{
 				Title = "正在上传",
