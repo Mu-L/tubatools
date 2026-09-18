@@ -1,12 +1,12 @@
-using TubaWinUi3.Pages;
+﻿using TubaWinUi3.Pages;
 
 namespace TubaWinUi3.Services;
 
 public sealed class PcTutorialTool : IBuiltinTool
 {
     public string Id => "pc-tutorial";
-    public string Name => "电脑使用教程";
-    public string Description => "新电脑开箱指南、基础操作、烤机检测、常识与辟谣，手把手教你用好电脑";
+    public string Name => LocalizationService.L("Builtin_pc-tutorial_Name", "电脑使用教程");
+    public string Description => LocalizationService.L("Builtin_pc-tutorial_Desc", "新电脑开箱指南、基础操作、烤机检测、常识与辟谣，手把手教你用好电脑");
     public string Glyph => "\uE8D7";
     public string Category => "实用工具";
     public BuiltinToolKind Kind => BuiltinToolKind.Dialog;

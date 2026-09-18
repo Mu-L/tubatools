@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
@@ -8,7 +8,7 @@ using TubaWinUi3.Services;
 
 namespace TubaWinUi3.Pages;
 
-public sealed partial class BuiltinToolsPage : Page
+public sealed partial class BuiltinToolsPage : Page, ILocalizablePage
 {
     private CancellationTokenSource? _activeCts;
     private CancellationTokenSource? _highlightCts;
@@ -98,8 +98,8 @@ public sealed partial class BuiltinToolsPage : Page
     {
         _builtinToolOpenModeInitializing = true;
         BuiltinToolOpenModeComboBox.Items.Clear();
-        BuiltinToolOpenModeComboBox.Items.Add("嵌入页面");
-        BuiltinToolOpenModeComboBox.Items.Add("独立窗口");
+        BuiltinToolOpenModeComboBox.Items.Add(LocalizationService.L("Settings_BuiltinOpenModeOptionEmbedded", "嵌入页面"));
+        BuiltinToolOpenModeComboBox.Items.Add(LocalizationService.L("Settings_BuiltinOpenModeOptionWindow", "独立窗口"));
         BuiltinToolOpenModeComboBox.SelectedIndex = AppSettings.GetBool("BuiltinToolsOpenInWindow", false) ? 1 : 0;
         _builtinToolOpenModeInitializing = false;
     }
@@ -168,8 +168,8 @@ public sealed partial class BuiltinToolsPage : Page
         foreach (var item in BuiltinPivot.Items)
         {
             if (item is PivotItem pivotItem &&
-                pivotItem.Header is string header &&
-                header.Equals(category, StringComparison.CurrentCultureIgnoreCase))
+                pivotItem.Tag is string tag &&
+                tag.Equals(category, StringComparison.CurrentCultureIgnoreCase))
             {
                 BuiltinPivot.SelectedItem = pivotItem;
                 return;
@@ -230,7 +230,16 @@ public sealed partial class BuiltinToolsPage : Page
             BuiltinPivot.Items.Add(CreatePivotItem(group.Key, group.ToList(), favoriteKeys));
         }
 
-        ToolCountText.Text = $"{BuiltinToolRegistry.Tools.Count} 个内置工具";
+        ToolCountText.Text = string.Format(
+            LocalizationService.L("Builtin_ToolCountFormat", "{0} 个内置工具"),
+            BuiltinToolRegistry.Tools.Count);
+    }
+
+    /// <summary>语言切换后重建分类页与卡片（Uid 控件由 WinUI3Localizer 自动更新）。</summary>
+    public void ApplyLocalization()
+    {
+        RebuildPivot();
+        InitBuiltinToolOpenModeComboBox();
     }
 
     private PivotItem CreatePivotItem(string category, List<IBuiltinTool> tools,
@@ -254,7 +263,12 @@ public sealed partial class BuiltinToolsPage : Page
 
         _gridsByCategory[category] = grid;
 
-        return new PivotItem { Header = category, Content = grid };
+        return new PivotItem
+        {
+            Header = LocalizationService.GetBuiltinCategoryDisplayName(category),
+            Tag = category,
+            Content = grid
+        };
     }
 
     private void BuiltinGrid_ItemClick(object sender, ItemClickEventArgs e)

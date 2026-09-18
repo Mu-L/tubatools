@@ -145,14 +145,14 @@ public static class TimeSyncCatalog
     public static string? ValidateHost(string? host)
     {
         var value = StripFlags(host?.Trim() ?? "");
-        if (value.Length == 0) return "地址不能为空";
-        if (value.Length > 253) return "地址过长";
-        if (value.Contains("://", StringComparison.Ordinal)) return "只填服务器地址，不要带 http:// 之类的前缀";
-        if (value.Contains('/') || value.Contains('\\')) return "地址里不能有斜杠";
-        if (value.Contains(':')) return "主机名不要带端口，NTP 固定使用 UDP 123";
-        if (!Regex.IsMatch(value, @"^[A-Za-z0-9._-]+$")) return "地址只能包含字母、数字、点、连字符和下划线";
-        if (value.StartsWith('.') || value.EndsWith('.') || value.Contains("..")) return "域名格式不正确";
-        if (value.Replace(".", "").Length == 0) return "域名格式不正确";
+        if (value.Length == 0) return LocalizationService.L("TimeSync_ErrAddressEmpty", "地址不能为空");
+        if (value.Length > 253) return LocalizationService.L("TimeSync_ErrAddressTooLong", "地址过长");
+        if (value.Contains("://", StringComparison.Ordinal)) return LocalizationService.L("TimeSync_ErrAddressScheme", "只填服务器地址，不要带 http:// 之类的前缀");
+        if (value.Contains('/') || value.Contains('\\')) return LocalizationService.L("TimeSync_ErrAddressSlash", "地址里不能有斜杠");
+        if (value.Contains(':')) return LocalizationService.L("TimeSync_ErrAddressPort", "主机名不要带端口，NTP 固定使用 UDP 123");
+        if (!Regex.IsMatch(value, @"^[A-Za-z0-9._-]+$")) return LocalizationService.L("TimeSync_ErrAddressChars", "地址只能包含字母、数字、点、连字符和下划线");
+        if (value.StartsWith('.') || value.EndsWith('.') || value.Contains("..")) return LocalizationService.L("TimeSync_ErrDomainFormat", "域名格式不正确");
+        if (value.Replace(".", "").Length == 0) return LocalizationService.L("TimeSync_ErrDomainFormat", "域名格式不正确");
         return null;
     }
 
@@ -160,7 +160,7 @@ public static class TimeSyncCatalog
     public static string? ValidateHosts(IEnumerable<string> hosts)
     {
         var list = hosts.Where(h => !string.IsNullOrWhiteSpace(h)).ToList();
-        if (list.Count == 0) return "至少填写一台 NTP 服务器地址";
+        if (list.Count == 0) return LocalizationService.L("TimeSync_ErrNoServers", "至少填写一台 NTP 服务器地址");
         foreach (var host in list)
         {
             var error = ValidateHost(host);
@@ -181,7 +181,12 @@ public static class TimeSyncCatalog
         => value.StartsWith("0x", StringComparison.OrdinalIgnoreCase) || value.All(char.IsDigit);
 
     public static string DescribeInterval(int seconds)
-        => IntervalOptions.FirstOrDefault(o => o.Seconds == seconds).Label ?? $"{seconds} 秒";
+    {
+        var match = IntervalOptions.FirstOrDefault(o => o.Seconds == seconds);
+        return match.Seconds == seconds && match.Label is not null
+            ? LocalizationService.L($"TimeSync_Interval_{seconds}", match.Label)
+            : string.Format(LocalizationService.L("TimeSync_SecondsFormat", "{0} 秒"), seconds);
+    }
 
     #region 设置存储
 

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -16,8 +16,8 @@ namespace TubaWinUi3.Services;
 public sealed class LatencyImageQueryTool : IBuiltinTool
 {
 	public string Id => "latency-image-query";
-	public string Name => "核间延迟查询";
-	public string Description => "查看社区上传的核间延迟热力图，对比不同 CPU 的核心间通信延迟。";
+	public string Name => LocalizationService.L("Builtin_latency-image-query_Name", "核间延迟查询");
+	public string Description => LocalizationService.L("Builtin_latency-image-query_Desc", "查看社区上传的核间延迟热力图，对比不同 CPU 的核心间通信延迟。");
 	public string Glyph => "\ue9d9";
 	public string Category => "硬件工具";
 	public BuiltinToolKind Kind => BuiltinToolKind.Dialog;

@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using TubaWinUi3.Services;
@@ -6,7 +6,7 @@ using Windows.UI;
 
 namespace TubaWinUi3.Pages;
 
-public sealed partial class PortViewerPage : Page
+public sealed partial class PortViewerPage : Page, ILocalizablePage
 {
     private static readonly Color AccentBlue = Color.FromArgb(255, 96, 165, 250);
     private static readonly Color AccentGreen = Color.FromArgb(255, 74, 222, 128);
@@ -28,6 +28,11 @@ public sealed partial class PortViewerPage : Page
         _ = LoadDataAsync();
     }
 
+    /// <summary>语言切换后刷新计数文案与列表（表头等 Uid 控件由 WinUI3Localizer 自动更新）。</summary>
+    public void ApplyLocalization()
+    {
+        ApplyFilter();
+    }
     private async Task LoadDataAsync()
     {
         LoadingRing.IsActive = true;
@@ -75,7 +80,7 @@ public sealed partial class PortViewerPage : Page
         }
 
         var list = filtered.ToList();
-        CountText.Text = $"{list.Count} 个连接";
+        CountText.Text = string.Format(LocalizationService.L("PortViewer_ConnectionCount", "{0} 个连接"), list.Count);
         RenderList(list);
     }
 
@@ -177,8 +182,8 @@ public sealed partial class PortViewerPage : Page
             }
             else
             {
-                ErrorBar.Title = "结束进程失败";
-                ErrorBar.Message = $"无法结束进程 {entry.ProcessName} (PID {entry.ProcessId})：{error}";
+                ErrorBar.Title = LocalizationService.L("PortViewer_KillFailed", "结束进程失败");
+                ErrorBar.Message = string.Format(LocalizationService.L("PortViewer_KillFailedMsg", "无法结束进程 {0} (PID {1})：{2}"), entry.ProcessName, entry.ProcessId, error);
                 ErrorBar.Severity = InfoBarSeverity.Error;
                 ErrorBar.IsOpen = true;
             }
@@ -270,7 +275,7 @@ public sealed partial class PortViewerPage : Page
 
     private void ProtoCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (ProtoCombo.SelectedItem is string s)
+        if (ProtoCombo.SelectedItem is ComboBoxItem { Tag: string s })
             _protocolFilter = s;
         ApplyFilter();
     }

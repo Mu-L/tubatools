@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
@@ -14,7 +14,7 @@ using Windows.ApplicationModel.DataTransfer;
 
 namespace TubaWinUi3.Pages;
 
-public sealed partial class HardwarePage : Page
+public sealed partial class HardwarePage : Page, ILocalizablePage
 {
     private DispatcherTimer? _uptimeTimer;
     private bool _dataLoaded;
@@ -37,6 +37,7 @@ public sealed partial class HardwarePage : Page
         Loaded += HardwarePage_Loaded;
         Unloaded += HardwarePage_Unloaded;
         LoadBrandLogos();
+        ApplyCardToolTips();
         AppSettings.SettingChanged += OnSettingChanged;
     }
 
@@ -122,9 +123,24 @@ public sealed partial class HardwarePage : Page
     private void UpdateUptime()
     {
         var uptime = TimeSpan.FromMilliseconds(Environment.TickCount64);
-        UptimeText.Text = $"{uptime.Days}天{uptime.Hours}小时{uptime.Minutes}分钟{uptime.Seconds}秒";
+        UptimeText.Text = string.Format(LocalizationService.L("Hw_UptimeFormat", "{0}天{1}小时{2}分钟{3}秒"), uptime.Days, uptime.Hours, uptime.Minutes, uptime.Seconds);
     }
 
+    /// <summary>语言切换后刷新卡片提示与详情列表（卡片 ToolTip 是附加属性，不能走 Uid）。</summary>
+    public void ApplyLocalization()
+    {
+        ApplyCardToolTips();
+        if (_currentSections is not null)
+            ApplySections(_currentSections);
+    }
+
+    private void ApplyCardToolTips()
+    {
+        var hint = LocalizationService.L("Hw_CopyHint", "点击复制");
+        ToolTipService.SetToolTip(Card1, hint);
+        ToolTipService.SetToolTip(Card2, hint);
+        ToolTipService.SetToolTip(Card3, hint);
+    }
     private void RefreshButton_Click(object sender, RoutedEventArgs e)
     {
         _ = LoadHardwareInfoAsync(forceRefresh: true);
@@ -239,7 +255,10 @@ public sealed partial class HardwarePage : Page
 
         _isAnimatingNickname = false;
 
-        ShowStatusBar(_nicknameMode ? "彩蛋模式" : "正常模式", _nicknameMode ? "品牌戏称已开启，点击标题恢复" : "品牌戏称已关闭", _nicknameMode ? InfoBarSeverity.Informational : InfoBarSeverity.Success);
+        ShowStatusBar(
+            _nicknameMode ? LocalizationService.L("Hw_NicknameModeOn", "彩蛋模式") : LocalizationService.L("Hw_NicknameModeOff", "正常模式"),
+            _nicknameMode ? LocalizationService.L("Hw_NicknameOnHint", "品牌戏称已开启，点击标题恢复") : LocalizationService.L("Hw_NicknameOffHint", "品牌戏称已关闭"),
+            _nicknameMode ? InfoBarSeverity.Informational : InfoBarSeverity.Success);
     }
 
     private void Card_PointerEntered(object sender, PointerRoutedEventArgs e)
@@ -319,11 +338,11 @@ public sealed partial class HardwarePage : Page
         }
         catch (Exception ex)
         {
-            ModelText.Text = "未知";
-            SystemText.Text = "未知";
-            UptimeText.Text = "未知";
+            ModelText.Text = LocalizationService.L("Hw_Unknown", "未知");
+            SystemText.Text = LocalizationService.L("Hw_Unknown", "未知");
+            UptimeText.Text = LocalizationService.L("Hw_Unknown", "未知");
             DetailsRepeater.ItemsSource = Array.Empty<HardwareInfoItem>();
-            ShowStatusBar("硬件信息读取失败", ex.Message, InfoBarSeverity.Error);
+            ShowStatusBar(LocalizationService.L("Hw_LoadFailed", "硬件信息读取失败"), ex.Message, InfoBarSeverity.Error);
         }
         finally
         {
@@ -343,8 +362,8 @@ public sealed partial class HardwarePage : Page
         var system = sections[1].Items;
         var details = sections[2].Items;
 
-        ModelText.Text = summary.FirstOrDefault(item => item.Label == "设备型号")?.Value ?? "未知";
-        SystemText.Text = system.FirstOrDefault(item => item.Label == "系统")?.Value ?? "未知";
+        ModelText.Text = summary.FirstOrDefault(item => item.Label == "设备型号")?.Value ?? LocalizationService.L("Hw_Unknown", "未知");
+        SystemText.Text = system.FirstOrDefault(item => item.Label == "系统")?.Value ?? LocalizationService.L("Hw_Unknown", "未知");
         UpdateUptime();
         _animatingDetails = !FastModeService.IsFastModeEnabled();
         DetailsRepeater.ItemsSource = details;
@@ -417,7 +436,7 @@ public sealed partial class HardwarePage : Page
 
     private void ShowCopyToast(string text)
     {
-        StatusBar.Title = "已复制";
+        StatusBar.Title = LocalizationService.L("Hw_Copied", "已复制");
         StatusBar.Message = text.Length > 80 ? text[..80] + "…" : text;
         StatusBar.Severity = InfoBarSeverity.Success;
         StatusBar.IsOpen = true;
@@ -521,11 +540,11 @@ public sealed partial class HardwarePage : Page
         try
         {
             CopyToClipboard(BuildTextExport());
-            ShowStatusBar("纯文字已复制", "硬件信息文本已复制到剪贴板", InfoBarSeverity.Success);
+            ShowStatusBar(LocalizationService.L("Hw_PlainCopied", "纯文字已复制"), LocalizationService.L("Hw_PlainCopiedMsg", "硬件信息文本已复制到剪贴板"), InfoBarSeverity.Success);
         }
         catch (Exception ex)
         {
-            ShowStatusBar("复制失败", ex.Message, InfoBarSeverity.Error);
+            ShowStatusBar(LocalizationService.L("Hw_CopyFailed", "复制失败"), ex.Message, InfoBarSeverity.Error);
         }
     }
 
@@ -534,11 +553,11 @@ public sealed partial class HardwarePage : Page
         try
         {
             CopyToClipboard(BuildMarkdownExport());
-            ShowStatusBar("Markdown 已复制", "硬件信息 Markdown 已复制到剪贴板", InfoBarSeverity.Success);
+            ShowStatusBar(LocalizationService.L("Hw_MarkdownCopied", "Markdown 已复制"), LocalizationService.L("Hw_MarkdownCopiedMsg", "硬件信息 Markdown 已复制到剪贴板"), InfoBarSeverity.Success);
         }
         catch (Exception ex)
         {
-            ShowStatusBar("复制失败", ex.Message, InfoBarSeverity.Error);
+            ShowStatusBar(LocalizationService.L("Hw_CopyFailed", "复制失败"), ex.Message, InfoBarSeverity.Error);
         }
     }
 
@@ -547,7 +566,7 @@ public sealed partial class HardwarePage : Page
     {
         var sections = _currentSections;
         if (sections == null || sections.Count == 0)
-            return "暂无硬件信息";
+            return LocalizationService.L("Hw_NoData", "暂无硬件信息");
 
         var sb = new StringBuilder();
         var isFirst = true;
@@ -569,7 +588,7 @@ public sealed partial class HardwarePage : Page
     {
         var sections = _currentSections;
         if (sections == null || sections.Count == 0)
-            return "暂无硬件信息";
+            return LocalizationService.L("Hw_NoData", "暂无硬件信息");
 
         var sb = new StringBuilder();
         var isFirst = true;
@@ -579,7 +598,7 @@ public sealed partial class HardwarePage : Page
             isFirst = false;
             sb.AppendLine($"## {section.Title}");
             sb.AppendLine();
-            sb.AppendLine("| 项目 | 详情 |");
+            sb.AppendLine(LocalizationService.L("Hw_MarkdownHeader", "| 项目 | 详情 |"));
             sb.AppendLine("| --- | --- |");
             foreach (var item in section.Items)
             {
@@ -699,7 +718,7 @@ public sealed partial class HardwarePage : Page
             var showWatermark = AppSettings.GetBool("ScreenshotWatermark", true);
             if (showWatermark)
             {
-                var watermarkText = AppSettings.Get("ScreenshotWatermarkText") ?? "图吧工具箱CE";
+                var watermarkText = AppSettings.Get("ScreenshotWatermarkText") ?? LocalizationService.L("App_Title", "图吧工具箱CE");
                 var watermarkFont = AppSettings.Get("ScreenshotWatermarkFont") ?? "微软雅黑";
                 DrawWatermark(g, totalW, totalH, watermarkText, watermarkFont, watermarkBarBg, watermarkTextColor);
             }
@@ -720,11 +739,11 @@ public sealed partial class HardwarePage : Page
             Clipboard.SetContent(dataPackage);
             Clipboard.Flush();
 
-            ShowStatusBar("截图已复制到剪贴板", "可直接粘贴使用", InfoBarSeverity.Success);
+            ShowStatusBar(LocalizationService.L("Hw_ScreenshotCopied", "截图已复制到剪贴板"), LocalizationService.L("Hw_ScreenshotCopiedMsg", "可直接粘贴使用"), InfoBarSeverity.Success);
         }
         catch (Exception ex)
         {
-            ShowStatusBar("截图失败", ex.Message, InfoBarSeverity.Error);
+            ShowStatusBar(LocalizationService.L("Hw_ScreenshotFailed", "截图失败"), ex.Message, InfoBarSeverity.Error);
         }
         finally
         {

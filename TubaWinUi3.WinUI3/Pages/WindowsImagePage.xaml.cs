@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using TubaWinUi3.Models;
@@ -7,7 +7,7 @@ using Windows.UI;
 
 namespace TubaWinUi3.Pages;
 
-public sealed partial class WindowsImagePage : Page
+public sealed partial class WindowsImagePage : Page, ILocalizablePage
 {
     private List<WindowsImageEntry>? _allEntries;
     private string _filter = "";
@@ -37,6 +37,7 @@ public sealed partial class WindowsImagePage : Page
 
         InitUupArchCombo();
         UpdateUupLocationText();
+        ApplyCommunityRiskText();
 
         Unloaded += (_, _) =>
         {
@@ -53,6 +54,26 @@ public sealed partial class WindowsImagePage : Page
 
 
 
+    /// <summary>语言切换后刷新静态文案（社区镜像 Run 段落、架构下拉、向导提示与列表卡片）。</summary>
+    public void ApplyLocalization()
+    {
+        ApplyCommunityRiskText();
+        InitUupArchCombo();
+        UpdateUupLocationText();
+        if (_uupSelectedBuild is null)
+            ResetUupSelection();
+        ApplyFilter();
+    }
+
+    /// <summary>社区镜像页的加粗 Run 段落（Run 不支持 Uid，只能代码赋值）。</summary>
+    private void ApplyCommunityRiskText()
+    {
+        CommunitySourceRun.Text = LocalizationService.L("WindowsImage_CommunitySource", "来源：GitHub ILLKX/Windows 社区项目");
+        CommunityRiskRun.Text = LocalizationService.L("WindowsImage_CommunityRisk", "⚠ 风险提醒：");
+        CommunityRiskBodyRun.Text = LocalizationService.L("WindowsImage_CommunityRiskBody",
+            "社区镜像非微软官方提供，虽经社区验证，但无法保证文件完整性与安全性。建议下载后校验 SHA256，或优先使用「微软官方下载」标签页获取原版镜像。");
+    }
+
     private void LoadMsEditions()
     {
         var editions = MicrosoftOfficialService.GetAvailableEditions();
@@ -65,12 +86,12 @@ public sealed partial class WindowsImagePage : Page
     {
         var msg = ex.Message;
         if (ex is TaskCanceledException || msg.Contains("HttpClient.Timeout", StringComparison.OrdinalIgnoreCase))
-            return $"{fallback}：请求超时，请检查网络连接后重试。";
+            return string.Format(LocalizationService.L("WindowsImage_ErrTimeout", "{0}：请求超时，请检查网络连接后重试。"), fallback);
         if (msg.Contains("No such host", StringComparison.OrdinalIgnoreCase) ||
             msg.Contains("not resolved", StringComparison.OrdinalIgnoreCase) ||
             msg.Contains("远程名称无法解析", StringComparison.OrdinalIgnoreCase))
-            return $"{fallback}：无法解析服务器地址，请检查网络或 DNS 设置。";
-        return $"{fallback}：{msg}";
+            return string.Format(LocalizationService.L("WindowsImage_ErrDns", "{0}：无法解析服务器地址，请检查网络或 DNS 设置。"), fallback);
+        return string.Format(LocalizationService.L("WindowsImage_ErrGeneric", "{0}：{1}"), fallback, msg);
     }
 
     private async Task LoadDataAsync()
@@ -88,8 +109,8 @@ public sealed partial class WindowsImagePage : Page
         }
         catch (Exception ex)
         {
-            StatusInfoBar.Title = "加载失败";
-            StatusInfoBar.Message = FriendlyTimeoutMessage(ex, "获取镜像列表失败");
+            StatusInfoBar.Title = LocalizationService.L("WindowsImage_LoadFailed", "加载失败");
+            StatusInfoBar.Message = FriendlyTimeoutMessage(ex, LocalizationService.L("WindowsImage_FailLoadList", "获取镜像列表失败"));
             StatusInfoBar.Severity = InfoBarSeverity.Error;
             StatusInfoBar.IsOpen = true;
         }
@@ -185,7 +206,7 @@ public sealed partial class WindowsImagePage : Page
                 Children =
                 {
                     new FontIcon { Glyph = "\uE896", FontSize = 11 },
-                    new TextBlock { Text = "下载", FontSize = 12 }
+                    new TextBlock { Text = LocalizationService.L("WindowsImage_BtnDownload", "下载"), FontSize = 12 }
                 }
             },
             Padding = new Thickness(10, 4, 10, 4),
@@ -202,7 +223,7 @@ public sealed partial class WindowsImagePage : Page
                 Children =
                 {
                     new FontIcon { Glyph = "\uE898", FontSize = 11 },
-                    new TextBlock { Text = "下载并转ISO", FontSize = 12 }
+                    new TextBlock { Text = LocalizationService.L("WindowsImage_BtnDownloadConvert", "下载并转ISO"), FontSize = 12 }
                 }
             },
             Padding = new Thickness(10, 4, 10, 4),
@@ -230,9 +251,9 @@ public sealed partial class WindowsImagePage : Page
         grid.Children.Add(archBadge); Grid.SetColumn(archBadge, 4);
         grid.Children.Add(actionPanel); Grid.SetColumn(actionPanel, 5);
 
-        var tip = new ToolTip { Content = $"{entry.DisplayName}\n{entry.FileName}\n大小: {entry.SizeDisplay}" };
+        var tip = new ToolTip { Content = string.Format(LocalizationService.L("WindowsImage_TipSize", "{0}\n{1}\n大小: {2}"), entry.DisplayName, entry.FileName, entry.SizeDisplay) };
         if (entry.Sha256 is not null) tip.Content += $"\nSHA256: {entry.Sha256[..16]}...";
-        if (entry.Updated is not null) tip.Content += $"\n更新: {entry.Updated}";
+        if (entry.Updated is not null) tip.Content += string.Format(LocalizationService.L("WindowsImage_TipUpdated", "\n更新: {0}"), entry.Updated);
         ToolTipService.SetToolTip(grid, tip);
 
         return new Border
@@ -279,8 +300,8 @@ public sealed partial class WindowsImagePage : Page
             description: $"{entry.Language} | {entry.Arch} | {entry.SizeDisplay}",
             glyph: "\uE896");
 
-        StatusInfoBar.Title = "已加入下载队列";
-        StatusInfoBar.Message = $"{entry.DisplayName} 正在下载至 {destDir}";
+        StatusInfoBar.Title = LocalizationService.L("WindowsImage_Queued", "已加入下载队列");
+        StatusInfoBar.Message = string.Format(LocalizationService.L("WindowsImage_QueuedMsgDownload", "{0} 正在下载至 {1}"), entry.DisplayName, destDir);
         StatusInfoBar.Severity = InfoBarSeverity.Success;
         StatusInfoBar.IsOpen = true;
 
@@ -290,7 +311,7 @@ public sealed partial class WindowsImagePage : Page
     private void ShowQueueTip(string name, FrameworkElement? target)
     {
         QueueTeachingTip.Title = "已加入下载队列";
-        QueueTeachingTip.Subtitle = $"{name}\n点击主页搜索框旁的下载按钮可查看进度";
+        QueueTeachingTip.Subtitle = string.Format(LocalizationService.L("WindowsImage_QueueTipSubtitle", "{0}\n点击主页搜索框旁的下载按钮可查看进度"), name);
         QueueTeachingTip.IconSource = new SymbolIconSource { Symbol = Symbol.Download };
         QueueTeachingTip.Target = target;
         QueueTeachingTip.IsOpen = true;
@@ -304,10 +325,10 @@ public sealed partial class WindowsImagePage : Page
         {
             var dialog = new ContentDialog
             {
-                Title = "需要 UltraISO",
-                Content = "ESD 转 ISO 需要安装 UltraISO。\n\n是否前往下载页面？",
-                PrimaryButtonText = "前往下载",
-                CloseButtonText = "取消",
+                Title = LocalizationService.L("WindowsImage_UltraIsoRequired", "需要 UltraISO"),
+                Content = LocalizationService.L("WindowsImage_UltraIsoContent", "ESD 转 ISO 需要安装 UltraISO。") + "\n\n" + LocalizationService.L("WindowsImage_UltraIsoContentAsk", "是否前往下载页面？"),
+                PrimaryButtonText = LocalizationService.L("WindowsImage_UltraIsoGo", "前往下载"),
+                CloseButtonText = LocalizationService.L("WindowsImage_UltraIsoCancel", "取消"),
                 XamlRoot = Content.XamlRoot,
                 RequestedTheme = ThemeService.CurrentElementTheme
             };
@@ -322,9 +343,9 @@ public sealed partial class WindowsImagePage : Page
         var destDir = WindowsImageService.GetDownloadDir();
         var isoFileName = Path.ChangeExtension(entry.FileName, ".iso");
 
-        var postProcessor = new DelegatePostProcessor("ESD 转 ISO", async (file, dest, progress, ct) =>
+        var postProcessor = new DelegatePostProcessor(LocalizationService.L("WindowsImage_PostProcessorName", "ESD 转 ISO"), async (file, dest, progress, ct) =>
         {
-            progress?.Report("正在等待下载完成...");
+            progress?.Report(LocalizationService.L("WindowsImage_WaitingDownload", "正在等待下载完成..."));
             var esdFile = Path.Combine(dest, Path.GetFileName(file));
             if (!File.Exists(esdFile)) esdFile = file;
 
@@ -339,19 +360,19 @@ public sealed partial class WindowsImagePage : Page
         });
 
         DownloadQueueService.Enqueue(
-            entry.DisplayName + " (ESD→ISO)",
+            entry.DisplayName + LocalizationService.L("WindowsImage_EsdIsoSuffix", " (ESD→ISO)"),
             entry.DownloadUrl,
             destDir,
             postProcessor,
             description: $"{entry.Language} | {entry.Arch} | {entry.SizeDisplay} → ISO",
             glyph: "\uE898");
 
-        StatusInfoBar.Title = "已加入下载队列";
-        StatusInfoBar.Message = $"{entry.DisplayName} 下载完成后将自动转换为 ISO";
+        StatusInfoBar.Title = LocalizationService.L("WindowsImage_Queued", "已加入下载队列");
+        StatusInfoBar.Message = string.Format(LocalizationService.L("WindowsImage_QueuedMsgConvert", "{0} 下载完成后将自动转换为 ISO"), entry.DisplayName);
         StatusInfoBar.Severity = InfoBarSeverity.Success;
         StatusInfoBar.IsOpen = true;
 
-        ShowQueueTip(entry.DisplayName + " (ESD→ISO)", btn);
+        ShowQueueTip(entry.DisplayName + LocalizationService.L("WindowsImage_EsdIsoSuffix", " (ESD→ISO)"), btn);
     }
 
     private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
@@ -362,14 +383,14 @@ public sealed partial class WindowsImagePage : Page
 
     private void CategoryCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (CategoryCombo.SelectedItem is string s)
+        if (CategoryCombo.SelectedItem is ComboBoxItem { Tag: string s })
             _categoryFilter = s;
         ApplyFilter();
     }
 
     private void LangCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (LangCombo.SelectedItem is string s)
+        if (LangCombo.SelectedItem is ComboBoxItem { Tag: string s })
             _langFilter = s;
         ApplyFilter();
     }
@@ -398,13 +419,13 @@ public sealed partial class WindowsImagePage : Page
 
         MsProgressRing.Visibility = Visibility.Visible;
         MsStatusText.Visibility = Visibility.Visible;
-        MsStatusText.Text = "正在初始化会话...";
+        MsStatusText.Text = LocalizationService.L("WindowsImage_MsInitSession", "正在初始化会话...");
 
         try
         {
             var sessionId = await MicrosoftOfficialService.InitSessionAsync();
 
-            MsStatusText.Text = "正在获取语言列表...";
+            MsStatusText.Text = LocalizationService.L("WindowsImage_FetchingLanguages", "正在获取语言列表...");
 
             var skuId = edition.SkuIds[0];
             var languages = await MicrosoftOfficialService.GetLanguagesAsync(skuId, sessionId);
@@ -425,11 +446,11 @@ public sealed partial class WindowsImagePage : Page
             MsLangCombo.IsEnabled = languages.Count > 0;
             MsFetchBtn.IsEnabled = languages.Count > 0;
 
-            MsStatusText.Text = $"已获取 {languages.Count} 种语言";
+            MsStatusText.Text = string.Format(LocalizationService.L("WindowsImage_MsLanguagesCount", "已获取 {0} 种语言"), languages.Count);
         }
         catch (Exception ex)
         {
-            MsStatusText.Text = FriendlyTimeoutMessage(ex, "获取语言列表失败");
+            MsStatusText.Text = FriendlyTimeoutMessage(ex, LocalizationService.L("WindowsImage_FailLoadLanguages", "获取语言列表失败"));
         }
         finally
         {
@@ -446,7 +467,7 @@ public sealed partial class WindowsImagePage : Page
         MsResultPanel.Visibility = Visibility.Collapsed;
         MsProgressRing.Visibility = Visibility.Visible;
         MsStatusText.Visibility = Visibility.Visible;
-        MsStatusText.Text = "正在获取下载链接...";
+        MsStatusText.Text = LocalizationService.L("WindowsImage_MsFetchingLink", "正在获取下载链接...");
 
         try
         {
@@ -455,18 +476,18 @@ public sealed partial class WindowsImagePage : Page
             if (_msResolvedEntry is not null)
             {
                 MsResultTitle.Text = _msResolvedEntry.DisplayName;
-                MsResultInfo.Text = $"架构: {_msResolvedEntry.Arch} | 文件: {_msResolvedEntry.FileName}";
+                MsResultInfo.Text = string.Format(LocalizationService.L("WindowsImage_MsResultInfo", "架构: {0} | 文件: {1}"), _msResolvedEntry.Arch, _msResolvedEntry.FileName);
                 MsResultPanel.Visibility = Visibility.Visible;
-                MsStatusText.Text = "下载链接获取成功（24 小时内有效）";
+                MsStatusText.Text = LocalizationService.L("WindowsImage_MsLinkOk", "下载链接获取成功（24 小时内有效）");
             }
             else
             {
-                MsStatusText.Text = "未能获取下载链接，请稍后重试";
+                MsStatusText.Text = LocalizationService.L("WindowsImage_MsLinkFail", "未能获取下载链接，请稍后重试");
             }
         }
         catch (Exception ex)
         {
-            MsStatusText.Text = FriendlyTimeoutMessage(ex, "获取下载链接失败");
+            MsStatusText.Text = FriendlyTimeoutMessage(ex, LocalizationService.L("WindowsImage_FailFetchLink", "获取下载链接失败"));
         }
         finally
         {
@@ -500,8 +521,8 @@ public sealed partial class WindowsImagePage : Page
             dp.SetText(_msResolvedEntry.DownloadUrl);
             Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dp);
 
-            StatusInfoBar.Title = "已复制";
-            StatusInfoBar.Message = "下载链接已复制到剪贴板";
+            StatusInfoBar.Title = LocalizationService.L("WindowsImage_Copied", "已复制");
+            StatusInfoBar.Message = LocalizationService.L("WindowsImage_CopiedMsg", "下载链接已复制到剪贴板");
             StatusInfoBar.Severity = InfoBarSeverity.Success;
             StatusInfoBar.IsOpen = true;
         }
@@ -518,8 +539,8 @@ public sealed partial class WindowsImagePage : Page
 
         UupSaveLocationText.Text = UupDumpService.GetDownloadDir();
         ToolTipService.SetToolTip(UupSaveLocationText,
-            "微软官方与社区镜像直接保存到所选目录；UUP 下载包保存在其中的 UUPDump 子目录。\n" +
-            $"当前保存根目录：{(isCustom ? custom!.Trim() : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads"))}");
+            LocalizationService.L("WindowsImage_SaveLocationTip", "微软官方与社区镜像直接保存到所选目录；UUP 下载包保存在其中的 UUPDump 子目录。") + "\n" +
+            string.Format(LocalizationService.L("WindowsImage_SaveLocationCurrent", "当前保存根目录：{0}"), isCustom ? custom!.Trim() : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads")));
         UupResetDirBtn.Visibility = isCustom ? Visibility.Visible : Visibility.Collapsed;
     }
 
@@ -531,8 +552,8 @@ public sealed partial class WindowsImagePage : Page
         AppSettings.Set("WindowsImageDownloadDir", dir);
         UpdateUupLocationText();
 
-        StatusInfoBar.Title = "保存位置已更改";
-        StatusInfoBar.Message = $"此页面所有下载（微软官方/社区镜像/UUP）将保存到 {dir}";
+        StatusInfoBar.Title = LocalizationService.L("WindowsImage_SaveLocationChanged", "保存位置已更改");
+        StatusInfoBar.Message = string.Format(LocalizationService.L("WindowsImage_SaveLocationChangedMsg", "此页面所有下载（微软官方/社区镜像/UUP）将保存到 {0}"), dir);
         StatusInfoBar.Severity = InfoBarSeverity.Success;
         StatusInfoBar.IsOpen = true;
     }
@@ -548,11 +569,11 @@ public sealed partial class WindowsImagePage : Page
         var suggested = UupDumpService.GetSuggestedArch();
         List<ComboBoxItem> archItems =
         [
-            new ComboBoxItem { Content = $"跟随系统 ({suggested})", Tag = suggested },
-            new ComboBoxItem { Content = "全部架构", Tag = "" },
+            new ComboBoxItem { Content = string.Format(LocalizationService.L("WindowsImage_ArchFollowSystem", "跟随系统 ({0})"), suggested), Tag = suggested },
+            new ComboBoxItem { Content = LocalizationService.L("WindowsImage_ArchAll", "全部架构"), Tag = "" },
             new ComboBoxItem { Content = "amd64 (x64)", Tag = "amd64" },
             new ComboBoxItem { Content = "arm64", Tag = "arm64" },
-            new ComboBoxItem { Content = "x86 (32 位)", Tag = "x86" },
+            new ComboBoxItem { Content = LocalizationService.L("WindowsImage_ArchX86", "x86 (32 位)"), Tag = "x86" },
         ];
         UupArchCombo.ItemsSource = archItems;
         UupArchCombo.SelectedIndex = 0;
@@ -566,7 +587,7 @@ public sealed partial class WindowsImagePage : Page
 
         UupBuildLoadingPanel.Visibility = Visibility.Visible;
         UupBuildStatusText.Visibility = Visibility.Visible;
-        UupBuildStatusText.Text = "正在获取构建列表（网络较慢时首次可能需要数秒）…";
+        UupBuildStatusText.Text = LocalizationService.L("WindowsImage_UupFetchingBuilds", "正在获取构建列表（网络较慢时首次可能需要数秒）…");
         UupBuildList.ItemsSource = null;
         ResetUupSelection();
 
@@ -578,7 +599,7 @@ public sealed partial class WindowsImagePage : Page
             ApplyUupBuildFilter();
 
             if (builds.Count == 0)
-                ShowUupBuildStatus("没有找到匹配的构建。试试其他关键词，例如 26100 或 24H2。");
+                ShowUupBuildStatus(LocalizationService.L("WindowsImage_UupNoBuilds", "没有找到匹配的构建。试试其他关键词，例如 26100 或 24H2。"));
         }
         catch (OperationCanceledException) { }
         catch (UupDumpApiException ex)
@@ -587,7 +608,7 @@ public sealed partial class WindowsImagePage : Page
         }
         catch (Exception ex)
         {
-            ShowUupBuildStatus(FriendlyTimeoutMessage(ex, "获取构建列表失败"));
+            ShowUupBuildStatus(FriendlyTimeoutMessage(ex, LocalizationService.L("WindowsImage_FailLoadBuilds", "获取构建列表失败")));
         }
         finally
         {
@@ -607,7 +628,7 @@ public sealed partial class WindowsImagePage : Page
     {
         if (_uupAllBuilds is null) return;
 
-        var channel = (UupChannelCombo.SelectedItem as string) ?? "全部";
+        var channel = (UupChannelCombo.SelectedItem as ComboBoxItem)?.Tag as string ?? "全部";
         var arch = (UupArchCombo.SelectedItem as ComboBoxItem)?.Tag as string ?? "";
 
         var filtered = _uupAllBuilds.AsEnumerable();
@@ -630,7 +651,7 @@ public sealed partial class WindowsImagePage : Page
         }
 
         if (list.Count == 0 && UupBuildStatusText.Visibility != Visibility.Visible)
-            ShowUupBuildStatus("当前筛选条件下没有构建，可把架构切换为「全部架构」。");
+            ShowUupBuildStatus(LocalizationService.L("WindowsImage_UupNoBuildsFiltered", "当前筛选条件下没有构建，可把架构切换为「全部架构」。"));
         else if (list.Count > 0)
             UupBuildStatusText.Visibility = Visibility.Collapsed;
     }
@@ -643,14 +664,14 @@ public sealed partial class WindowsImagePage : Page
         _uupFilePreview = null;
         _uupVirtualEditions = null;
 
-        UupSelectedBuildText.Text = "请先在上方第 1 步中选择一个系统版本";
+        UupSelectedBuildText.Text = LocalizationService.L("WindowsImage_UupSelectBuildHint", "请先在上方第 1 步中选择一个系统版本");
         UupLangCombo.ItemsSource = null;
         UupLangCombo.IsEnabled = false;
         UupEditionRadio.ItemsSource = null;
         UupVirtualEditionPanel.Children.Clear();
         UupVirtualEditionExpander.Visibility = Visibility.Collapsed;
         UupStartBtn.IsEnabled = false;
-        UupSummaryText.Text = "完成前两步后，这里会显示下载内容摘要。";
+        UupSummaryText.Text = LocalizationService.L("WindowsImage_UupSummaryHint", "完成前两步后，这里会显示下载内容摘要。");
     }
 
     private async void UupBuildList_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -672,12 +693,12 @@ public sealed partial class WindowsImagePage : Page
         _uupSelectedEdition = null;
         _uupFilePreview = null;
 
-        UupSelectedBuildText.Text = $"已选择：{build.Title}";
+        UupSelectedBuildText.Text = string.Format(LocalizationService.L("WindowsImage_UupSelected", "已选择：{0}"), build.Title);
         UupLangCombo.ItemsSource = null;
         UupLangCombo.IsEnabled = false;
         UupEditionRadio.ItemsSource = null;
         UupStartBtn.IsEnabled = false;
-        UupSummaryText.Text = "正在获取语言列表...";
+        UupSummaryText.Text = LocalizationService.L("WindowsImage_FetchingLanguages", "正在获取语言列表...");
         UupLangProgress.Visibility = Visibility.Visible;
 
         try
@@ -696,7 +717,7 @@ public sealed partial class WindowsImagePage : Page
             }
             else
             {
-                UupSummaryText.Text = "该构建没有可选语言。";
+                UupSummaryText.Text = LocalizationService.L("WindowsImage_UupNoLanguages", "该构建没有可选语言。");
             }
         }
         catch (OperationCanceledException) { }
@@ -706,7 +727,7 @@ public sealed partial class WindowsImagePage : Page
         }
         catch (Exception ex)
         {
-            UupSummaryText.Text = FriendlyTimeoutMessage(ex, "获取语言列表失败");
+            UupSummaryText.Text = FriendlyTimeoutMessage(ex, LocalizationService.L("WindowsImage_FailLoadLanguages", "获取语言列表失败"));
         }
         finally
         {
@@ -736,7 +757,7 @@ public sealed partial class WindowsImagePage : Page
 
         UupEditionRadio.ItemsSource = null;
         UupStartBtn.IsEnabled = false;
-        UupSummaryText.Text = $"正在获取「{lang.DisplayName}」的可用版本...";
+        UupSummaryText.Text = string.Format(LocalizationService.L("WindowsImage_UupFetchingEditions", "正在获取「{0}」的可用版本..."), lang.DisplayName);
         UupEditionProgress.Visibility = Visibility.Visible;
 
         try
@@ -752,7 +773,7 @@ public sealed partial class WindowsImagePage : Page
             }
             else
             {
-                UupSummaryText.Text = "该语言下没有可用版本。";
+                UupSummaryText.Text = LocalizationService.L("WindowsImage_UupNoEditions", "该语言下没有可用版本。");
             }
         }
         catch (OperationCanceledException) { }
@@ -762,7 +783,7 @@ public sealed partial class WindowsImagePage : Page
         }
         catch (Exception ex)
         {
-            UupSummaryText.Text = FriendlyTimeoutMessage(ex, "获取版本列表失败");
+            UupSummaryText.Text = FriendlyTimeoutMessage(ex, LocalizationService.L("WindowsImage_FailLoadEditions", "获取版本列表失败"));
         }
         finally
         {
@@ -863,10 +884,10 @@ public sealed partial class WindowsImagePage : Page
 
         var ves = CollectUupVirtualEditions();
         if (ves.Count > 0)
-            summary += $"\n附加版本：{string.Join("、", ves.Select(GetVirtualEditionDisplayName))}";
+            summary += string.Format(LocalizationService.L("WindowsImage_UupVirtualList", "\n附加版本：{0}"), string.Join(LocalizationService.L("WindowsImage_ListSeparator", "、"), ves.Select(GetVirtualEditionDisplayName)));
 
         if (_uupFilePreview is { } p && p.Files.Count > 0)
-            summary += $"\n共 {p.Files.Count} 个文件，约 {DownloadQueueService.FormatSize(p.TotalSize)}（下载时间取决于网速）";
+            summary += string.Format(LocalizationService.L("WindowsImage_UupFileSummary", "\n共 {0} 个文件，约 {1}（下载时间取决于网速）"), p.Files.Count, DownloadQueueService.FormatSize(p.TotalSize));
 
         UupSummaryText.Text = summary;
     }
@@ -934,14 +955,14 @@ public sealed partial class WindowsImagePage : Page
         IDownloadPostProcessor? post = noConvert ? null : UupDumpService.CreateIsoPostProcessor(title);
 
         var sizeDesc = _uupFilePreview is { } p && p.Files.Count > 0
-            ? $"约 {DownloadQueueService.FormatSize(p.TotalSize)}"
-            : "文件较多，耗时取决于网速";
+            ? string.Format(LocalizationService.L("WindowsImage_UupApproxSize", "约 {0}"), DownloadQueueService.FormatSize(p.TotalSize))
+            : LocalizationService.L("WindowsImage_UupSizeUnknown", "文件较多，耗时取决于网速");
         var editionDesc = options.HasVirtualEditions
-            ? $"{edition.DisplayName} + 附加版本（{string.Join("、", virtualEditions.Select(GetVirtualEditionDisplayName))}）"
+            ? string.Format(LocalizationService.L("WindowsImage_UupEditionWithVirtual", "{0} + 附加版本（{1}）"), edition.DisplayName, string.Join(LocalizationService.L("WindowsImage_ListSeparator", "、"), virtualEditions.Select(GetVirtualEditionDisplayName)))
             : edition.DisplayName;
         var displayName = noConvert
-            ? $"{build.Title} UUP 文件集"
-            : $"{build.Title} ISO（{edition.DisplayName}）";
+            ? string.Format(LocalizationService.L("WindowsImage_UupFileSetName", "{0} UUP 文件集"), build.Title)
+            : string.Format(LocalizationService.L("WindowsImage_UupIsoName", "{0} ISO（{1}）"), build.Title, edition.DisplayName);
 
         DownloadQueueService.EnqueueMultiFile(
             displayName,
@@ -951,10 +972,10 @@ public sealed partial class WindowsImagePage : Page
             description: $"{lang.DisplayName} · {editionDesc} · {build.Architecture} · {sizeDesc}",
             glyph: "\uE896");
 
-        StatusInfoBar.Title = "已加入下载队列";
+        StatusInfoBar.Title = LocalizationService.L("WindowsImage_Queued", "已加入下载队列");
         StatusInfoBar.Message = noConvert
-            ? $"{displayName} 开始下载，文件保存在 {uupsDir}"
-            : $"{displayName} 下载完成后将自动转换为 ISO，最终文件位于 {pkgDir}";
+            ? string.Format(LocalizationService.L("WindowsImage_UupStartedMsg", "{0} 开始下载，文件保存在 {1}"), displayName, uupsDir)
+            : string.Format(LocalizationService.L("WindowsImage_UupStartedMsgConvert", "{0} 下载完成后将自动转换为 ISO，最终文件位于 {1}"), displayName, pkgDir);
         StatusInfoBar.Severity = InfoBarSeverity.Success;
         StatusInfoBar.IsOpen = true;
 

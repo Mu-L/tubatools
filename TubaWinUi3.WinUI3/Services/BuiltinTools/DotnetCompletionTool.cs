@@ -11,8 +11,8 @@ namespace TubaWinUi3.Services;
 public sealed class DotnetCompletionTool : IBuiltinTool
 {
     public string Id => "dotnet-completion";
-    public string Name => ".NET 环境补全";
-    public string Description => "检测并补全 .NET Runtime/SDK/Framework，从官网获取最新版本，一键下载安装缺失组件。";
+    public string Name => LocalizationService.L("Builtin_dotnet-completion_Name", ".NET 环境补全");
+    public string Description => LocalizationService.L("Builtin_dotnet-completion_Desc", "检测并补全 .NET Runtime/SDK/Framework，从官网获取最新版本，一键下载安装缺失组件。");
     public string Glyph => "\uE950";
     public string Category => "系统工具";
     public BuiltinToolKind Kind => BuiltinToolKind.Dialog;

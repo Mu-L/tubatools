@@ -137,6 +137,23 @@ dotnet test --filter "FullyQualifiedName~ToolCatalogTests"        # one class / 
 3. Register in `BuiltinToolRegistry.RegisterDefaults()` — **duplicate IDs throw**.
 4. Create dialogs via `context.CreateDialog(title)` (or manually set `RequestedTheme = ThemeService.CurrentElementTheme`) so ContentDialogs respect the app theme.
 
+### 界面本地化（WinUI3Localizer）
+
+- 资源在 `TubaWinUi3.WinUI3/Strings/<lang>/Resources.resw`（`zh-CN` / `en-US`），WinUI3Localizer 直接读 exe 旁文件（`AppContext.BaseDirectory/Strings`，非打包/MSIX 通用）。语言服务 = `Services/LocalizationService.cs`：启动时在 `App()` 构造里 `Initialize()`（必须早于 MainWindow 创建），设置页「界面语言」→ `SetLanguageAsync`（立即生效，不重启；`AppSettings["Language"]`，`auto` = 跟随系统）。
+- XAML 用 `xmlns:l="using:WinUI3Localizer"` + `l:Uids.Uid="Key"`，resw 键 = `Key.Property`（如 `.Text`/`.Content`/`.PlaceholderText`/`.CloseButtonContent`）；代码用 `LocalizationService.L(key, fallback)`（**缺键回退 fallback 原文**，所以未迁移页面/文案安全保持中文）。键集合一致性由 `TubaWinUi3.Tests/LocalizationTests.cs` 保证（两语言键集必须相同、XAML 引用的 Uid 必须有定义）。
+- **resw 从 PRI 排除**：主项目与测试项目都设 `EnableDefaultPRIResourceItems=false`（`Strings/**/*.resw` 只由 WinUI3Localizer 直接读取）。否则 MakePri 把 `Key.Property` 当路径层级，与同文件里的纯 `Key` 项冲突（PRI175/PRI278）导致构建失败；且默认 `**/*.resw` glob 在自定义 `BaseOutputPath` 时会捡到输出目录里的 resw 副本再次触发。
+- **主项目 `L()` 的坑**：库未构建时返回 `NullLocalizer`，它把**键名本身**当结果返回——`L()` 必须同时判断「空串」与「值==键名」才回退 fallback，否则 Strings 缺失时界面显示键名（`TimeSyncTests.DescribeInterval_FallsBackToSeconds` 有回归）。
+- **附加属性不能用 Uid**：`ToolTipService.ToolTip` / `AutomationProperties.Name` 在库内部用 `GetProperty` 解析而附加属性是静态字段 → 解析失败。对策：ToolTip 走注册的自定义 `LocalizationActions`（`typeof(Button)` → `SetToolTip`，resw 键写 `Key.ToolTip`）；AutomationProperties.Name 用代码 `AutomationProperties.SetName(...)`（`MainWindow.ApplyLocalizedShellText()` / `UpdateBanner.ApplyLocalizedNames()`）。`Window.Title` 不是依赖属性，也只能代码设置。
+- 语言切换刷新：Uid 控件由库自动重刷；代码赋值文本由 `ILocalizablePage.ApplyLocalization()` 钩子刷新（MainWindow 订阅 `LanguageChanged` 后调用当前页，另失效 `ToolMetadataService`/`ToolCatalog` 缓存并重建分类导航项）。**页面必须显式声明 `, ILocalizablePage`**，否则钩子不会被调用；**不重建 MainWindow**。
+- **工具元数据多语言 = `Metadata/Tools_<lang>.json` 覆盖层**：`ToolMetadataService.LoadMetadata()` 读 `tools.json` 后按 `match`（不区分大小写）合并 `Tools_<当前语言>.json` 里的 `description`/`publisher`/`tags`；逻辑字段（order/category/categories/builtin/downloadUrl…）永远只信 `tools.json`。覆盖文件缺失/条目缺失/字段空 → 回退中文。新增语言只需加文件（无需改代码）；新增工具条目时记得同步补英文（`Tools_en-US.json` 目前 89 条）。
+- **内置工具名称/简介**：`IBuiltinTool.Name`/`Description` 在 48 个实现里统一写成 `LocalizationService.L("Builtin_<id>_Name|_Desc", "中文")`（键由 id 派生，改 id 要同步改键）；分类 Header 显示走 `GetBuiltinCategoryDisplayName()`，`BuiltinToolsPage` 的 Pivot 用 `Tag`（原始分类名）做定位、`Header` 只做显示。
+- 菜单项定位禁止用 `Text.Contains(...)` 匹配中文（语言一变就失效）——一律用 `x:Name`（HomePage/FavoritesPage 的 `UpdateBuiltinLinkFlyoutItems` / `UpdateTutorialVisibility` 已改）。
+- 目前覆盖：主窗口 shell、首页 HomePage、常用页 FavoritesPage、搜索弹窗（UnifiedSearchService/SearchResult）、设置页全量、内置工具页（含 48 个内置工具名称/简介）、时间同步页、Windows 镜像下载页、端口占用页、磁盘健康页、硬件信息页 + 硬件详情页、工具元数据（外部工具描述/标签/发布者）。其余页面按需渐进迁移（加 Uid/键即可，缺键自动回退中文）。
+- **服务层数据键 = 标签只在显示层翻译**：`HardwareInfoService` 的 `Label`（"设备型号"/"处理器"/"内存"…）是数据键，服务内部大量按其比较，**永远不改**；显示走 `LocalizationService.TranslateHardwareLabel(label)`（switch 映射 → `Hw_Label_*` / `Hw_Field_*` 键，未知原样返回），模型层经 `HardwareInfoItem.DisplayLabel` 暴露给 XAML 绑定。同样的模式适用于任何"服务产数据 + 页面展示"的字段（如 UUP 的 Channel 值）。
+- **数据值下拉的多语言**：ComboBox 选项若同时充当筛选数据键（如"全部"/"正式版"/"简体中文"），改用 `<ComboBoxItem Content="显示文案" l:Uids.Uid="…" Tag="数据值" />`，代码取 `SelectedItem is ComboBoxItem { Tag: string s }`——**Tag 永不翻译**。
+- **`Run` 不支持 Uid**（非 FrameworkElement）：含加粗 Run 的段落用 `x:Name` + 代码赋值（见 `WindowsImagePage.ApplyCommunityRiskText()`）。
+- **静态参数表不能直接包 `L()`**：`static readonly` 数组/字段只初始化一次，语言切换后会残留旧语言——必须改成 `static` 属性（每次访问重建，如 `public static FormatParam[] Mp3Params => new[] { … };`）再包 `L()`。`FormatConvertParams` / `FormatConvertCatalog` 仍待迁移。
+
 ## Gotchas
 
 - `Tools/` has Chinese category directory names (处理器工具, 显卡工具, …) — path handling must be Unicode-safe.

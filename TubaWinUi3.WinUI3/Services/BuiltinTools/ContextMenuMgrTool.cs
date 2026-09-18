@@ -1,4 +1,4 @@
-using TubaWinUi3.Pages;
+﻿using TubaWinUi3.Pages;
 
 namespace TubaWinUi3.Services;
 
@@ -10,8 +10,8 @@ namespace TubaWinUi3.Services;
 public sealed class ContextMenuMgrTool : IBuiltinTool
 {
     public string Id => "context-menu-mgr";
-    public string Name => "右键菜单管理";
-    public string Description => "管理 Windows 右键菜单项，支持启用/禁用/编辑/添加/删除、新建/发送到/打开方式及 WinX/现代/IE 菜单（内置）";
+    public string Name => LocalizationService.L("Builtin_context-menu-mgr_Name", "右键菜单管理");
+    public string Description => LocalizationService.L("Builtin_context-menu-mgr_Desc", "管理 Windows 右键菜单项，支持启用/禁用/编辑/添加/删除、新建/发送到/打开方式及 WinX/现代/IE 菜单（内置）");
     public string Glyph => "\uE74C";
     public string Category => "系统工具";
     public BuiltinToolKind Kind => BuiltinToolKind.Dialog;

@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Microsoft.Win32;
 using TubaWinUi3.Models;
 
@@ -7,8 +7,8 @@ namespace TubaWinUi3.Services;
 public sealed class OptimizerDuckTool : IBuiltinTool
 {
     public string Id => "optimizer-duck";
-    public string Name => "OptimizerDuck 优化鸭";
-    public string Description => "开源的 Windows 系统优化工具，支持系统清理、性能优化、隐私保护等功能。";
+    public string Name => LocalizationService.L("Builtin_optimizer-duck_Name", "OptimizerDuck 优化鸭");
+    public string Description => LocalizationService.L("Builtin_optimizer-duck_Desc", "开源的 Windows 系统优化工具，支持系统清理、性能优化、隐私保护等功能。");
     public string Glyph => "\uE945";
     public string Category => "系统工具";
     public BuiltinToolKind Kind => BuiltinToolKind.InstantAction;

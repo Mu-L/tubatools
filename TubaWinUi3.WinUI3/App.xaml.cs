@@ -36,7 +36,10 @@ public partial class App : Application
         // LiveCharts.Configure 在 App() 中已移除，启动不再加载 SkiaSharp 原生库。
 
         AppSettings.Load();
-        
+
+        // 界面语言必须在任何打了 Uid 的控件创建前就绪（MainWindow 在 OnLaunched 里创建）。
+        LocalizationService.Initialize();
+
         BuiltinToolRegistry.RegisterDefaults();
         AgentToolRegistry.RegisterDefaults();
         AgentSkillRegistry.RegisterDefaults();

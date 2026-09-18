@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using TubaWinUi3.Models;
@@ -12,8 +12,8 @@ public sealed class CertBlockTool : IBuiltinTool
     private DialogState? _state;
 
     public string Id => "cert-block";
-    public string Name => "恶意软件拦截器";
-    public string Description => "通过将软件厂商证书加入系统不信任列表，阻止流氓软件安装和运行。";
+    public string Name => LocalizationService.L("Builtin_cert-block_Name", "恶意软件拦截器");
+    public string Description => LocalizationService.L("Builtin_cert-block_Desc", "通过将软件厂商证书加入系统不信任列表，阻止流氓软件安装和运行。");
     public string Glyph => "\uE72E";
     public string Category => "系统工具";
     public BuiltinToolKind Kind => BuiltinToolKind.Dialog;

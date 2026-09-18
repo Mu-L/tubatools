@@ -1,10 +1,10 @@
-namespace TubaWinUi3.Services;
+﻿namespace TubaWinUi3.Services;
 
 public sealed class PortViewerTool : IBuiltinTool
 {
     public string Id => "port-viewer";
-    public string Name => "端口占用";
-    public string Description => "查看系统所有 TCP/UDP 端口占用情况，定位占用进程。";
+    public string Name => LocalizationService.L("Builtin_port-viewer_Name", "端口占用");
+    public string Description => LocalizationService.L("Builtin_port-viewer_Desc", "查看系统所有 TCP/UDP 端口占用情况，定位占用进程。");
     public string Glyph => "\uE774";
     public string Category => "网络工具";
     public BuiltinToolKind Kind => BuiltinToolKind.InstantAction;

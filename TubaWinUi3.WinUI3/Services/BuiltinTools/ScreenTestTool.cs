@@ -1,4 +1,4 @@
-using Microsoft.UI;
+﻿using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -12,8 +12,8 @@ namespace TubaWinUi3.Services;
 public sealed class ScreenTestTool : IBuiltinTool
 {
     public string Id => "screen-test";
-    public string Name => "屏幕坏点检测";
-    public string Description => "全屏播放纯色与检测图案，快速发现屏幕坏点、漏光、色阶问题。";
+    public string Name => LocalizationService.L("Builtin_screen-test_Name", "屏幕坏点检测");
+    public string Description => LocalizationService.L("Builtin_screen-test_Desc", "全屏播放纯色与检测图案，快速发现屏幕坏点、漏光、色阶问题。");
     public string Glyph => "\uE7F4";
     public string Category => "硬件工具";
     public BuiltinToolKind Kind => BuiltinToolKind.Dialog;

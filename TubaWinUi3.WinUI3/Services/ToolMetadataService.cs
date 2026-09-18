@@ -371,21 +371,88 @@ public static class ToolMetadataService
             return _metadata;
         }
 
-        var path = Path.Combine(GetWritableMetadataDir(), "tools.json");
+        var metadataDir = GetWritableMetadataDir();
+        var path = Path.Combine(metadataDir, "tools.json");
         if (!File.Exists(path))
         {
             _metadata = [];
             return _metadata;
         }
 
-        using var stream = File.OpenRead(path);
-        var database = JsonSerializer.Deserialize<JsonToolDatabase>(stream, new JsonSerializerOptions
+        using (var stream = File.OpenRead(path))
         {
-            PropertyNameCaseInsensitive = true
-        });
+            var database = JsonSerializer.Deserialize<JsonToolDatabase>(stream, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
 
-        _metadata = database?.Tools ?? [];
+            _metadata = database?.Tools ?? [];
+        }
+
+        ApplyLanguageOverlay(metadataDir);
         return _metadata;
+    }
+
+    /// <summary>
+    /// 语言覆盖：Tools_&lt;语言&gt;.json 按 match 合并显示字段（description / publisher / tags）。
+    /// 逻辑字段（order / category / categories / downloadUrl 等）始终以 tools.json 为唯一来源；
+    /// 覆盖文件缺失、条目或字段缺省时回退中文原文。
+    /// </summary>
+    private static void ApplyLanguageOverlay(string metadataDir)
+    {
+        try
+        {
+            string overlayPath = Path.Combine(metadataDir, $"Tools_{LocalizationService.CurrentLanguage}.json");
+            if (!File.Exists(overlayPath))
+            {
+                return;
+            }
+
+            using var stream = File.OpenRead(overlayPath);
+            var overlay = JsonSerializer.Deserialize<JsonToolDatabase>(stream, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            if (overlay?.Tools is not { Count: > 0 })
+            {
+                return;
+            }
+
+            foreach (var over in overlay.Tools)
+            {
+                if (string.IsNullOrWhiteSpace(over.Match))
+                {
+                    continue;
+                }
+
+                var target = _metadata!.FirstOrDefault(t =>
+                    string.Equals(t.Match, over.Match, StringComparison.OrdinalIgnoreCase));
+                if (target is null)
+                {
+                    continue;
+                }
+
+                if (!string.IsNullOrWhiteSpace(over.Description))
+                {
+                    target.Description = over.Description;
+                }
+
+                if (!string.IsNullOrWhiteSpace(over.Publisher))
+                {
+                    target.Publisher = over.Publisher;
+                }
+
+                if (over.Tags is { Count: > 0 })
+                {
+                    target.Tags = over.Tags;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[ToolMetadata] 语言覆盖加载失败，保持中文元数据: {ex.Message}");
+        }
     }
 
     private static string? ReadFolderDescription(string toolPath)

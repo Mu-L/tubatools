@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
@@ -37,8 +37,8 @@ public sealed class StartupManagerTool : IBuiltinTool
     }
 
     public string Id => "startup-manager";
-    public string Name => "启动项管理";
-    public string Description => "扫描开机自启动项目（注册表 Run、启动文件夹、计划任务、服务等），隐藏微软条目，快速定位异常自启动。";
+    public string Name => LocalizationService.L("Builtin_startup-manager_Name", "启动项管理");
+    public string Description => LocalizationService.L("Builtin_startup-manager_Desc", "扫描开机自启动项目（注册表 Run、启动文件夹、计划任务、服务等），隐藏微软条目，快速定位异常自启动。");
     public string Glyph => "\uE823";
     public string Category => "系统工具";
     public BuiltinToolKind Kind => BuiltinToolKind.Dialog;

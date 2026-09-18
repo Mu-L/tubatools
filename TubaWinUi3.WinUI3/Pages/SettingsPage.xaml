@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:l="using:WinUI3Localizer"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     NavigationCacheMode="Enabled"
     mc:Ignorable="d">
@@ -71,11 +72,13 @@
                     <TextBlock
                         FontSize="28"
                         FontWeight="Bold"
-                        Text="设置" />
+                        Text="设置"
+                        l:Uids.Uid="Settings_PageTitle" />
                     <TextBlock
                         Opacity="1.0"
                         Margin="0,0,0,16"
-                        Text="管理应用外观、更新及查看关于信息。" />
+                        Text="管理应用外观、更新及查看关于信息。"
+                        l:Uids.Uid="Settings_PageSubtitle" />
 
                     <Border x:Name="SettingsStoreRatingCard" Style="{StaticResource SettingsCardStyle}" Visibility="Collapsed">
                         <Grid ColumnSpacing="16">
@@ -88,13 +91,13 @@
                                 <FontIcon FontSize="18" Glyph="&#xE734;" />
                             </Border>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                <TextBlock FontWeight="Bold" Text="喜欢我们的软件吗？" />
-                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="给一个好评吧！点击直接打开商店评分" />
+                                <TextBlock FontWeight="Bold" Text="喜欢我们的软件吗？" l:Uids.Uid="Settings_StoreRating_Title" />
+                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="给一个好评吧！点击直接打开商店评分" l:Uids.Uid="Settings_StoreRating_Desc" />
                             </StackPanel>
                             <Button x:Name="StoreRatingButton" Grid.Column="2" VerticalAlignment="Center" Padding="14,6" Style="{StaticResource AccentButtonStyle}" Click="StoreRatingButton_Click">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <FontIcon FontSize="12" Glyph="&#xE734;" />
-                                    <TextBlock Text="去好评" />
+                                    <TextBlock Text="去好评" l:Uids.Uid="Settings_StoreRating_Button" />
                                 </StackPanel>
                             </Button>
                         </Grid>
@@ -126,11 +129,13 @@
                                     x:Name="AppTitleText"
                                     FontSize="18"
                                     FontWeight="Bold"
-                                    Text="图吧工具箱CE" />
+                                    Text="图吧工具箱CE"
+                                    l:Uids.Uid="Settings_AppTitle" />
                                 <TextBlock
                                     x:Name="AppSubtitleText"
                                     Opacity="1.0"
-                                    Text="基于 WinUI 3 构建的 PC 硬件工具集合" />
+                                    Text="基于 WinUI 3 构建的 PC 硬件工具集合"
+                                    l:Uids.Uid="Settings_AppSubtitle" />
                                 <TextBlock
                                     x:Name="VersionText"
                                     Opacity="1.0"
@@ -150,8 +155,8 @@
                                      <FontIcon FontSize="20" Glyph="&#xE80F;" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                  </Border>
                                  <StackPanel VerticalAlignment="Center" Spacing="2">
-                                     <TextBlock FontWeight="Bold" Text="常规" />
-                                    <TextBlock Opacity="1.0" FontSize="13" Text="主题、更新、启动页面、快速模式" />
+                                     <TextBlock FontWeight="Bold" Text="常规" l:Uids.Uid="Settings_General_Title" />
+                                    <TextBlock Opacity="1.0" FontSize="13" Text="主题、更新、启动页面、快速模式" l:Uids.Uid="Settings_General_Desc" />
                                 </StackPanel>
                             </StackPanel>
                         </Expander.Header>
@@ -170,13 +175,13 @@
                                             <FontIcon FontSize="18" Glyph="&#xE777;" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="检查更新" />
-                                            <TextBlock x:Name="UpdateStatusText" Opacity="1.0" FontSize="13" Text="点击检查是否有新版本" />
+                                            <TextBlock FontWeight="Bold" Text="检查更新" l:Uids.Uid="Settings_Update_Title" />
+                                            <TextBlock x:Name="UpdateStatusText" Opacity="1.0" FontSize="13" Text="点击检查是否有新版本" l:Uids.Uid="Settings_Update_Status" />
                                         </StackPanel>
                                         <Button x:Name="CheckUpdateButton" Grid.Column="2" VerticalAlignment="Center" Padding="14,6" Click="CheckUpdateButton_Click">
                                             <StackPanel Orientation="Horizontal" Spacing="6">
                                                 <FontIcon FontSize="12" Glyph="&#xE777;" />
-                                                <TextBlock Text="检查更新" />
+                                                <TextBlock Text="检查更新" l:Uids.Uid="Settings_Update_Button" />
                                             </StackPanel>
                                         </Button>
                                     </Grid>
@@ -193,15 +198,33 @@
                                             <FontIcon FontSize="18" Glyph="&#xE896;" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="内核更新" />
-                                            <TextBlock x:Name="ToolsBundleStatusText" Opacity="1.0" FontSize="13" Text="点击检查内核是否有新版本" />
+                                            <TextBlock FontWeight="Bold" Text="内核更新" l:Uids.Uid="Settings_ToolsBundle_Title" />
+                                            <TextBlock x:Name="ToolsBundleStatusText" Opacity="1.0" FontSize="13" Text="点击检查内核是否有新版本" l:Uids.Uid="Settings_ToolsBundle_Status" />
                                         </StackPanel>
                                         <Button x:Name="CheckToolsBundleButton" Grid.Column="2" VerticalAlignment="Center" Padding="14,6" Click="CheckToolsBundleButton_Click">
                                             <StackPanel Orientation="Horizontal" Spacing="6">
                                                 <FontIcon FontSize="12" Glyph="&#xE896;" />
-                                                <TextBlock Text="检查更新" />
+                                                <TextBlock Text="检查更新" l:Uids.Uid="Settings_ToolsBundle_Button" />
                                             </StackPanel>
                                         </Button>
+                                    </Grid>
+                                </Border>
+
+                                <Border x:Name="SettingsLanguageCard" Style="{StaticResource SettingsCardStyle}">
+                                    <Grid ColumnSpacing="16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Style="{StaticResource IconBorderStyle}">
+                                            <FontIcon FontSize="18" Glyph="&#xE774;" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                            <TextBlock FontWeight="Bold" Text="界面语言" l:Uids.Uid="Settings_LanguageTitle" />
+                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="选择应用的显示语言" l:Uids.Uid="Settings_LanguageDesc" />
+                                        </StackPanel>
+                                        <ComboBox x:Name="LanguageComboBox" Grid.Column="2" MinWidth="120" SelectionChanged="LanguageComboBox_SelectionChanged" />
                                     </Grid>
                                 </Border>
 
@@ -216,8 +239,8 @@
                                             <FontIcon FontSize="18" Glyph="&#xE8FD;" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="简洁列表模式" />
-                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="原版图吧工具箱的样式" />
+                                            <TextBlock FontWeight="Bold" Text="简洁列表模式" l:Uids.Uid="Settings_Compact_Title" />
+                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="原版图吧工具箱的样式" l:Uids.Uid="Settings_Compact_Desc" />
                                         </StackPanel>
                                         <ToggleSwitch x:Name="CompactModeToggle" Grid.Column="2" VerticalAlignment="Center" Toggled="CompactModeToggle_Toggled" />
                                     </Grid>
@@ -234,8 +257,8 @@
                                             <FontIcon FontSize="18" Glyph="&#xE713;" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="导航布局" />
-                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="切换侧边栏或顶部标签页导航" />
+                                            <TextBlock FontWeight="Bold" Text="导航布局" l:Uids.Uid="Settings_NavLayout_Title" />
+                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="切换侧边栏或顶部标签页导航" l:Uids.Uid="Settings_NavLayout_Desc" />
                                         </StackPanel>
                                         <ComboBox x:Name="NavLayoutComboBox" Grid.Column="2" MinWidth="120" SelectionChanged="NavLayoutComboBox_SelectionChanged" />
                                     </Grid>
@@ -252,8 +275,8 @@
                                             <FontIcon FontSize="18" Glyph="&#xE80F;" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="默认启动页面" />
-                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="选择应用启动后默认打开的页面" />
+                                            <TextBlock FontWeight="Bold" Text="默认启动页面" l:Uids.Uid="Settings_DefaultPage_Title" />
+                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="选择应用启动后默认打开的页面" l:Uids.Uid="Settings_DefaultPage_Desc" />
                                         </StackPanel>
                                         <ComboBox x:Name="DefaultPageComboBox" Grid.Column="2" MinWidth="120" SelectionChanged="DefaultPageComboBox_SelectionChanged" />
                                     </Grid>
@@ -270,8 +293,8 @@
                                             <FontIcon FontSize="18" Glyph="&#xE945;" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="快速模式" />
-                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="禁用所有动画，提升响应速度" />
+                                            <TextBlock FontWeight="Bold" Text="快速模式" l:Uids.Uid="Settings_FastMode_Title" />
+                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="禁用所有动画，提升响应速度" l:Uids.Uid="Settings_FastMode_Desc" />
                                         </StackPanel>
                                         <ToggleSwitch x:Name="FastModeToggle" Grid.Column="2" VerticalAlignment="Center" Toggled="FastModeToggle_Toggled" />
                                     </Grid>
@@ -288,8 +311,8 @@
                                             <FontIcon FontSize="18" Glyph="&#xE784;" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="记住窗口位置和大小" />
-                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="关闭后下次启动将居中显示，避免多显示器断开后窗口位置异常" />
+                                            <TextBlock FontWeight="Bold" Text="记住窗口位置和大小" l:Uids.Uid="Settings_RememberWindow_Title" />
+                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="关闭后下次启动将居中显示，避免多显示器断开后窗口位置异常" l:Uids.Uid="Settings_RememberWindow_Desc" />
                                         </StackPanel>
                                         <ToggleSwitch x:Name="RememberWindowToggle" Grid.Column="2" VerticalAlignment="Center" Toggled="RememberWindowToggle_Toggled" />
                                     </Grid>
@@ -314,8 +337,8 @@
                                                 <FontIcon FontSize="18" Glyph="&#xE774;" />
                                             </Border>
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                                <TextBlock FontWeight="Bold" Text="代理设置" />
-                                                <TextBlock x:Name="ProxyStatusText" Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="配置 HTTP/HTTPS 代理，所有网络请求将使用代理" />
+                                                <TextBlock FontWeight="Bold" Text="代理设置" l:Uids.Uid="Settings_Proxy_Title" />
+                                                <TextBlock x:Name="ProxyStatusText" Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="配置 HTTP/HTTPS 代理，所有网络请求将使用代理" l:Uids.Uid="Settings_Proxy_Desc" />
                                             </StackPanel>
                                             <ToggleSwitch x:Name="ProxyToggle" Grid.Column="2" VerticalAlignment="Center" Toggled="ProxyToggle_Toggled" />
                                         </Grid>
@@ -330,8 +353,8 @@
                                                 <FontIcon FontSize="18" Glyph="&#xE71B;" />
                                             </Border>
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                                <TextBlock FontWeight="Bold" Text="代理地址" />
-                                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="格式：http://host:port 或 socks5://host:port" />
+                                                <TextBlock FontWeight="Bold" Text="代理地址" l:Uids.Uid="Settings_ProxyAddress_Title" />
+                                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="格式：http://host:port 或 socks5://host:port" l:Uids.Uid="Settings_ProxyAddress_Desc" />
                                             </StackPanel>
                                             <TextBox x:Name="ProxyAddressTextBox" Grid.Column="2" MinWidth="280" MaxWidth="360" PlaceholderText="http://127.0.0.1:7890" TextChanged="ProxyAddressTextBox_TextChanged" />
                                         </Grid>
@@ -345,12 +368,12 @@
                                                 <FontIcon FontSize="18" Glyph="&#xE72E;" />
                                             </Border>
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                                <TextBlock FontWeight="Bold" Text="代理认证（可选）" />
-                                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="如需认证，输入用户名和密码" />
+                                                <TextBlock FontWeight="Bold" Text="代理认证（可选）" l:Uids.Uid="Settings_ProxyAuth_Title" />
+                                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="如需认证，输入用户名和密码" l:Uids.Uid="Settings_ProxyAuth_Desc" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
-                                                <TextBox x:Name="ProxyUsernameTextBox" Width="100" PlaceholderText="用户名" TextChanged="ProxyUsernameTextBox_TextChanged" />
-                                                <PasswordBox x:Name="ProxyPasswordBox" Width="140" PlaceholderText="密码" PasswordChanged="ProxyPasswordBox_PasswordChanged" />
+                                                <TextBox x:Name="ProxyUsernameTextBox" Width="100" PlaceholderText="用户名" l:Uids.Uid="Settings_ProxyUsername_Placeholder" TextChanged="ProxyUsernameTextBox_TextChanged" />
+                                                <PasswordBox x:Name="ProxyPasswordBox" Width="140" PlaceholderText="密码" l:Uids.Uid="Settings_ProxyPassword_Placeholder" PasswordChanged="ProxyPasswordBox_PasswordChanged" />
                                             </StackPanel>
                                         </Grid>
                                         <Grid Grid.Row="4" ColumnSpacing="16" x:Name="ProxyTestPanel" Visibility="Collapsed">
@@ -363,13 +386,13 @@
                                                 <FontIcon FontSize="18" Glyph="&#xE73E;" />
                                             </Border>
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                                <TextBlock FontWeight="Bold" Text="测试代理连接" />
-                                                <TextBlock x:Name="ProxyTestStatusText" Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="验证代理是否可用" />
+                                                <TextBlock FontWeight="Bold" Text="测试代理连接" l:Uids.Uid="Settings_ProxyTest_Title" />
+                                                <TextBlock x:Name="ProxyTestStatusText" Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="验证代理是否可用" l:Uids.Uid="Settings_ProxyTest_Desc" />
                                             </StackPanel>
                                             <Button x:Name="ProxyTestButton" Grid.Column="2" Padding="14,6" Click="ProxyTestButton_Click">
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                                     <FontIcon x:Name="ProxyTestIcon" FontSize="12" Glyph="&#xE73E;" />
-                                                    <TextBlock x:Name="ProxyTestButtonText" Text="测试连接" />
+                                                    <TextBlock x:Name="ProxyTestButtonText" Text="测试连接" l:Uids.Uid="Settings_ProxyTest_Button" />
                                                 </StackPanel>
                                             </Button>
                                         </Grid>
@@ -392,8 +415,8 @@
                                     <FontIcon FontSize="20" Glyph="&#xE7F3;" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
                                 <StackPanel VerticalAlignment="Center" Spacing="2">
-                                    <TextBlock FontWeight="Bold" Text="外观" />
-                                    <TextBlock Opacity="1.0" FontSize="13" Text="窗口材质、背景图片、界面字体、水印、品牌 Logo" />
+                                    <TextBlock FontWeight="Bold" Text="外观" l:Uids.Uid="Settings_Appearance_Title" />
+                                    <TextBlock Opacity="1.0" FontSize="13" Text="窗口材质、背景图片、界面字体、水印、品牌 Logo" l:Uids.Uid="Settings_Appearance_Desc" />
                                 </StackPanel>
                             </StackPanel>
                         </Expander.Header>
@@ -417,8 +440,8 @@
                                                 <FontIcon FontSize="18" Glyph="&#xE7F3;" />
                                             </Border>
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                                <TextBlock FontWeight="Bold" Text="窗口材质" />
-                                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="选择窗口背景的视觉材质效果，并可自定义色调" />
+                                                <TextBlock FontWeight="Bold" Text="窗口材质" l:Uids.Uid="Settings_Backdrop_Title" />
+                                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="选择窗口背景的视觉材质效果，并可自定义色调" l:Uids.Uid="Settings_Backdrop_Desc" />
                                             </StackPanel>
                                         </Grid>
                                         <Grid Grid.Row="1" RowSpacing="8" ColumnSpacing="8" HorizontalAlignment="Stretch">
@@ -439,7 +462,7 @@
                                                     </Border>
                                                     <StackPanel VerticalAlignment="Center" Spacing="2">
                                                         <TextBlock FontSize="12" FontWeight="SemiBold" Text="Mica" />
-                                                        <TextBlock FontSize="11" Opacity="1.0" Text="柔和云母" />
+                                                        <TextBlock FontSize="11" Opacity="1.0" Text="柔和云母" l:Uids.Uid="Settings_BackdropMica_Desc" />
                                                     </StackPanel>
                                                 </StackPanel>
                                             </Border>
@@ -452,7 +475,7 @@
                                                     </Border>
                                                     <StackPanel VerticalAlignment="Center" Spacing="2">
                                                         <TextBlock FontSize="12" FontWeight="SemiBold" Text="Mica Alt" />
-                                                        <TextBlock FontSize="11" Opacity="1.0" Text="层次云母" />
+                                                        <TextBlock FontSize="11" Opacity="1.0" Text="层次云母" l:Uids.Uid="Settings_BackdropMicaAlt_Desc" />
                                                     </StackPanel>
                                                 </StackPanel>
                                             </Border>
@@ -465,8 +488,8 @@
                                                         <Border CornerRadius="3" Margin="4" Background="#18FFFFFF" />
                                                     </Border>
                                                     <StackPanel VerticalAlignment="Center" Spacing="2">
-                                                        <TextBlock FontSize="12" FontWeight="SemiBold" Text="亚克力" />
-                                                        <TextBlock FontSize="11" Opacity="1.0" Text="磨砂玻璃" />
+                                                        <TextBlock FontSize="12" FontWeight="SemiBold" Text="亚克力" l:Uids.Uid="Settings_BackdropAcrylic_Title" />
+                                                        <TextBlock FontSize="11" Opacity="1.0" Text="磨砂玻璃" l:Uids.Uid="Settings_BackdropAcrylic_Desc" />
                                                     </StackPanel>
                                                 </StackPanel>
                                             </Border>
@@ -479,8 +502,8 @@
                                                         <Border CornerRadius="3" Margin="4" Background="#0CFFFFFF" />
                                                     </Border>
                                                     <StackPanel VerticalAlignment="Center" Spacing="2">
-                                                        <TextBlock FontSize="12" FontWeight="SemiBold" Text="细亚克力" />
-                                                        <TextBlock FontSize="11" Opacity="1.0" Text="更透亮的磨砂" />
+                                                        <TextBlock FontSize="12" FontWeight="SemiBold" Text="细亚克力" l:Uids.Uid="Settings_BackdropAcrylicThin_Title" />
+                                                        <TextBlock FontSize="11" Opacity="1.0" Text="更透亮的磨砂" l:Uids.Uid="Settings_BackdropAcrylicThin_Desc" />
                                                     </StackPanel>
                                                 </StackPanel>
                                             </Border>
@@ -494,8 +517,8 @@
                                                     </Grid.ColumnDefinitions>
                                                     <ToggleSwitch x:Name="CustomTintToggle" Toggled="CustomTintToggle_Toggled" />
                                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                                        <TextBlock FontWeight="SemiBold" FontSize="13" Text="自定义色调" />
-                                                        <TextBlock FontSize="12" Opacity="1.0" TextWrapping="Wrap" Text="关闭时使用系统默认色调并自动跟随深浅主题；开启后使用自定义色调（深浅主题下保持一致）" />
+                                                        <TextBlock FontWeight="SemiBold" FontSize="13" Text="自定义色调" l:Uids.Uid="Settings_Tint_Title" />
+                                                        <TextBlock FontSize="12" Opacity="1.0" TextWrapping="Wrap" Text="关闭时使用系统默认色调并自动跟随深浅主题；开启后使用自定义色调（深浅主题下保持一致）" l:Uids.Uid="Settings_Tint_Desc" />
                                                     </StackPanel>
                                                 </Grid>
                                                 <StackPanel x:Name="CustomTintPanel" Spacing="10" Visibility="Collapsed">
@@ -517,7 +540,7 @@
                                                         <Button x:Name="CustomTintButton" Grid.Column="1" Padding="10,6" HorizontalAlignment="Left" VerticalAlignment="Center">
                                                             <StackPanel Orientation="Horizontal" Spacing="8">
                                                                 <Border x:Name="CustomTintColorChip" Width="18" Height="18" CornerRadius="9" BorderThickness="1" BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}" Background="#FF202020" />
-                                                                <TextBlock Text="自定义颜色…" />
+                                                                <TextBlock Text="自定义颜色…" l:Uids.Uid="Settings_TintCustomColor" />
                                                             </StackPanel>
                                                             <Button.Flyout>
                                                                 <Flyout Placement="Bottom">
@@ -532,7 +555,7 @@
                                                             <ColumnDefinition Width="*" />
                                                             <ColumnDefinition Width="Auto" />
                                                         </Grid.ColumnDefinitions>
-                                                        <TextBlock FontSize="12" Opacity="1.0" VerticalAlignment="Center" Text="色调不透明度" />
+                                                        <TextBlock FontSize="12" Opacity="1.0" VerticalAlignment="Center" Text="色调不透明度" l:Uids.Uid="Settings_TintOpacity_Label" />
                                                         <Slider x:Name="TintOpacitySlider" Grid.Column="1" ValueChanged="TintOpacitySlider_ValueChanged" />
                                                         <TextBlock x:Name="TintOpacityText" Grid.Column="2" FontSize="12" Opacity="1.0" VerticalAlignment="Center" Text="60%" />
                                                     </Grid>
@@ -542,7 +565,7 @@
                                                             <ColumnDefinition Width="*" />
                                                             <ColumnDefinition Width="Auto" />
                                                         </Grid.ColumnDefinitions>
-                                                        <TextBlock FontSize="12" Opacity="1.0" VerticalAlignment="Center" Text="明度不透明度" />
+                                                        <TextBlock FontSize="12" Opacity="1.0" VerticalAlignment="Center" Text="明度不透明度" l:Uids.Uid="Settings_TintLuminosity_Label" />
                                                         <Slider x:Name="TintLuminositySlider" Grid.Column="1" ValueChanged="TintLuminositySlider_ValueChanged" />
                                                         <TextBlock x:Name="TintLuminosityText" Grid.Column="2" FontSize="12" Opacity="1.0" VerticalAlignment="Center" Text="30%" />
                                                     </Grid>
@@ -570,20 +593,20 @@
                                                 <FontIcon FontSize="18" Glyph="&#xE91B;" />
                                             </Border>
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                                <TextBlock FontWeight="Bold" Text="背景图片" />
-                                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="导入图片作为主页面背景" />
+                                                <TextBlock FontWeight="Bold" Text="背景图片" l:Uids.Uid="Settings_Background_Title" />
+                                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="导入图片作为主页面背景" l:Uids.Uid="Settings_Background_Desc" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                                 <Button x:Name="ClearBgButton" Padding="10,6" Click="ClearBgButton_Click" Visibility="Collapsed">
                                                     <StackPanel Orientation="Horizontal" Spacing="6">
                                                         <FontIcon FontSize="12" Glyph="&#xE711;" />
-                                                        <TextBlock Text="清除" />
+                                                        <TextBlock Text="清除" l:Uids.Uid="Settings_BackgroundClear_Button" />
                                                     </StackPanel>
                                                 </Button>
                                                 <Button x:Name="ImportBgButton" Padding="10,6" Click="ImportBgButton_Click">
                                                     <StackPanel Orientation="Horizontal" Spacing="6">
                                                         <FontIcon FontSize="12" Glyph="&#xE898;" />
-                                                        <TextBlock Text="导入图片" />
+                                                        <TextBlock Text="导入图片" l:Uids.Uid="Settings_BackgroundImport_Button" />
                                                     </StackPanel>
                                                 </Button>
                                             </StackPanel>
@@ -600,7 +623,7 @@
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="6">
                                                 <TextBlock x:Name="BgFileNameText" FontSize="13" TextTrimming="CharacterEllipsis" MaxLines="1" />
                                                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                                    <TextBlock FontSize="12" Opacity="1.0" VerticalAlignment="Center" Text="透明度" />
+                                                    <TextBlock FontSize="12" Opacity="1.0" VerticalAlignment="Center" Text="透明度" l:Uids.Uid="Settings_BackgroundOpacity_Label" />
                                                     <Slider x:Name="BgOpacitySlider" Width="160" ValueChanged="BgOpacitySlider_ValueChanged" />
                                                     <TextBlock x:Name="BgOpacityText" FontSize="12" Opacity="1.0" VerticalAlignment="Center" Text="15%" />
                                                 </StackPanel>
@@ -610,7 +633,7 @@
                                             <Expander.Header>
                                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                                     <FontIcon FontSize="14" Glyph="&#xE8B9;" Opacity="1.0" />
-                                                    <TextBlock Text="已导入的图片" />
+                                                    <TextBlock Text="已导入的图片" l:Uids.Uid="Settings_BgHistory_Title" />
                                                     <TextBlock x:Name="BgHistoryCountText" Opacity="1.0" FontSize="12" />
                                                 </StackPanel>
                                             </Expander.Header>
@@ -619,7 +642,7 @@
                                                     <ScrollViewer x:Name="BgListScrollViewer" HorizontalScrollBarVisibility="Auto" HorizontalScrollMode="Enabled" VerticalScrollBarVisibility="Disabled" VerticalScrollMode="Disabled">
                                                         <StackPanel x:Name="BgListPanel" Orientation="Horizontal" Spacing="10" />
                                                     </ScrollViewer>
-                                                    <TextBlock x:Name="BgListEmptyText" Opacity="1.0" FontSize="13" Text="还没有导入过图片" Visibility="Collapsed" />
+                                                    <TextBlock x:Name="BgListEmptyText" Opacity="1.0" FontSize="13" Text="还没有导入过图片" l:Uids.Uid="Settings_BgHistory_Empty" Visibility="Collapsed" />
                                                 </StackPanel>
                                             </Expander.Content>
                                         </Expander>
@@ -637,8 +660,8 @@
                                             <FontIcon FontSize="18" Glyph="&#xEEA3;" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="显示品牌 Logo" />
-                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="在硬件信息页面的处理器和显卡行前显示品牌图标" />
+                                            <TextBlock FontWeight="Bold" Text="显示品牌 Logo" l:Uids.Uid="Settings_BrandLogo_Title" />
+                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="在硬件信息页面的处理器和显卡行前显示品牌图标" l:Uids.Uid="Settings_BrandLogo_Desc" />
                                         </StackPanel>
                                         <ToggleSwitch x:Name="BrandLogoToggle" Grid.Column="2" VerticalAlignment="Center" Toggled="BrandLogoToggle_Toggled" />
                                     </Grid>
@@ -662,8 +685,8 @@
                                                 <FontIcon FontSize="18" Glyph="&#xE8B9;" />
                                             </Border>
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                                <TextBlock FontWeight="Bold" Text="截图水印" />
-                                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="硬件信息截图时在右下角添加水印" />
+                                                <TextBlock FontWeight="Bold" Text="截图水印" l:Uids.Uid="Settings_Watermark_Title" />
+                                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="硬件信息截图时在右下角添加水印" l:Uids.Uid="Settings_Watermark_Desc" />
                                             </StackPanel>
                                             <ToggleSwitch x:Name="WatermarkToggle" Grid.Column="2" VerticalAlignment="Center" Toggled="WatermarkToggle_Toggled" />
                                         </Grid>
@@ -678,10 +701,10 @@
                                                 <FontIcon FontSize="18" Glyph="&#xE8D2;" />
                                             </Border>
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                                <TextBlock FontWeight="Bold" Text="水印文字" />
-                                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="自定义截图水印显示的文字" />
+                                                <TextBlock FontWeight="Bold" Text="水印文字" l:Uids.Uid="Settings_WatermarkText_Title" />
+                                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="自定义截图水印显示的文字" l:Uids.Uid="Settings_WatermarkText_Desc" />
                                             </StackPanel>
-                                            <TextBox x:Name="WatermarkTextBox" Grid.Column="2" MinWidth="160" MaxWidth="240" PlaceholderText="图吧工具箱CE" TextChanged="WatermarkTextBox_TextChanged" />
+                                            <TextBox x:Name="WatermarkTextBox" Grid.Column="2" MinWidth="160" MaxWidth="240" PlaceholderText="图吧工具箱CE" l:Uids.Uid="Settings_WatermarkText_Placeholder" TextChanged="WatermarkTextBox_TextChanged" />
                                         </Grid>
                                         <Grid Grid.Row="3" ColumnSpacing="16" x:Name="WatermarkFontPanel">
                                             <Grid.ColumnDefinitions>
@@ -693,8 +716,8 @@
                                                 <FontIcon FontSize="18" Glyph="&#xE9F5;" />
                                             </Border>
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                                <TextBlock FontWeight="Bold" Text="水印字体" />
-                                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="自定义截图水印使用的字体" />
+                                                <TextBlock FontWeight="Bold" Text="水印字体" l:Uids.Uid="Settings_WatermarkFont_Title" />
+                                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="自定义截图水印使用的字体" l:Uids.Uid="Settings_WatermarkFont_Desc" />
                                             </StackPanel>
                                             <ComboBox x:Name="WatermarkFontComboBox" Grid.Column="2" MinWidth="160" SelectionChanged="WatermarkFontComboBox_SelectionChanged" />
                                         </Grid>
@@ -717,8 +740,8 @@
                                     <FontIcon FontSize="20" Glyph="&#xE772;" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
                                 <StackPanel VerticalAlignment="Center" Spacing="2">
-                                    <TextBlock FontWeight="Bold" Text="硬件与 AI" />
-                                    <TextBlock Opacity="1.0" FontSize="13" Text="硬件显示选项、数据源、AI 服务配置" />
+                                    <TextBlock FontWeight="Bold" Text="硬件与 AI" l:Uids.Uid="Settings_HardwareAi_Title" />
+                                    <TextBlock Opacity="1.0" FontSize="13" Text="硬件显示选项、数据源、AI 服务配置" l:Uids.Uid="Settings_HardwareAi_Desc" />
                                 </StackPanel>
                             </StackPanel>
                         </Expander.Header>
@@ -737,8 +760,8 @@
                                             <FontIcon FontSize="18" Glyph="&#xE799;" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="硬件信息一屏显示" />
-                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="自动缩放使所有硬件信息在一屏内显示，关闭后允许滚动浏览" />
+                                            <TextBlock FontWeight="Bold" Text="硬件信息一屏显示" l:Uids.Uid="Settings_HardwareFitScreen_Title" />
+                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="自动缩放使所有硬件信息在一屏内显示，关闭后允许滚动浏览" l:Uids.Uid="Settings_HardwareFitScreen_Desc" />
                                         </StackPanel>
                                         <ToggleSwitch x:Name="HardwareFitScreenToggle" Grid.Column="2" VerticalAlignment="Center" Toggled="HardwareFitScreenToggle_Toggled" />
                                     </Grid>
@@ -755,8 +778,8 @@
                                             <FontIcon FontSize="18" Glyph="&#xE8FD;" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="多设备换行显示" />
-                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="当存在多个显卡、硬盘等设备时，每个设备单独一行显示" />
+                                            <TextBlock FontWeight="Bold" Text="多设备换行显示" l:Uids.Uid="Settings_HardwareMultiDevice_Title" />
+                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="当存在多个显卡、硬盘等设备时，每个设备单独一行显示" l:Uids.Uid="Settings_HardwareMultiDevice_Desc" />
                                         </StackPanel>
                                         <ToggleSwitch x:Name="HardwareMultiDeviceNewLineToggle" Grid.Column="2" VerticalAlignment="Center" Toggled="HardwareMultiDeviceNewLineToggle_Toggled" />
                                     </Grid>
@@ -773,13 +796,13 @@
                                             <FontIcon FontSize="18" Glyph="&#xEEA1;" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="硬件信息数据源" />
-                                            <TextBlock x:Name="CpuzDataSourceStatusText" Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="使用 CPU-Z 读取真实硬件信息，防止厂商伪造" />
+                                            <TextBlock FontWeight="Bold" Text="硬件信息数据源" l:Uids.Uid="Settings_CpuzSource_Title" />
+                                            <TextBlock x:Name="CpuzDataSourceStatusText" Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="使用 CPU-Z 读取真实硬件信息，防止厂商伪造" l:Uids.Uid="Settings_CpuzSource_Status" />
                                         </StackPanel>
                                         <Button x:Name="CpuzDataSourceButton" Grid.Column="2" VerticalAlignment="Center" Padding="14,6" Click="CpuzDataSourceButton_Click">
                                             <StackPanel Orientation="Horizontal" Spacing="6">
                                                 <FontIcon x:Name="CpuzDataSourceIcon" FontSize="12" Glyph="&#xEEA1;" />
-                                                <TextBlock x:Name="CpuzDataSourceButtonText" Text="切换" />
+                                                <TextBlock x:Name="CpuzDataSourceButtonText" Text="切换" l:Uids.Uid="Settings_CpuzSource_Button" />
                                             </StackPanel>
                                         </Button>
                                     </Grid>
@@ -807,8 +830,8 @@
                                                 <FontIcon FontSize="18" Glyph="&#xE945;" />
                                             </Border>
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                                <TextBlock FontWeight="Bold" Text="AI 服务配置" />
-                                                <TextBlock x:Name="AiConfigStatusText" Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="配置 AI 提供商与模型，启用 AI 智能功能" />
+                                                <TextBlock FontWeight="Bold" Text="AI 服务配置" l:Uids.Uid="Settings_Ai_Title" />
+                                                <TextBlock x:Name="AiConfigStatusText" Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="配置 AI 提供商与模型，启用 AI 智能功能" l:Uids.Uid="Settings_Ai_Status" />
                                             </StackPanel>
                                         </Grid>
                                         <Border Grid.Row="1" Padding="0,1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
@@ -824,21 +847,21 @@
                                             </Border>
                                             <StackPanel Grid.Column="1" Spacing="8">
                                                 <StackPanel Spacing="2">
-                                                    <TextBlock FontWeight="Bold" Text="AI 提供商" />
-                                                    <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="内置 DeepSeek / 小米 MiMo / OpenCode Zen 预设，只需填写 API Key；自定义提供商可完全编辑" />
+                                                    <TextBlock FontWeight="Bold" Text="AI 提供商" l:Uids.Uid="Settings_AiProvider_Title" />
+                                                    <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="内置 DeepSeek / 小米 MiMo / OpenCode Zen 预设，只需填写 API Key；自定义提供商可完全编辑" l:Uids.Uid="Settings_AiProvider_Desc" />
                                                 </StackPanel>
                                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                                     <ComboBox x:Name="AiProviderCombo" MinWidth="230" MaxWidth="340" DisplayMemberPath="Name" SelectionChanged="AiProviderCombo_SelectionChanged" />
                                                     <Button x:Name="AiAddProviderButton" Padding="12,6" Click="AiAddProviderButton_Click">
                                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                                             <FontIcon FontSize="12" Glyph="&#xE710;" />
-                                                            <TextBlock Text="新建自定义" FontSize="12" />
+                                                            <TextBlock Text="新建自定义" FontSize="12" l:Uids.Uid="Settings_AiProvider_AddButton" />
                                                         </StackPanel>
                                                     </Button>
                                                     <Button x:Name="AiResetProviderButton" Padding="12,6" Click="AiResetProviderButton_Click">
                                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                                             <FontIcon FontSize="12" Glyph="&#xE72C;" />
-                                                            <TextBlock Text="恢复默认" FontSize="12" />
+                                                            <TextBlock Text="恢复默认" FontSize="12" l:Uids.Uid="Settings_AiProvider_ResetButton" />
                                                         </StackPanel>
                                                     </Button>
                                                 </StackPanel>
@@ -855,8 +878,8 @@
                                                 <FontIcon FontSize="18" Glyph="&#xE774;" />
                                             </Border>
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                                <TextBlock FontWeight="Bold" Text="API 地址" />
-                                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="OpenAI 兼容 API 的 Base URL（预设提供商已锁定；自定义留空则使用自带默认网关）" />
+                                                <TextBlock FontWeight="Bold" Text="API 地址" l:Uids.Uid="Settings_AiEndpoint_Title" />
+                                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="OpenAI 兼容 API 的 Base URL（预设提供商已锁定；自定义留空则使用自带默认网关）" l:Uids.Uid="Settings_AiEndpoint_Desc" />
                                             </StackPanel>
                                             <TextBox x:Name="AiEndpointTextBox" Grid.Column="1" HorizontalAlignment="Right" MinWidth="280" MaxWidth="360" PlaceholderText="https://api.example.com/v1" TextChanged="AiEndpointTextBox_TextChanged" />
                                         </Grid>
@@ -873,20 +896,20 @@
                                             </Border>
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                                                 <TextBlock FontWeight="Bold" Text="API Key" />
-                                                <TextBlock x:Name="AiApiKeyHintText" Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="API 密钥，将安全保存在本地" />
+                                                <TextBlock x:Name="AiApiKeyHintText" Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="API 密钥，将安全保存在本地" l:Uids.Uid="Settings_AiApiKey_Hint" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                                 <PasswordBox x:Name="AiApiKeyBox" MinWidth="200" MaxWidth="280" PlaceholderText="sk-..." PasswordChanged="AiApiKeyBox_PasswordChanged" />
                                                 <Button x:Name="AiKeyLinkButton" Padding="14,6" Click="AiKeyLinkButton_Click">
                                                     <StackPanel Orientation="Horizontal" Spacing="6">
                                                         <FontIcon FontSize="12" Glyph="&#xE774;" />
-                                                        <TextBlock x:Name="AiKeyLinkText" Text="获取 API Key" FontSize="12" />
+                                                        <TextBlock x:Name="AiKeyLinkText" Text="获取 API Key" FontSize="12" l:Uids.Uid="Settings_AiApiKey_GetButton" />
                                                     </StackPanel>
                                                 </Button>
                                                 <Button x:Name="AiTestButton" Padding="14,6" Click="AiTestButton_Click">
                                                     <StackPanel Orientation="Horizontal" Spacing="6">
                                                         <FontIcon x:Name="AiTestIcon" FontSize="12" Glyph="&#xE73E;" />
-                                                        <TextBlock x:Name="AiTestButtonText" Text="测试连接" FontSize="12" />
+                                                        <TextBlock x:Name="AiTestButtonText" Text="测试连接" FontSize="12" l:Uids.Uid="Settings_AiTest_Button" />
                                                     </StackPanel>
                                                 </Button>
                                             </StackPanel>
@@ -903,8 +926,8 @@
                                             </Border>
                                             <StackPanel Grid.Column="1" Spacing="8">
                                                 <StackPanel Spacing="2">
-                                                    <TextBlock FontWeight="Bold" Text="模型列表" />
-                                                    <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="预设或自定义模型标识，可在 AI 聊天界面随时切换" />
+                                                    <TextBlock FontWeight="Bold" Text="模型列表" l:Uids.Uid="Settings_AiModels_Title" />
+                                                    <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="预设或自定义模型标识，可在 AI 聊天界面随时切换" l:Uids.Uid="Settings_AiModels_Desc" />
                                                 </StackPanel>
                                                 <ItemsControl x:Name="AiModelsList">
                                                     <ItemsControl.ItemTemplate>
@@ -923,11 +946,11 @@
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
                                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                                    <TextBox x:Name="AiNewModelBox" MinWidth="240" PlaceholderText="输入模型标识，如 deepseek-chat" KeyDown="AiNewModelBox_KeyDown" />
+                                                    <TextBox x:Name="AiNewModelBox" MinWidth="240" PlaceholderText="输入模型标识，如 deepseek-chat" l:Uids.Uid="Settings_AiNewModel_Placeholder" KeyDown="AiNewModelBox_KeyDown" />
                                                     <Button x:Name="AiAddModelButton" Padding="14,6" Click="AiAddModelButton_Click">
                                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                                             <FontIcon FontSize="12" Glyph="&#xE710;" />
-                                                            <TextBlock Text="添加" FontSize="12" />
+                                                            <TextBlock Text="添加" FontSize="12" l:Uids.Uid="Settings_AiAddModel_Button" />
                                                         </StackPanel>
                                                     </Button>
                                                 </StackPanel>
@@ -945,8 +968,8 @@
                                                 <FontIcon FontSize="18" Glyph="&#xE7C4;" />
                                             </Border>
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                                <TextBlock FontWeight="Bold" Text="默认模型" />
-                                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="打开新对话时自动选中的模型" />
+                                                <TextBlock FontWeight="Bold" Text="默认模型" l:Uids.Uid="Settings_AiDefaultModel_Title" />
+                                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="打开新对话时自动选中的模型" l:Uids.Uid="Settings_AiDefaultModel_Desc" />
                                             </StackPanel>
                                             <ComboBox x:Name="AiDefaultModelCombo" Grid.Column="2" MinWidth="200" MaxWidth="300" DisplayMemberPath="DisplayText" SelectionChanged="AiDefaultModelCombo_SelectionChanged" />
                                         </Grid>
@@ -956,22 +979,23 @@
                                             <StackPanel Spacing="10">
                                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                                     <FontIcon Glyph="&#xE77B;" FontSize="16" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                                                    <TextBlock FontWeight="Bold" Text="OpenCode Zen 免费模型" VerticalAlignment="Center" />
+                                                    <TextBlock FontWeight="Bold" Text="OpenCode Zen 免费模型" VerticalAlignment="Center" l:Uids.Uid="Settings_AiZen_Title" />
                                                     <TextBlock x:Name="AiZenStatusText" FontSize="12" Opacity="0.8" VerticalAlignment="Center" />
                                                 </StackPanel>
                                                 <TextBlock FontSize="12" Opacity="0.7" TextWrapping="Wrap"
-                                                           Text="免费模型（如 deepseek-v4-flash-free、mimo-v2.5-free）无需付费；匿名使用额度较低（实测约 2 轮即限额），登录并填入 API Key 后额度大幅提升。" />
+                                                           Text="免费模型（如 deepseek-v4-flash-free、mimo-v2.5-free）无需付费；匿名使用额度较低（实测约 2 轮即限额），登录并填入 API Key 后额度大幅提升。"
+                                                           l:Uids.Uid="Settings_AiZen_Desc" />
                                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                                     <Button x:Name="AiZenLoginButton" Padding="14,6" Click="AiZenLoginButton_Click">
                                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                                             <FontIcon x:Name="AiZenLoginIcon" FontSize="12" Glyph="&#xE77B;" />
-                                                            <TextBlock x:Name="AiZenLoginText" Text="登录并获取 Key" FontSize="12" />
+                                                            <TextBlock x:Name="AiZenLoginText" Text="登录并获取 Key" FontSize="12" l:Uids.Uid="Settings_AiZen_LoginButton" />
                                                         </StackPanel>
                                                     </Button>
                                                     <Button x:Name="AiZenRefreshButton" Padding="14,6" Click="AiZenRefreshButton_Click">
                                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                                             <FontIcon x:Name="AiZenRefreshIcon" FontSize="12" Glyph="&#xE72C;" />
-                                                            <TextBlock x:Name="AiZenRefreshText" Text="刷新免费模型" FontSize="12" />
+                                                            <TextBlock x:Name="AiZenRefreshText" Text="刷新免费模型" FontSize="12" l:Uids.Uid="Settings_AiZen_RefreshButton" />
                                                         </StackPanel>
                                                     </Button>
                                                 </StackPanel>
@@ -987,8 +1011,8 @@
                                                 <FontIcon FontSize="18" Glyph="&#xE721;" />
                                             </Border>
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                                <TextBlock FontWeight="Bold" Text="搜索 API Key" />
-                                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="uapis.cn 搜索 API 密钥（留空使用免费额度）" />
+                                                <TextBlock FontWeight="Bold" Text="搜索 API Key" l:Uids.Uid="Settings_SearchApiKey_Title" />
+                                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="uapis.cn 搜索 API 密钥（留空使用免费额度）" l:Uids.Uid="Settings_SearchApiKey_Desc" />
                                             </StackPanel>
                                             <PasswordBox x:Name="SearchApiKeyBox" Grid.Column="1" HorizontalAlignment="Right" MinWidth="280" MaxWidth="360" PlaceholderText="uapi-..." PasswordChanged="SearchApiKeyBox_PasswordChanged" />
                                         </Grid>
@@ -1011,8 +1035,8 @@
                                     <FontIcon FontSize="20" Glyph="&#xE8B7;" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
                                 <StackPanel VerticalAlignment="Center" Spacing="2">
-                                    <TextBlock x:Name="ToolsCommunityTitleText" FontWeight="Bold" Text="工具与社区" />
-                                    <TextBlock x:Name="ToolsCommunityDescText" Opacity="1.0" FontSize="13" Text="配置管理、自定义工具、导出、GitHub" />
+                                    <TextBlock x:Name="ToolsCommunityTitleText" FontWeight="Bold" Text="工具与社区" l:Uids.Uid="Settings_ToolsCommunity_Title" />
+                                    <TextBlock x:Name="ToolsCommunityDescText" Opacity="1.0" FontSize="13" Text="配置管理、自定义工具、导出、GitHub" l:Uids.Uid="Settings_ToolsCommunity_Desc" />
                                 </StackPanel>
                             </StackPanel>
                         </Expander.Header>
@@ -1031,8 +1055,8 @@
                                             <FontIcon FontSize="18" Glyph="&#xE8A7;" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="内置工具打开方式" />
-                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="选择打开内置工具时嵌入当前页面，还是打开独立窗口" />
+                                            <TextBlock FontWeight="Bold" Text="内置工具打开方式" l:Uids.Uid="Settings_BuiltinOpenMode_Title" />
+                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="选择打开内置工具时嵌入当前页面，还是打开独立窗口" l:Uids.Uid="Settings_BuiltinOpenMode_Desc" />
                                         </StackPanel>
                                         <ComboBox x:Name="BuiltinToolOpenModeComboBox" Grid.Column="2" MinWidth="120" SelectionChanged="BuiltinToolOpenModeComboBox_SelectionChanged" />
                                     </Grid>
@@ -1049,8 +1073,8 @@
                                             <FontIcon FontSize="18" Glyph="&#xE721;" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="注册到 Windows 搜索" />
-                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="在开始菜单搜索工具名（如 CPU-Z）直接启动，无需打开工具箱；多版本自动去重，关闭时自动清理快捷方式" />
+                                            <TextBlock FontWeight="Bold" Text="注册到 Windows 搜索" l:Uids.Uid="Settings_SearchIndex_Title" />
+                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="在开始菜单搜索工具名（如 CPU-Z）直接启动，无需打开工具箱；多版本自动去重，关闭时自动清理快捷方式" l:Uids.Uid="Settings_SearchIndex_Desc" />
                                         </StackPanel>
                                         <ToggleSwitch x:Name="SearchIndexToggle" Grid.Column="2" VerticalAlignment="Center" Toggled="SearchIndexToggle_Toggled" />
                                     </Grid>
@@ -1068,10 +1092,10 @@
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                                <TextBlock FontWeight="Bold" Text="主动拦截流氓软件" />
+                                                <TextBlock FontWeight="Bold" Text="主动拦截流氓软件" l:Uids.Uid="Settings_ActiveIntercept_Title" />
                                                 <TextBlock x:Name="ActiveInterceptStatusText" Opacity="1.0" FontSize="12" Foreground="{ThemeResource SystemFillColorCautionBrush}" VerticalAlignment="Center" />
                                             </StackPanel>
-                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="后台常驻监控右键菜单注册项，自动屏蔽新增的第三方右键菜单（先拦截再审核），可在「流氓软件的克星 - 主动拦截」中审核放行" />
+                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="后台常驻监控右键菜单注册项，自动屏蔽新增的第三方右键菜单（先拦截再审核），可在「流氓软件的克星 - 主动拦截」中审核放行" l:Uids.Uid="Settings_ActiveIntercept_Desc" />
                                         </StackPanel>
                                         <ToggleSwitch x:Name="ActiveInterceptToggle" Grid.Column="2" VerticalAlignment="Center" Toggled="ActiveInterceptToggle_Toggled" />
                                     </Grid>
@@ -1088,8 +1112,8 @@
                                             <FontIcon FontSize="18" Glyph="&#xE767;" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="拦截通知模式" />
-                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="设置拦截到新增右键菜单时是否弹出 Windows 通知" />
+                                            <TextBlock FontWeight="Bold" Text="拦截通知模式" l:Uids.Uid="Settings_InterceptNotify_Title" />
+                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="设置拦截到新增右键菜单时是否弹出 Windows 通知" l:Uids.Uid="Settings_InterceptNotify_Desc" />
                                         </StackPanel>
                                         <ComboBox x:Name="ActiveInterceptNotifyModeComboBox" Grid.Column="2" MinWidth="120"
                                                   SelectionChanged="ActiveInterceptNotifyModeComboBox_SelectionChanged" />
@@ -1116,13 +1140,13 @@
                                                 <FontIcon FontSize="18" Glyph="&#xE896;" />
                                             </Border>
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                                <TextBlock FontWeight="Bold" Text="HTTP 下载" />
-                                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="输入链接加入下载队列，支持断点续传" />
+                                                <TextBlock FontWeight="Bold" Text="HTTP 下载" l:Uids.Uid="Settings_HttpDownload_Title" />
+                                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="输入链接加入下载队列，支持断点续传" l:Uids.Uid="Settings_HttpDownload_Desc" />
                                             </StackPanel>
                                             <Button x:Name="HttpDownloadAddButton" Grid.Column="2" VerticalAlignment="Center" Padding="14,6" Click="HttpDownloadAddButton_Click" Style="{StaticResource AccentButtonStyle}">
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                                     <FontIcon FontSize="12" Glyph="&#xE896;" />
-                                                    <TextBlock Text="加入下载" />
+                                                    <TextBlock Text="加入下载" l:Uids.Uid="Settings_HttpDownload_AddButton" />
                                                 </StackPanel>
                                             </Button>
                                         </Grid>
@@ -1136,8 +1160,8 @@
                                                 <FontIcon FontSize="18" Glyph="&#xE71B;" />
                                             </Border>
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                                <TextBlock FontWeight="Bold" Text="下载链接" />
-                                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="输入 HTTP/HTTPS 直链地址" />
+                                                <TextBlock FontWeight="Bold" Text="下载链接" l:Uids.Uid="Settings_HttpDownloadUrl_Title" />
+                                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="输入 HTTP/HTTPS 直链地址" l:Uids.Uid="Settings_HttpDownloadUrl_Desc" />
                                             </StackPanel>
                                             <TextBox x:Name="HttpDownloadUrlTextBox" Grid.Column="1" HorizontalAlignment="Right" MinWidth="280" MaxWidth="360" PlaceholderText="https://example.com/file.zip" />
                                         </Grid>
@@ -1151,17 +1175,17 @@
                                                 <FontIcon FontSize="18" Glyph="&#xED25;" />
                                             </Border>
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                                <TextBlock FontWeight="Bold" Text="保存位置" />
+                                                <TextBlock FontWeight="Bold" Text="保存位置" l:Uids.Uid="Settings_HttpDownloadPath_Title" />
                                                 <TextBlock x:Name="HttpDownloadPathText" Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                                 <Button x:Name="HttpDownloadBrowseButton" Padding="10,6" Click="HttpDownloadBrowseButton_Click">
                                                     <StackPanel Orientation="Horizontal" Spacing="6">
                                                         <FontIcon FontSize="12" Glyph="&#xE8DA;" />
-                                                        <TextBlock Text="浏览" />
+                                                        <TextBlock Text="浏览" l:Uids.Uid="Settings_HttpDownloadBrowse_Button" />
                                                     </StackPanel>
                                                 </Button>
-                                                <Button x:Name="HttpDownloadResetPathButton" Padding="10,6" Click="HttpDownloadResetPathButton_Click" ToolTipService.ToolTip="恢复默认路径">
+                                                <Button x:Name="HttpDownloadResetPathButton" Padding="10,6" Click="HttpDownloadResetPathButton_Click" ToolTipService.ToolTip="恢复默认路径" l:Uids.Uid="Settings_HttpDownloadResetPath_Button">
                                                     <FontIcon FontSize="12" Glyph="&#xE72C;" />
                                                 </Button>
                                             </StackPanel>
@@ -1176,8 +1200,8 @@
                                                 <FontIcon FontSize="18" Glyph="&#xE898;" />
                                             </Border>
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                                <TextBlock FontWeight="Bold" Text="下载后操作" />
-                                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="选择下载完成后的处理方式" />
+                                                <TextBlock FontWeight="Bold" Text="下载后操作" l:Uids.Uid="Settings_HttpDownloadAction_Title" />
+                                                <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="选择下载完成后的处理方式" l:Uids.Uid="Settings_HttpDownloadAction_Desc" />
                                             </StackPanel>
                                             <ComboBox x:Name="HttpDownloadActionComboBox" Grid.Column="2" MinWidth="120" />
                                         </Grid>
@@ -1191,13 +1215,13 @@
                                                 <FontIcon FontSize="18" Glyph="&#xE9D5;" />
                                             </Border>
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                                <TextBlock FontWeight="Bold" Text="下载队列" />
-                                                <TextBlock x:Name="HttpDownloadQueueStatusText" Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="查看当前下载队列状态" />
+                                                <TextBlock FontWeight="Bold" Text="下载队列" l:Uids.Uid="Settings_DownloadQueue_Title" />
+                                                <TextBlock x:Name="HttpDownloadQueueStatusText" Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="查看当前下载队列状态" l:Uids.Uid="Settings_DownloadQueue_Status" />
                                             </StackPanel>
                                             <Button x:Name="HttpDownloadViewQueueButton" Grid.Column="2" VerticalAlignment="Center" Padding="14,6" Click="HttpDownloadViewQueueButton_Click">
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                                     <FontIcon FontSize="12" Glyph="&#xE713;" />
-                                                    <TextBlock Text="管理队列" />
+                                                    <TextBlock Text="管理队列" l:Uids.Uid="Settings_DownloadQueue_Button" />
                                                 </StackPanel>
                                             </Button>
                                         </Grid>
@@ -1215,13 +1239,13 @@
                                             <FontIcon FontSize="18" Glyph="&#xE912;" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="配置管理" />
-                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="管理配置文件的存储位置、导出和导入" />
+                                            <TextBlock FontWeight="Bold" Text="配置管理" l:Uids.Uid="Settings_ConfigManager_Title" />
+                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="管理配置文件的存储位置、导出和导入" l:Uids.Uid="Settings_ConfigManager_Desc" />
                                         </StackPanel>
                                         <Button x:Name="ConfigManagerButton" Grid.Column="2" VerticalAlignment="Center" Padding="14,6" Click="ConfigManagerButton_Click">
                                             <StackPanel Orientation="Horizontal" Spacing="6">
                                                 <FontIcon FontSize="12" Glyph="&#xE9D9;" />
-                                                <TextBlock Text="管理" />
+                                                <TextBlock Text="管理" l:Uids.Uid="Settings_ConfigManager_Button" />
                                             </StackPanel>
                                         </Button>
                                     </Grid>
@@ -1238,13 +1262,13 @@
                                             <FontIcon FontSize="18" Glyph="&#xEDA2;" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="图吧工具箱存储占用" />
-                                            <TextBlock x:Name="StorageUsageStatusText" Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="统计程序目录、缓存与各内置工具产生的文件（下载组件、日志、临时残留等），可逐项选择清理。" />
+                                            <TextBlock FontWeight="Bold" Text="图吧工具箱存储占用" l:Uids.Uid="Settings_StorageUsage_Title" />
+                                            <TextBlock x:Name="StorageUsageStatusText" Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="统计程序目录、缓存与各内置工具产生的文件（下载组件、日志、临时残留等），可逐项选择清理。" l:Uids.Uid="Settings_StorageUsage_Status" />
                                         </StackPanel>
                                         <Button x:Name="StorageUsageButton" Grid.Column="2" VerticalAlignment="Center" Padding="14,6" Click="StorageUsageButton_Click">
                                             <StackPanel Orientation="Horizontal" Spacing="6">
                                                 <FontIcon FontSize="12" Glyph="&#xEDA2;" />
-                                                <TextBlock Text="查看占用" />
+                                                <TextBlock Text="查看占用" l:Uids.Uid="Settings_StorageUsage_Button" />
                                             </StackPanel>
                                         </Button>
                                     </Grid>
@@ -1261,13 +1285,13 @@
                                             <FontIcon FontSize="18" Glyph="&#xE896;" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="导出当前软件" />
-                                            <TextBlock x:Name="ExportAppStatusText" Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="把当前程序目录、工具和元数据打包成可分发压缩包。" />
+                                            <TextBlock FontWeight="Bold" Text="导出当前软件" l:Uids.Uid="Settings_ExportApp_Title" />
+                                            <TextBlock x:Name="ExportAppStatusText" Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="把当前程序目录、工具和元数据打包成可分发压缩包。" l:Uids.Uid="Settings_ExportApp_Status" />
                                         </StackPanel>
                                         <Button x:Name="ExportAppButton" Grid.Column="2" VerticalAlignment="Center" Padding="14,6" Click="ExportAppButton_Click">
                                             <StackPanel Orientation="Horizontal" Spacing="6">
                                                 <FontIcon FontSize="12" Glyph="&#xE896;" />
-                                                <TextBlock Text="导出" />
+                                                <TextBlock Text="导出" l:Uids.Uid="Settings_ExportApp_Button" />
                                             </StackPanel>
                                         </Button>
                                     </Grid>
@@ -1284,21 +1308,21 @@
                                             <FontIcon FontSize="18" Glyph="&#xE9D5;" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="GitHub 账号" />
-                                            <TextBlock x:Name="GitHubLoginStatusText" Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="未登录" />
+                                            <TextBlock FontWeight="Bold" Text="GitHub 账号" l:Uids.Uid="Settings_GitHub_Title" />
+                                            <TextBlock x:Name="GitHubLoginStatusText" Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="未登录" l:Uids.Uid="Settings_GitHub_Status" />
                                         </StackPanel>
                                         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                             <PersonPicture x:Name="GitHubAvatar" Width="32" Height="32" Visibility="Collapsed" />
                                             <Button x:Name="GitHubLoginButton" Padding="14,6" Click="GitHubLoginButton_Click">
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                                     <FontIcon FontSize="12" Glyph="&#xE77B;" />
-                                                    <TextBlock Text="登录" />
+                                                    <TextBlock Text="登录" l:Uids.Uid="Settings_GitHub_LoginButton" />
                                                 </StackPanel>
                                             </Button>
                                             <Button x:Name="GitHubLogoutButton" Padding="14,6" Click="GitHubLogoutButton_Click" Visibility="Collapsed">
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                                     <FontIcon FontSize="12" Glyph="&#xE8AB;" />
-                                                    <TextBlock Text="登出" />
+                                                    <TextBlock Text="登出" l:Uids.Uid="Settings_GitHub_LogoutButton" />
                                                 </StackPanel>
                                             </Button>
                                         </StackPanel>
@@ -1316,13 +1340,13 @@
                                             <FontIcon FontSize="18" Glyph="&#xE710;" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="提交社区工具" />
-                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="将工具提交到社区仓库，审核通过后所有人可见" />
+                                            <TextBlock FontWeight="Bold" Text="提交社区工具" l:Uids.Uid="Settings_CommunitySubmit_Title" />
+                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="将工具提交到社区仓库，审核通过后所有人可见" l:Uids.Uid="Settings_CommunitySubmit_Desc" />
                                         </StackPanel>
                                         <Button x:Name="CommunitySubmitButton" Grid.Column="2" VerticalAlignment="Center" Padding="14,6" Click="CommunitySubmitButton_Click">
                                             <StackPanel Orientation="Horizontal" Spacing="6">
                                                 <FontIcon FontSize="12" Glyph="&#xE710;" />
-                                                <TextBlock Text="提交工具" />
+                                                <TextBlock Text="提交工具" l:Uids.Uid="Settings_CommunitySubmit_Button" />
                                             </StackPanel>
                                         </Button>
                                     </Grid>
@@ -1339,13 +1363,13 @@
                                             <FontIcon FontSize="18" Glyph="&#xE8BD;" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="反馈与建议" />
-                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="在 GitHub 上提交问题、功能建议或反馈" />
+                                            <TextBlock FontWeight="Bold" Text="反馈与建议" l:Uids.Uid="Settings_Feedback_Title" />
+                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="在 GitHub 上提交问题、功能建议或反馈" l:Uids.Uid="Settings_Feedback_Desc" />
                                         </StackPanel>
                                         <Button x:Name="FeedbackButton" Grid.Column="2" VerticalAlignment="Center" Padding="14,6" Click="FeedbackButton_Click">
                                             <StackPanel Orientation="Horizontal" Spacing="6">
                                                 <FontIcon FontSize="12" Glyph="&#xE8BD;" />
-                                                <TextBlock Text="提交反馈" />
+                                                <TextBlock Text="提交反馈" l:Uids.Uid="Settings_Feedback_Button" />
                                             </StackPanel>
                                         </Button>
                                     </Grid>
@@ -1362,13 +1386,13 @@
                                             <FontIcon FontSize="18" Glyph="&#xE7BA;" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="错误日志打包" />
-                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="解析 Windows 事件日志中与本程序相关的崩溃报告，连同应用日志和系统信息打包为 zip，便于提交到 GitHub Issue" />
+                                            <TextBlock FontWeight="Bold" Text="错误日志打包" l:Uids.Uid="Settings_ErrorReport_Title" />
+                                            <TextBlock Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="解析 Windows 事件日志中与本程序相关的崩溃报告，连同应用日志和系统信息打包为 zip，便于提交到 GitHub Issue" l:Uids.Uid="Settings_ErrorReport_Desc" />
                                         </StackPanel>
                                         <Button x:Name="ErrorReportButton" Grid.Column="2" VerticalAlignment="Center" Padding="14,6" Click="ErrorReportButton_Click">
                                             <StackPanel Orientation="Horizontal" Spacing="6">
                                                 <FontIcon FontSize="12" Glyph="&#xE7BA;" />
-                                                <TextBlock x:Name="ErrorReportButtonText" Text="打包日志" />
+                                                <TextBlock x:Name="ErrorReportButtonText" Text="打包日志" l:Uids.Uid="Settings_ErrorReport_Button" />
                                             </StackPanel>
                                         </Button>
                                     </Grid>
@@ -1390,8 +1414,8 @@
                                     <FontIcon FontSize="20" Glyph="&#xE774;" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
                                 <StackPanel VerticalAlignment="Center" Spacing="2">
-                                    <TextBlock FontWeight="Bold" Text="关于与鸣谢" />
-                                    <TextBlock Opacity="1.0" FontSize="13" Text="工具来源、作者、官网、开源引用" />
+                                    <TextBlock FontWeight="Bold" Text="关于与鸣谢" l:Uids.Uid="Settings_Credits_Title" />
+                                    <TextBlock Opacity="1.0" FontSize="13" Text="工具来源、作者、官网、开源引用" l:Uids.Uid="Settings_Credits_Desc" />
                                 </StackPanel>
                             </StackPanel>
                         </Expander.Header>
@@ -1410,10 +1434,10 @@
                                             <FontIcon HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" Glyph="&#xE90F;" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="图吧工具箱CE" />
-                                            <TextBlock FontSize="12" Opacity="1.0" Text="本软件所集成的全部硬件检测与测试工具，均来源于「图吧工具箱」项目。" TextWrapping="Wrap" />
+                                            <TextBlock FontWeight="Bold" Text="图吧工具箱CE" l:Uids.Uid="Settings_CreditsApp_Title" />
+                                            <TextBlock FontSize="12" Opacity="1.0" Text="本软件所集成的全部硬件检测与测试工具，均来源于「图吧工具箱」项目。" l:Uids.Uid="Settings_CreditsApp_Desc" TextWrapping="Wrap" />
                                         </StackPanel>
-                                        <HyperlinkButton Grid.Column="2" VerticalAlignment="Center" NavigateUri="https://www.tbtool.cn" Content="访问官网" />
+                                        <HyperlinkButton Grid.Column="2" VerticalAlignment="Center" NavigateUri="https://www.tbtool.cn" Content="访问官网" l:Uids.Uid="Settings_Credits_VisitSite" />
                                     </Grid>
                                 </Border>
 
@@ -1427,7 +1451,7 @@
                                         <PersonPicture x:Name="AuthorAvatar" Width="44" Height="44" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                                             <TextBlock FontWeight="Bold" Text="哈基毅" />
-                                            <TextBlock FontSize="12" Opacity="1.0" Text="开发者 / Designer" />
+                                            <TextBlock FontSize="12" Opacity="1.0" Text="开发者 / Designer" l:Uids.Uid="Settings_CreditsAuthor_Role" />
                                         </StackPanel>
                                         <HyperlinkButton Grid.Column="2" VerticalAlignment="Center" NavigateUri="https://github.com/luolangaga">
                                             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -1449,10 +1473,10 @@
                                             <FontIcon HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" Glyph="&#xE774;" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="官方网站" />
+                                            <TextBlock FontWeight="Bold" Text="官方网站" l:Uids.Uid="Settings_CreditsOfficialSite_Title" />
                                             <TextBlock FontSize="12" Opacity="1.0" Text="tubawinui3.cn" />
                                         </StackPanel>
-                                        <HyperlinkButton Grid.Column="2" VerticalAlignment="Center" NavigateUri="https://tubawinui3.cn" Content="访问官网" />
+                                        <HyperlinkButton Grid.Column="2" VerticalAlignment="Center" NavigateUri="https://tubawinui3.cn" Content="访问官网" l:Uids.Uid="Settings_Credits_VisitSite" />
                                     </Grid>
                                 </Border>
 
@@ -1473,10 +1497,10 @@
                                                 VerticalAlignment="Center" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="新境盒 NexBox" />
-                                            <TextBlock FontSize="12" Opacity="1.0" Text="为现代玩家打造的游戏工具箱 - 特别鸣谢" />
+                                            <TextBlock FontWeight="Bold" Text="新境盒 NexBox" l:Uids.Uid="Settings_CreditsNexBox_Title" />
+                                            <TextBlock FontSize="12" Opacity="1.0" Text="为现代玩家打造的游戏工具箱 - 特别鸣谢" l:Uids.Uid="Settings_CreditsNexBox_Desc" />
                                         </StackPanel>
-                                        <HyperlinkButton Grid.Column="2" VerticalAlignment="Center" NavigateUri="https://nexbox.top" Content="访问官网" />
+                                        <HyperlinkButton Grid.Column="2" VerticalAlignment="Center" NavigateUri="https://nexbox.top" Content="访问官网" l:Uids.Uid="Settings_Credits_VisitSite" />
                                     </Grid>
                                 </Border>
 
@@ -1491,13 +1515,13 @@
                                             <FontIcon HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" Glyph="&#xE943;" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="开源引用" />
-                                            <TextBlock FontSize="12" Opacity="1.0" Text="查看本软件使用的所有开源项目" />
+                                            <TextBlock FontWeight="Bold" Text="开源引用" l:Uids.Uid="Settings_OpenSource_Title" />
+                                            <TextBlock FontSize="12" Opacity="1.0" Text="查看本软件使用的所有开源项目" l:Uids.Uid="Settings_OpenSource_Desc" />
                                         </StackPanel>
                                         <Button Grid.Column="2" VerticalAlignment="Center" Click="OpenSourceButton_Click">
                                             <StackPanel Orientation="Horizontal" Spacing="6">
                                                 <FontIcon FontSize="14" Glyph="&#xE890;" />
-                                                <TextBlock Text="查看全部" />
+                                                <TextBlock Text="查看全部" l:Uids.Uid="Settings_OpenSource_Button" />
                                             </StackPanel>
                                         </Button>
                                     </Grid>
@@ -1514,10 +1538,10 @@
                                             <FontIcon HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" Glyph="&#xE783;" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="测试异常页面" />
-                                            <TextBlock FontSize="12" Opacity="1.0" Text="手动抛出一个未处理异常，用于验证全局错误页面。" TextWrapping="Wrap" />
+                                            <TextBlock FontWeight="Bold" Text="测试异常页面" l:Uids.Uid="Settings_TestError_Title" />
+                                            <TextBlock FontSize="12" Opacity="1.0" Text="手动抛出一个未处理异常，用于验证全局错误页面。" l:Uids.Uid="Settings_TestError_Desc" TextWrapping="Wrap" />
                                         </StackPanel>
-                                        <Button Grid.Column="2" VerticalAlignment="Center" Click="ThrowErrorButton_Click" Content="抛出异常" />
+                                        <Button Grid.Column="2" VerticalAlignment="Center" Click="ThrowErrorButton_Click" Content="抛出异常" l:Uids.Uid="Settings_TestError_Button" />
                                     </Grid>
                                 </Border>
 
@@ -1539,8 +1563,8 @@
                                 <FontIcon FontSize="20" Glyph="&#xE9F9;" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                <TextBlock FontWeight="Bold" Text="组件测试" />
-                                <TextBlock Opacity="1.0" FontSize="13" Text="预览 HealthGauge 仪表盘与 SparklineGraph 图表组件" />
+                                <TextBlock FontWeight="Bold" Text="组件测试" l:Uids.Uid="Settings_ComponentTest_Title" />
+                                <TextBlock Opacity="1.0" FontSize="13" Text="预览 HealthGauge 仪表盘与 SparklineGraph 图表组件" l:Uids.Uid="Settings_ComponentTest_Desc" />
                             </StackPanel>
                             <FontIcon Grid.Column="2" FontSize="14" Glyph="&#xE76C;" Opacity="1.0" VerticalAlignment="Center" />
                         </Grid>
@@ -1559,8 +1583,8 @@
                                 <FontIcon FontSize="20" Glyph="&#xE8BD;" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                <TextBlock FontWeight="Bold" Text="新增内容" />
-                                <TextBlock Opacity="1.0" FontSize="13" Text="查看各版本更新日志和新功能" />
+                                <TextBlock FontWeight="Bold" Text="新增内容" l:Uids.Uid="Settings_WhatsNew_Title" />
+                                <TextBlock Opacity="1.0" FontSize="13" Text="查看各版本更新日志和新功能" l:Uids.Uid="Settings_WhatsNew_Desc" />
                             </StackPanel>
                             <FontIcon Grid.Column="2" FontSize="14" Glyph="&#xE76C;" Opacity="1.0" VerticalAlignment="Center" />
                         </Grid>
@@ -1607,7 +1631,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock FontSize="20" FontWeight="Bold" Text="开源引用" />
+                        <TextBlock FontSize="20" FontWeight="Bold" Text="开源引用" l:Uids.Uid="Settings_OpenSource_Title" />
                         <Button x:Name="DrawerCloseButton" Grid.Column="1" Width="36" Height="36" Padding="0" Click="DrawerCloseButton_Click">
                             <FontIcon FontSize="14" Glyph="&#xE711;" />
                         </Button>
@@ -1626,7 +1650,7 @@
                                     </Border>
                                     <StackPanel Grid.Column="1" Spacing="2">
                                         <TextBlock FontWeight="Bold" Text="Windows App SDK (WinUI 3)" />
-                                        <TextBlock FontSize="12" Opacity="1.0" Text="Microsoft.WindowsAppSDK — 应用框架" />
+                                        <TextBlock FontSize="12" Opacity="1.0" Text="Microsoft.WindowsAppSDK — 应用框架" l:Uids.Uid="Settings_OpenSource_AppSdk" />
                                         <HyperlinkButton Padding="0" FontSize="12" NavigateUri="https://github.com/microsoft/WindowsAppSDK" Content="GitHub" />
                                     </StackPanel>
                                 </Grid>
@@ -1643,7 +1667,7 @@
                                     </Border>
                                     <StackPanel Grid.Column="1" Spacing="2">
                                         <TextBlock FontWeight="Bold" Text="Win2D" />
-                                        <TextBlock FontSize="12" Opacity="1.0" Text="Microsoft.Graphics.Win2D — 2D 图形渲染库" />
+                                        <TextBlock FontSize="12" Opacity="1.0" Text="Microsoft.Graphics.Win2D — 2D 图形渲染库" l:Uids.Uid="Settings_OpenSource_Win2D" />
                                         <HyperlinkButton Padding="0" FontSize="12" NavigateUri="https://github.com/microsoft/Win2D" Content="GitHub" />
                                     </StackPanel>
                                 </Grid>
@@ -1660,7 +1684,7 @@
                                     </Border>
                                     <StackPanel Grid.Column="1" Spacing="2">
                                         <TextBlock FontWeight="Bold" Text="LibreHardwareMonitorLib" />
-                                        <TextBlock FontSize="12" Opacity="1.0" Text="LibreHardwareMonitorLib — 硬件传感器监控库" />
+                                        <TextBlock FontSize="12" Opacity="1.0" Text="LibreHardwareMonitorLib — 硬件传感器监控库" l:Uids.Uid="Settings_OpenSource_Lhm" />
                                         <HyperlinkButton Padding="0" FontSize="12" NavigateUri="https://github.com/LibreHardwareMonitor/LibreHardwareMonitor" Content="GitHub" />
                                     </StackPanel>
                                 </Grid>
@@ -1677,7 +1701,7 @@
                                     </Border>
                                     <StackPanel Grid.Column="1" Spacing="2">
                                         <TextBlock FontWeight="Bold" Text="System.Drawing.Common" />
-                                        <TextBlock FontSize="12" Opacity="1.0" Text="图标提取与图像处理" />
+                                        <TextBlock FontSize="12" Opacity="1.0" Text="图标提取与图像处理" l:Uids.Uid="Settings_OpenSource_Drawing" />
                                         <HyperlinkButton Padding="0" FontSize="12" NavigateUri="https://learn.microsoft.com/dotnet/core/compatibility/core-libraries/6.0/system-drawing-common-windows-only" Content="Docs" />
                                     </StackPanel>
                                 </Grid>
@@ -1694,7 +1718,7 @@
                                     </Border>
                                     <StackPanel Grid.Column="1" Spacing="2">
                                         <TextBlock FontWeight="Bold" Text="System.Management" />
-                                        <TextBlock FontSize="12" Opacity="1.0" Text="WMI 硬件信息查询" />
+                                        <TextBlock FontSize="12" Opacity="1.0" Text="WMI 硬件信息查询" l:Uids.Uid="Settings_OpenSource_Management" />
                                         <HyperlinkButton Padding="0" FontSize="12" NavigateUri="https://learn.microsoft.com/dotnet/api/system.management" Content="Docs" />
                                     </StackPanel>
                                 </Grid>
@@ -1711,7 +1735,7 @@
                                     </Border>
                                     <StackPanel Grid.Column="1" Spacing="2">
                                         <TextBlock FontWeight="Bold" Text="System.Diagnostics.EventLog" />
-                                        <TextBlock FontSize="12" Opacity="1.0" Text="系统事件日志读取 — 蓝屏分析" />
+                                        <TextBlock FontSize="12" Opacity="1.0" Text="系统事件日志读取 — 蓝屏分析" l:Uids.Uid="Settings_OpenSource_EventLog" />
                                         <HyperlinkButton Padding="0" FontSize="12" NavigateUri="https://learn.microsoft.com/dotnet/api/system.diagnostics.eventlog" Content="Docs" />
                                     </StackPanel>
                                 </Grid>
@@ -1728,7 +1752,7 @@
                                     </Border>
                                     <StackPanel Grid.Column="1" Spacing="2">
                                         <TextBlock FontWeight="Bold" Text="Microsoft.Windows.SDK.BuildTools" />
-                                        <TextBlock FontSize="12" Opacity="1.0" Text="WinApp 运行时支持" />
+                                        <TextBlock FontSize="12" Opacity="1.0" Text="WinApp 运行时支持" l:Uids.Uid="Settings_OpenSource_BuildTools" />
                                         <HyperlinkButton Padding="0" FontSize="12" NavigateUri="https://www.nuget.org/packages/Microsoft.Windows.SDK.BuildTools" Content="NuGet" />
                                     </StackPanel>
                                 </Grid>
@@ -1834,7 +1858,8 @@
                         HorizontalAlignment="Center"
                         FontSize="20"
                         FontWeight="Bold"
-                        Text="感谢你的支持！" />
+                        Text="感谢你的支持！"
+                        l:Uids.Uid="Settings_RatingThanks_Title" />
                     <TextBlock
                         HorizontalAlignment="Center"
                         MaxWidth="296"
@@ -1842,7 +1867,8 @@
                         Opacity="0.75"
                         TextAlignment="Center"
                         TextWrapping="Wrap"
-                        Text="你的每一份评价，都会让图吧工具箱变得更好。" />
+                        Text="你的每一份评价，都会让图吧工具箱变得更好。"
+                        l:Uids.Uid="Settings_RatingThanks_Desc" />
                     <Button
                         x:Name="RatingThanksCloseButton"
                         MinWidth="136"
@@ -1850,6 +1876,7 @@
                         HorizontalAlignment="Center"
                         Click="RatingThanksCloseButton_Click"
                         Content="太棒了"
+                        l:Uids.Uid="Settings_RatingThanks_Button"
                         Style="{StaticResource AccentButtonStyle}" />
                 </StackPanel>
             </Border>

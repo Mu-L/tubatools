@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using TubaWinUi3.Pages;
 
@@ -7,8 +7,8 @@ namespace TubaWinUi3.Services;
 public sealed class AntiMotionSicknessTool : IBuiltinTool
 {
     public string Id => "anti-motion-sickness";
-    public string Name => "游戏防晕3D";
-    public string Description => "屏幕中央准星+四边标记辅助，缓解3D眩晕。一键帮你节约13块钱！";
+    public string Name => LocalizationService.L("Builtin_anti-motion-sickness_Name", "游戏防晕3D");
+    public string Description => LocalizationService.L("Builtin_anti-motion-sickness_Desc", "屏幕中央准星+四边标记辅助，缓解3D眩晕。一键帮你节约13块钱！");
     public string Glyph => "\uE7FC";
     public string Category => "游戏工具";
     public BuiltinToolKind Kind => BuiltinToolKind.Dialog;

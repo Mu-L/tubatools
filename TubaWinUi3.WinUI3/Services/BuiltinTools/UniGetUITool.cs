@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
 using TubaWinUi3.Models;
@@ -8,8 +8,8 @@ namespace TubaWinUi3.Services;
 public sealed class UniGetUITool : IBuiltinTool
 {
     public string Id => "unigetui";
-    public string Name => "UniGetUI 包管理器";
-    public string Description => "开源的 Windows 包管理器 GUI，支持 winget/scoop/chocolatey/pip/npm 等多种包管理器。";
+    public string Name => LocalizationService.L("Builtin_unigetui_Name", "UniGetUI 包管理器");
+    public string Description => LocalizationService.L("Builtin_unigetui_Desc", "开源的 Windows 包管理器 GUI，支持 winget/scoop/chocolatey/pip/npm 等多种包管理器。");
     public string Glyph => "\uE8F2";
     public string Category => "实用工具";
     public BuiltinToolKind Kind => BuiltinToolKind.InstantAction;

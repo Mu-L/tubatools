@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using TubaWinUi3.Pages;
@@ -9,8 +9,8 @@ namespace TubaWinUi3.Services;
 public sealed class WifiPasswordTool : IBuiltinTool
 {
     public string Id => "wifi-password";
-    public string Name => "WiFi 密码";
-    public string Description => "查看本机已连接过的 WiFi 网络名称和密码。";
+    public string Name => LocalizationService.L("Builtin_wifi-password_Name", "WiFi 密码");
+    public string Description => LocalizationService.L("Builtin_wifi-password_Desc", "查看本机已连接过的 WiFi 网络名称和密码。");
     public string Glyph => "\uE701";
     public string Category => "网络工具";
     public BuiltinToolKind Kind => BuiltinToolKind.BackgroundTask;

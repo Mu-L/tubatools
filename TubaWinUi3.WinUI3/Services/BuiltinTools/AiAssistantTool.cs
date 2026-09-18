@@ -1,4 +1,4 @@
-using TubaWinUi3.Pages;
+﻿using TubaWinUi3.Pages;
 
 namespace TubaWinUi3.Services;
 
@@ -9,8 +9,8 @@ namespace TubaWinUi3.Services;
 public sealed class AiAssistantTool : IBuiltinTool
 {
     public string Id => "ai-assistant";
-    public string Name => "AI 助手";
-    public string Description => "智能系统代理，可诊断问题、优化配置、读写文件、执行命令、联网搜索并执行操作。";
+    public string Name => LocalizationService.L("Builtin_ai-assistant_Name", "AI 助手");
+    public string Description => LocalizationService.L("Builtin_ai-assistant_Desc", "智能系统代理，可诊断问题、优化配置、读写文件、执行命令、联网搜索并执行操作。");
     public string Glyph => "\uE946";
     public string Category => "实用工具";
     public BuiltinToolKind Kind => BuiltinToolKind.Dialog;

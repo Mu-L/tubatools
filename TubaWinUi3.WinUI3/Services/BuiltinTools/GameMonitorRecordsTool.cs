@@ -1,4 +1,4 @@
-using TubaWinUi3.Pages;
+﻿using TubaWinUi3.Pages;
 
 namespace TubaWinUi3.Services;
 
@@ -9,8 +9,8 @@ namespace TubaWinUi3.Services;
 public sealed class GameMonitorRecordsTool : IBuiltinTool
 {
     public string Id => "game-monitor-records";
-    public string Name => "记录查看";
-    public string Description => "解析游戏监控导出的 JSON / CSV 记录，回放 FPS、温度、负载等历史数据：每个指标一张独立图表、各自使用自己的纵轴刻度尺，支持分组切换、区间裁剪与 P1/P99 统计";
+    public string Name => LocalizationService.L("Builtin_game-monitor-records_Name", "记录查看");
+    public string Description => LocalizationService.L("Builtin_game-monitor-records_Desc", "解析游戏监控导出的 JSON / CSV 记录，回放 FPS、温度、负载等历史数据：每个指标一张独立图表、各自使用自己的纵轴刻度尺，支持分组切换、区间裁剪与 P1/P99 统计");
     public string Glyph => "\uE9D9";
     public string Category => "游戏工具";
     public BuiltinToolKind Kind => BuiltinToolKind.Dialog;

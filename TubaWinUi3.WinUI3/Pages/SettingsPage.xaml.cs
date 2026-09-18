@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Linq;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -22,7 +22,7 @@ using static TubaWinUi3.Services.ConfigManager;
 
 namespace TubaWinUi3.Pages;
 
-public sealed partial class SettingsPage : Page
+public sealed partial class SettingsPage : Page, ILocalizablePage
 {
     private bool _isCheckingUpdate;
     private bool _isCheckingToolsBundle;
@@ -31,6 +31,7 @@ public sealed partial class SettingsPage : Page
     private bool _navLayoutInitializing;
     private bool _rememberWindowInitializing;
     private bool _defaultPageInitializing;
+    private bool _languageInitializing;
     private bool _builtinToolOpenModeInitializing;
     private bool _backdropInitializing;
     private bool _opacityChanging;
@@ -63,12 +64,12 @@ public sealed partial class SettingsPage : Page
     private FrameworkElement? _toolsCommunityExpanderContent;
     private FrameworkElement? _creditsExpanderContent;
 
-    private static readonly (string Tag, string DisplayName)[] DefaultPageOptions =
+    private static readonly (string Tag, string TitleKey, string Fallback)[] DefaultPageOptions =
     [
-        ("all", "全部工具"),
-        ("favorites", "常用"),
-        ("hardware", "硬件信息"),
-        ("builtin", "内置工具"),
+        ("all", "Settings_DefaultPageOptionAll", "全部工具"),
+        ("favorites", "Settings_DefaultPageOptionFavorites", "常用"),
+        ("hardware", "Settings_DefaultPageOptionHardware", "硬件信息"),
+        ("builtin", "Settings_DefaultPageOptionBuiltin", "内置工具"),
     ];
 
     private string? _pendingHighlightKey;
@@ -194,14 +195,15 @@ public sealed partial class SettingsPage : Page
         _creditsExpanderContent = CreditsExpander.Content as FrameworkElement;
 
         var version = Assembly.GetExecutingAssembly().GetName().Version;
-        VersionText.Text = version is not null
-            ? $"版本 {version.Major}.{version.Minor}.{version.Build}"
-            : "版本 1.0.0";
+        VersionText.Text = string.Format(
+            LocalizationService.L("Settings_VersionFormat", "版本 {0}"),
+            version is not null ? $"{version.Major}.{version.Minor}.{version.Build}" : "1.0.0");
 
         _ = LoadAppIconAsync();
         InitCompactModeToggle();
         InitNavLayoutComboBox();
         InitDefaultPageComboBox();
+        InitLanguageComboBox();
         InitFastModeToggle();
         InitRememberWindowToggle();
         InitUpdateSection();
@@ -227,8 +229,8 @@ public sealed partial class SettingsPage : Page
             SettingsCommunityCard.Visibility = Visibility.Collapsed;
             SettingsCommunitySubmitCard.Visibility = Visibility.Collapsed;
             SettingsStoreRatingCard.Visibility = Visibility.Visible;
-            ToolsCommunityTitleText.Text = "工具";
-            ToolsCommunityDescText.Text = "配置管理、自定义工具、导出";
+            ToolsCommunityTitleText.Text = LocalizationService.L("Settings_ToolsCommunity_TitleMsix", "工具");
+            ToolsCommunityDescText.Text = LocalizationService.L("Settings_ToolsCommunity_DescMsix", "配置管理、自定义工具、导出");
         }
     }
 
@@ -404,8 +406,8 @@ public sealed partial class SettingsPage : Page
     private void InitNavLayoutComboBox()
     {
         _navLayoutInitializing = true;
-        NavLayoutComboBox.Items.Add("侧边栏");
-        NavLayoutComboBox.Items.Add("顶部标签页");
+        NavLayoutComboBox.Items.Add(LocalizationService.L("Settings_NavLayoutOptionSidebar", "侧边栏"));
+        NavLayoutComboBox.Items.Add(LocalizationService.L("Settings_NavLayoutOptionTabs", "顶部标签页"));
         NavLayoutComboBox.SelectedIndex = NavLayoutModeService.IsTabMode() ? 1 : 0;
         _navLayoutInitializing = false;
     }
@@ -425,7 +427,7 @@ public sealed partial class SettingsPage : Page
 
         for (var i = 0; i < DefaultPageOptions.Length; i++)
         {
-            DefaultPageComboBox.Items.Add(DefaultPageOptions[i].DisplayName);
+            DefaultPageComboBox.Items.Add(LocalizationService.L(DefaultPageOptions[i].TitleKey, DefaultPageOptions[i].Fallback));
             if (DefaultPageOptions[i].Tag == saved)
                 DefaultPageComboBox.SelectedIndex = i;
         }
@@ -443,12 +445,79 @@ public sealed partial class SettingsPage : Page
             AppSettings.Set("DefaultPage", DefaultPageOptions[DefaultPageComboBox.SelectedIndex].Tag);
     }
 
+    private void InitLanguageComboBox()
+    {
+        _languageInitializing = true;
+        LanguageComboBox.Items.Clear();
+        var saved = AppSettings.Get(LocalizationService.LanguageKey) ?? LocalizationService.AutoLanguage;
+
+        // 语言名按各自母语显示（简体中文 / English），仅“跟随系统”随界面语言翻译
+        var options = new (string Tag, string DisplayName)[]
+        {
+            (LocalizationService.AutoLanguage, LocalizationService.L("Settings_LanguageAuto", "跟随系统")),
+            (LocalizationService.ChineseLanguage, "简体中文"),
+            (LocalizationService.EnglishLanguage, "English"),
+        };
+
+        for (var i = 0; i < options.Length; i++)
+        {
+            LanguageComboBox.Items.Add(options[i].DisplayName);
+            if (options[i].Tag == saved)
+                LanguageComboBox.SelectedIndex = i;
+        }
+
+        if (LanguageComboBox.SelectedIndex < 0)
+            LanguageComboBox.SelectedIndex = 0;
+
+        _languageInitializing = false;
+    }
+
+    private async void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_languageInitializing) return;
+
+        var language = LanguageComboBox.SelectedIndex switch
+        {
+            1 => LocalizationService.ChineseLanguage,
+            2 => LocalizationService.EnglishLanguage,
+            _ => LocalizationService.AutoLanguage,
+        };
+
+        await LocalizationService.SetLanguageAsync(language);
+
+        // 选项文本本身（“跟随系统”）随新语言刷新
+        InitLanguageComboBox();
+    }
+
+    /// <summary>语言切换后刷新自绘文本（打了 Uid 的控件由 WinUI3Localizer 自动更新）。</summary>
+    public void ApplyLocalization()
+    {
+        InitLanguageComboBox();
+        InitDefaultPageComboBox();
+        InitNavLayoutComboBox();
+        InitBuiltinToolOpenModeComboBox();
+        InitActiveInterceptNotifyModeComboBox();
+        InitActiveInterceptToggle();
+        InitHttpDownloadSettings();
+        InitUpdateSection();
+        InitCpuzDataSourceStatus();
+        InitAiSettings();
+        InitProxySettings();
+        InitGitHubLoginStatus();
+        ApplyLocalizedAppTitle();
+    }
+
+    private void ApplyLocalizedAppTitle()
+    {
+        AppTitleText.Text = LocalizationService.L("App_Title", "图吧工具箱CE");
+    }
+
     private void InitBuiltinToolOpenModeComboBox()
     {
         _builtinToolOpenModeInitializing = true;
         BuiltinToolOpenModeComboBox.Items.Clear();
-        BuiltinToolOpenModeComboBox.Items.Add("嵌入页面");
-        BuiltinToolOpenModeComboBox.Items.Add("独立窗口");
+        BuiltinToolOpenModeComboBox.Items.Add(LocalizationService.L("Settings_BuiltinOpenModeOptionEmbedded", "嵌入页面"));
+        BuiltinToolOpenModeComboBox.Items.Add(LocalizationService.L("Settings_BuiltinOpenModeOptionWindow", "独立窗口"));
         BuiltinToolOpenModeComboBox.SelectedIndex = AppSettings.GetBool("BuiltinToolsOpenInWindow", false) ? 1 : 0;
         _builtinToolOpenModeInitializing = false;
     }
@@ -490,7 +559,7 @@ public sealed partial class SettingsPage : Page
         if (_isCheckingUpdate) return;
         _isCheckingUpdate = true;
         CheckUpdateButton.IsEnabled = false;
-        UpdateStatusText.Text = "正在检查更新...";
+        UpdateStatusText.Text = LocalizationService.L("Settings_UpdateChecking", "正在检查更新...");
 
         try
         {
@@ -498,17 +567,17 @@ public sealed partial class SettingsPage : Page
 
             if (update is not null)
             {
-                UpdateStatusText.Text = $"发现新版本 v{update.Version}，请查看顶部更新提示";
+                UpdateStatusText.Text = string.Format(LocalizationService.L("Settings_UpdateFound", "发现新版本 v{0}，请查看顶部更新提示"), update.Version);
                 (App.MainWindow as MainWindow)?.ShowUpdateBanner(update, false);
             }
             else
             {
-                UpdateStatusText.Text = "已是最新版本";
+                UpdateStatusText.Text = LocalizationService.L("Settings_UpdateLatest", "已是最新版本");
             }
         }
         catch (Exception ex)
         {
-            UpdateStatusText.Text = $"检查失败: {ex.Message}";
+            UpdateStatusText.Text = string.Format(LocalizationService.L("Settings_UpdateCheckFailed", "检查失败: {0}"), ex.Message);
         }
         finally
         {
@@ -539,23 +608,23 @@ public sealed partial class SettingsPage : Page
         if (version is not null)
         {
             return ToolsBundleService.GetInstalledKind() == ToolsBundleService.KindLite
-                ? $"当前精简版内核 v{version}，可升级完整版"
-                : $"当前完整版内核 v{version}";
+                ? string.Format(LocalizationService.L("Settings_ToolsBundleLite", "当前精简版内核 v{0}，可升级完整版"), version)
+                : string.Format(LocalizationService.L("Settings_ToolsBundleFull", "当前完整版内核 v{0}"), version);
         }
 
         // 精简版便携随包内置工具（未通过内核包安装过）
         if (RuntimeHelper.IsLiteBuild && Directory.Exists(
                 Path.Combine(ToolCatalog.AppDirectory, "Tools")))
         {
-            return "已内置精简工具集，可下载完整版内核";
+            return LocalizationService.L("Settings_ToolsBundleLiteBuiltIn", "已内置精简工具集，可下载完整版内核");
         }
 
         if (!ToolsBundleService.IsToolsBundleReady())
         {
-            return "内核未下载";
+            return LocalizationService.L("Settings_ToolsBundleNotDownloaded", "内核未下载");
         }
 
-        return "内核已就绪（版本未知）";
+        return LocalizationService.L("Settings_ToolsBundleReadyUnknown", "内核已就绪（版本未知）");
     }
 
     private async void CheckToolsBundleButton_Click(object sender, RoutedEventArgs e)
@@ -563,7 +632,7 @@ public sealed partial class SettingsPage : Page
         if (_isCheckingToolsBundle) return;
         _isCheckingToolsBundle = true;
         CheckToolsBundleButton.IsEnabled = false;
-        ToolsBundleStatusText.Text = "正在检查内核更新...";
+        ToolsBundleStatusText.Text = LocalizationService.L("Settings_ToolsBundleChecking", "正在检查内核更新...");
 
         try
         {
@@ -571,7 +640,7 @@ public sealed partial class SettingsPage : Page
 
             if (info is null)
             {
-                ToolsBundleStatusText.Text = "检查失败，请稍后重试";
+                ToolsBundleStatusText.Text = LocalizationService.L("Settings_ToolsBundleCheckFailedRetry", "检查失败，请稍后重试");
                 return;
             }
 
@@ -579,11 +648,13 @@ public sealed partial class SettingsPage : Page
             // （有新版本 → 选版本下载；无新版本且非完整版 → 升级完整版）。
             if (!info.HasUpdate && ToolsBundleService.GetInstalledKind() == ToolsBundleService.KindFull)
             {
-                ToolsBundleStatusText.Text = $"当前内核已是最新版本 (v{info.Version})";
+                ToolsBundleStatusText.Text = string.Format(LocalizationService.L("Settings_ToolsBundleLatest", "当前内核已是最新版本 (v{0})"), info.Version);
                 return;
             }
 
-            ToolsBundleStatusText.Text = info.HasUpdate ? $"发现新版本 v{info.Version}" : DescribeToolsBundleStatus();
+            ToolsBundleStatusText.Text = info.HasUpdate
+                ? string.Format(LocalizationService.L("Settings_ToolsBundleNewVersion", "发现新版本 v{0}"), info.Version)
+                : DescribeToolsBundleStatus();
 
             var dialog = new ToolsBundleDownloadDialog
             {
@@ -593,12 +664,14 @@ public sealed partial class SettingsPage : Page
             await dialog.ShowDownloadAsync(info);
 
             ToolsBundleStatusText.Text = dialog.DownloadEnqueued
-                ? "已加入下载队列，可在标题栏下载按钮查看进度"
-                : info.HasUpdate ? "点击检查内核是否有新版本" : DescribeToolsBundleStatus();
+                ? LocalizationService.L("Settings_ToolsBundleQueued", "已加入下载队列，可在标题栏下载按钮查看进度")
+                : info.HasUpdate
+                    ? LocalizationService.L("Settings_ToolsBundle_Status", "点击检查内核是否有新版本")
+                    : DescribeToolsBundleStatus();
         }
         catch (Exception ex)
         {
-            ToolsBundleStatusText.Text = $"检查失败: {ex.Message}";
+            ToolsBundleStatusText.Text = string.Format(LocalizationService.L("Settings_UpdateCheckFailed", "检查失败: {0}"), ex.Message);
         }
         finally
         {
@@ -944,10 +1017,11 @@ public sealed partial class SettingsPage : Page
         ofn.lStructSize = Marshal.SizeOf(ofn);
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
         ofn.hwndOwner = hwnd;
-        ofn.lpstrFilter = "图片文件\0*.jpg;*.jpeg;*.png;*.bmp\0所有文件\0*.*\0\0";
+        ofn.lpstrFilter = LocalizationService.L("Settings_ImageFileFilter", "图片文件") + "\0*.jpg;*.jpeg;*.png;*.bmp\0"
+            + LocalizationService.L("Settings_AllFilesFilter", "所有文件") + "\0*.*\0\0";
         ofn.lpstrFile = new string(new char[260]);
         ofn.nMaxFile = 260;
-        ofn.lpstrTitle = "选择背景图片";
+        ofn.lpstrTitle = LocalizationService.L("Settings_PickBackgroundImage", "选择背景图片");
         ofn.Flags = OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
         ofn.nFilterIndex = 1;
 
@@ -1017,7 +1091,7 @@ public sealed partial class SettingsPage : Page
         UpdateWatermarkDetailVisibility(watermarkOn);
 
         _watermarkTextInitializing = true;
-        WatermarkTextBox.Text = AppSettings.Get("ScreenshotWatermarkText") ?? "图吧工具箱CE";
+        WatermarkTextBox.Text = AppSettings.Get("ScreenshotWatermarkText") ?? LocalizationService.L("App_Title", "图吧工具箱CE");
         _watermarkTextInitializing = false;
 
         _watermarkFontInitializing = true;
@@ -1076,7 +1150,7 @@ public sealed partial class SettingsPage : Page
     {
         if (_watermarkTextInitializing) return;
         var text = WatermarkTextBox.Text.Trim();
-        AppSettings.Set("ScreenshotWatermarkText", string.IsNullOrEmpty(text) ? "图吧工具箱CE" : text);
+        AppSettings.Set("ScreenshotWatermarkText", string.IsNullOrEmpty(text) ? LocalizationService.L("App_Title", "图吧工具箱CE") : text);
     }
 
     private void WatermarkFontComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1159,17 +1233,17 @@ public sealed partial class SettingsPage : Page
 
         if (!enabled)
         {
-            ActiveInterceptStatusText.Text = "已关闭";
+            ActiveInterceptStatusText.Text = LocalizationService.L("Settings_InterceptStatusOff", "已关闭");
             ActiveInterceptStatusText.Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray);
         }
         else if (ActiveInterceptService.IsRunning)
         {
-            ActiveInterceptStatusText.Text = "运行中";
+            ActiveInterceptStatusText.Text = LocalizationService.L("Settings_InterceptStatusRunning", "运行中");
             ActiveInterceptStatusText.Foreground = new SolidColorBrush(Microsoft.UI.Colors.LimeGreen);
         }
         else
         {
-            ActiveInterceptStatusText.Text = "未运行（后端缺失）";
+            ActiveInterceptStatusText.Text = LocalizationService.L("Settings_InterceptStatusBackendMissing", "未运行（后端缺失）");
             ActiveInterceptStatusText.Foreground = new SolidColorBrush(Microsoft.UI.Colors.OrangeRed);
         }
     }
@@ -1202,9 +1276,10 @@ public sealed partial class SettingsPage : Page
     private void InitActiveInterceptNotifyModeComboBox()
     {
         _activeInterceptNotifyModeInitializing = true;
-        ActiveInterceptNotifyModeComboBox.Items.Add("每次拦截都通知");
-        ActiveInterceptNotifyModeComboBox.Items.Add("仅批量时通知");
-        ActiveInterceptNotifyModeComboBox.Items.Add("从不通知");
+        ActiveInterceptNotifyModeComboBox.Items.Clear();
+        ActiveInterceptNotifyModeComboBox.Items.Add(LocalizationService.L("Settings_InterceptNotifyAlways", "每次拦截都通知"));
+        ActiveInterceptNotifyModeComboBox.Items.Add(LocalizationService.L("Settings_InterceptNotifyBatch", "仅批量时通知"));
+        ActiveInterceptNotifyModeComboBox.Items.Add(LocalizationService.L("Settings_InterceptNotifyNever", "从不通知"));
 
         var mode = AppSettings.Get("ActiveInterceptNotifyMode") ?? "always";
         ActiveInterceptNotifyModeComboBox.SelectedIndex = mode switch
@@ -1242,24 +1317,24 @@ public sealed partial class SettingsPage : Page
 
         if (useCpuz && CpuzInfoService.CachedInfo != null)
         {
-            CpuzDataSourceStatusText.Text = "当前使用 CPU-Z 数据源（真实硬件读取）";
-            CpuzDataSourceButtonText.Text = "切回默认";
+            CpuzDataSourceStatusText.Text = LocalizationService.L("Settings_CpuzStatusInUse", "当前使用 CPU-Z 数据源（真实硬件读取）");
+            CpuzDataSourceButtonText.Text = LocalizationService.L("Settings_CpuzButtonRevert", "切回默认");
             CpuzDataSourceIcon.Glyph = "\uE73E";
         }
         else if (useCpuz)
         {
             CpuzDataSourceStatusText.Text = cpuzAvailable
-                ? "CPU-Z 数据源已启用，等待获取数据..."
-                : "CPU-Z 数据源已启用，但未找到 CPU-Z";
-            CpuzDataSourceButtonText.Text = "切回默认";
+                ? LocalizationService.L("Settings_CpuzStatusWaiting", "CPU-Z 数据源已启用，等待获取数据...")
+                : LocalizationService.L("Settings_CpuzStatusNotFound", "CPU-Z 数据源已启用，但未找到 CPU-Z");
+            CpuzDataSourceButtonText.Text = LocalizationService.L("Settings_CpuzButtonRevert", "切回默认");
             CpuzDataSourceIcon.Glyph = "\uE950;";
         }
         else
         {
             CpuzDataSourceStatusText.Text = cpuzAvailable
-                ? "当前使用 WMI 数据源，可切换为 CPU-Z 获取真实信息"
-                : "当前使用 WMI 数据源（未找到 CPU-Z 工具）";
-            CpuzDataSourceButtonText.Text = "切换";
+                ? LocalizationService.L("Settings_CpuzStatusWmiCanSwitch", "当前使用 WMI 数据源，可切换为 CPU-Z 获取真实信息")
+                : LocalizationService.L("Settings_CpuzStatusWmiNoTool", "当前使用 WMI 数据源（未找到 CPU-Z 工具）");
+            CpuzDataSourceButtonText.Text = LocalizationService.L("Settings_CpuzSource_Button", "切换");
             CpuzDataSourceIcon.Glyph = "\uE950";
         }
     }
@@ -1280,16 +1355,18 @@ public sealed partial class SettingsPage : Page
         var cpuzExe = CpuzInfoService.FindCpuzExe();
         if (cpuzExe == null)
         {
-            await ShowMessageAsync("未找到 CPU-Z", "在工具目录中未找到 CPU-Z 可执行文件，无法使用此功能。\n\n请确保 Tools/处理器工具/CPUZ/ 目录下存在 cpuz_x64.exe。");
+            await ShowMessageAsync(
+                LocalizationService.L("Settings_CpuzNotFoundTitle", "未找到 CPU-Z"),
+                LocalizationService.L("Settings_CpuzNotFoundMessage", "在工具目录中未找到 CPU-Z 可执行文件，无法使用此功能。\n\n请确保 Tools/处理器工具/CPUZ/ 目录下存在 cpuz_x64.exe。"));
             return;
         }
 
         var dialog = new ContentDialog
         {
             XamlRoot = XamlRoot,
-            Title = "切换硬件信息数据源",
-            PrimaryButtonText = "确认切换",
-            CloseButtonText = "取消",
+            Title = LocalizationService.L("Settings_CpuzDialogTitle", "切换硬件信息数据源"),
+            PrimaryButtonText = LocalizationService.L("Settings_CpuzDialogPrimary", "确认切换"),
+            CloseButtonText = LocalizationService.L("Common_Cancel", "取消"),
             DefaultButton = ContentDialogButton.Close,
             RequestedTheme = ThemeService.CurrentElementTheme
         };
@@ -1298,7 +1375,7 @@ public sealed partial class SettingsPage : Page
 
         stack.Children.Add(new TextBlock
         {
-            Text = "当前硬件信息通过 WMI（Windows 管理规范）获取，数据来源于厂商在 SMBIOS/DMI 中填写的内容。",
+            Text = LocalizationService.L("Settings_CpuzIntro", "当前硬件信息通过 WMI（Windows 管理规范）获取，数据来源于厂商在 SMBIOS/DMI 中填写的内容。"),
             TextWrapping = TextWrapping.Wrap,
             Opacity = 0.85
         });
@@ -1324,13 +1401,13 @@ public sealed partial class SettingsPage : Page
             {
                 new TextBlock
                 {
-                    Text = "⚠ WMI 数据可能被伪造",
+                    Text = LocalizationService.L("Settings_CpuzWmiWarningTitle", "⚠ WMI 数据可能被伪造"),
                     FontWeight = Microsoft.UI.Text.FontWeights.Bold,
                     FontSize = 14
                 },
                 new TextBlock
                 {
-                    Text = "部分厂商或商家可能通过修改 BIOS/SMBIOS 信息来伪造 CPU 型号、内存品牌、主板型号等，导致 WMI 读取到的信息与实际硬件不符。",
+                    Text = LocalizationService.L("Settings_CpuzWmiWarningBody", "部分厂商或商家可能通过修改 BIOS/SMBIOS 信息来伪造 CPU 型号、内存品牌、主板型号等，导致 WMI 读取到的信息与实际硬件不符。"),
                     TextWrapping = TextWrapping.Wrap,
                     Opacity = 0.85,
                     FontSize = 13
@@ -1360,13 +1437,13 @@ public sealed partial class SettingsPage : Page
             {
                 new TextBlock
                 {
-                    Text = "✓ CPU-Z 读取原理",
+                    Text = LocalizationService.L("Settings_CpuzHowTitle", "✓ CPU-Z 读取原理"),
                     FontWeight = Microsoft.UI.Text.FontWeights.Bold,
                     FontSize = 14
                 },
                 new TextBlock
                 {
-                    Text = "CPU-Z 通过 CPUID 指令直接读取 CPU 硬件寄存器，通过 PCI 枚举直接扫描硬件，通过 SPD 芯片直接读取内存条信息——这些是底层硬件级别的数据，厂商无法通过修改 SMBIOS 来伪造。",
+                    Text = LocalizationService.L("Settings_CpuzHowBody", "CPU-Z 通过 CPUID 指令直接读取 CPU 硬件寄存器，通过 PCI 枚举直接扫描硬件，通过 SPD 芯片直接读取内存条信息——这些是底层硬件级别的数据，厂商无法通过修改 SMBIOS 来伪造。"),
                     TextWrapping = TextWrapping.Wrap,
                     Opacity = 0.85,
                     FontSize = 13
@@ -1396,13 +1473,13 @@ public sealed partial class SettingsPage : Page
             {
                 new TextBlock
                 {
-                    Text = "⏱ 注意事项",
+                    Text = LocalizationService.L("Settings_CpuzNotesTitle", "⏱ 注意事项"),
                     FontWeight = Microsoft.UI.Text.FontWeights.Bold,
                     FontSize = 14
                 },
                 new TextBlock
                 {
-                    Text = "• 使用 CPU-Z 获取信息需要约 3~8 秒，期间会短暂启动 CPU-Z 进程\n• 获取完成后会自动关闭 CPU-Z 进程\n• 切换后可在设置中随时切回 WMI 数据源",
+                    Text = LocalizationService.L("Settings_CpuzNotesBody", "• 使用 CPU-Z 获取信息需要约 3~8 秒，期间会短暂启动 CPU-Z 进程\n• 获取完成后会自动关闭 CPU-Z 进程\n• 切换后可在设置中随时切回 WMI 数据源"),
                     TextWrapping = TextWrapping.Wrap,
                     Opacity = 0.85,
                     FontSize = 13
@@ -1422,7 +1499,7 @@ public sealed partial class SettingsPage : Page
 
         _cpuzBusy = true;
         CpuzDataSourceButton.IsEnabled = false;
-        CpuzDataSourceStatusText.Text = "正在通过 CPU-Z 获取硬件信息，请稍候...";
+        CpuzDataSourceStatusText.Text = LocalizationService.L("Settings_CpuzFetching", "正在通过 CPU-Z 获取硬件信息，请稍候...");
 
         try
         {
@@ -1436,14 +1513,18 @@ public sealed partial class SettingsPage : Page
             else
             {
                 CpuzInfoService.KillCpuzProcesses();
-                await ShowMessageAsync("获取失败", "CPU-Z 未能成功获取硬件信息。\n\n可能原因：\n• CPU-Z 运行超时\n• CPU-Z 被安全软件拦截\n• 当前架构不支持此版本 CPU-Z");
+                await ShowMessageAsync(
+                    LocalizationService.L("Settings_CpuzFetchFailedTitle", "获取失败"),
+                    LocalizationService.L("Settings_CpuzFetchFailedMessage", "CPU-Z 未能成功获取硬件信息。\n\n可能原因：\n• CPU-Z 运行超时\n• CPU-Z 被安全软件拦截\n• 当前架构不支持此版本 CPU-Z"));
                 UpdateCpuzDataSourceUI();
             }
         }
         catch (Exception ex)
         {
             CpuzInfoService.KillCpuzProcesses();
-            await ShowMessageAsync("获取失败", $"CPU-Z 获取过程中出现错误：\n{ex.Message}");
+            await ShowMessageAsync(
+                LocalizationService.L("Settings_CpuzFetchFailedTitle", "获取失败"),
+                string.Format(LocalizationService.L("Settings_CpuzFetchError", "CPU-Z 获取过程中出现错误：\n{0}"), ex.Message));
             UpdateCpuzDataSourceUI();
         }
         finally
@@ -1504,14 +1585,14 @@ public sealed partial class SettingsPage : Page
         AiZenSection.Visibility = isZen ? Visibility.Visible : Visibility.Collapsed;
         AiKeyLinkButton.Visibility = string.IsNullOrWhiteSpace(provider.KeyHintUrl) ? Visibility.Collapsed : Visibility.Visible;
         AiApiKeyHintText.Text = isZen
-            ? "API Key（可选）：留空使用匿名免费模型（额度低）；登录获取 Key 后额度大幅提升"
-            : "API 密钥，将安全保存在本地";
+            ? LocalizationService.L("Settings_AiKeyHintZen", "API Key（可选）：留空使用匿名免费模型（额度低）；登录获取 Key 后额度大幅提升")
+            : LocalizationService.L("Settings_AiApiKey_Hint", "API 密钥，将安全保存在本地");
 
         if (isZen)
         {
             AiZenStatusText.Text = string.IsNullOrWhiteSpace(provider.ApiKey)
-                ? "未配置 Key（匿名额度较低）"
-                : $"已配置 Key：{MaskAiKey(provider.ApiKey)}（额度更高）";
+                ? LocalizationService.L("Settings_AiZenNoKey", "未配置 Key（匿名额度较低）")
+                : string.Format(LocalizationService.L("Settings_AiZenHasKey", "已配置 Key：{0}（额度更高）"), MaskAiKey(provider.ApiKey));
         }
 
         UpdateAiConfigStatus();
@@ -1526,7 +1607,7 @@ public sealed partial class SettingsPage : Page
         _zenBusy = true;
         AiZenLoginButton.IsEnabled = false;
         AiZenRefreshButton.IsEnabled = false;
-        AiZenLoginText.Text = "等待登录...";
+        AiZenLoginText.Text = LocalizationService.L("Settings_AiZenWaitingLogin", "等待登录...");
         AiZenLoginIcon.Glyph = "\uE895";
         try
         {
@@ -1542,14 +1623,14 @@ public sealed partial class SettingsPage : Page
         }
         catch (Exception ex)
         {
-            AiZenStatusText.Text = $"获取 Key 失败：{ex.Message}";
+            AiZenStatusText.Text = string.Format(LocalizationService.L("Settings_AiZenGetKeyFailed", "获取 Key 失败：{0}"), ex.Message);
         }
         finally
         {
             _zenBusy = false;
             AiZenLoginButton.IsEnabled = true;
             AiZenRefreshButton.IsEnabled = true;
-            AiZenLoginText.Text = "登录并获取 Key";
+            AiZenLoginText.Text = LocalizationService.L("Settings_AiZen_LoginButton", "登录并获取 Key");
             AiZenLoginIcon.Glyph = "\uE77B";
             LoadAiProviderIntoUi(null);
         }
@@ -1559,13 +1640,13 @@ public sealed partial class SettingsPage : Page
     {
         if (AiService.IsUsingDefaultModel)
         {
-            AiConfigStatusText.Text = "⚠️ 使用自带默认模型，可能出现排队/限额满速，质量低下等问题。推荐使用 DeepSeek V4 Pro。";
+            AiConfigStatusText.Text = LocalizationService.L("Settings_AiUsingDefaultModel", "⚠️ 使用自带默认模型，可能出现排队/限额满速，质量低下等问题。推荐使用 DeepSeek V4 Pro。");
             AiConfigStatusText.Foreground = new SolidColorBrush(Color.FromArgb(255, 251, 191, 36));
         }
         else
         {
             var provider = AiProviderStore.SelectedProvider;
-            AiConfigStatusText.Text = $"已配置：{provider.Name} · {AiProviderStore.SelectedModelId}";
+            AiConfigStatusText.Text = string.Format(LocalizationService.L("Settings_AiConfigured", "已配置：{0} · {1}"), provider.Name, AiProviderStore.SelectedModelId);
             AiConfigStatusText.Foreground = new SolidColorBrush(Microsoft.UI.Colors.Green);
         }
     }
@@ -1678,24 +1759,24 @@ public sealed partial class SettingsPage : Page
         if (_zenBusy) return;
         _zenBusy = true;
         AiZenRefreshButton.IsEnabled = false;
-        AiZenRefreshText.Text = "刷新中...";
+        AiZenRefreshText.Text = LocalizationService.L("Settings_AiZenRefreshing", "刷新中...");
         AiZenRefreshIcon.Glyph = "\uE895";
         try
         {
             var (count, error) = await OpenCodeZenAuthService.RefreshFreeModelsAsync();
             AiZenStatusText.Text = error is null
-                ? $"已刷新 {count} 个免费模型"
-                : $"刷新失败：{error}";
+                ? string.Format(LocalizationService.L("Settings_AiZenRefreshed", "已刷新 {0} 个免费模型"), count)
+                : string.Format(LocalizationService.L("Settings_AiZenRefreshFailed", "刷新失败：{0}"), error);
         }
         catch (Exception ex)
         {
-            AiZenStatusText.Text = $"刷新失败：{ex.Message}";
+            AiZenStatusText.Text = string.Format(LocalizationService.L("Settings_AiZenRefreshFailed", "刷新失败：{0}"), ex.Message);
         }
         finally
         {
             _zenBusy = false;
             AiZenRefreshButton.IsEnabled = true;
-            AiZenRefreshText.Text = "刷新免费模型";
+            AiZenRefreshText.Text = LocalizationService.L("Settings_AiZen_RefreshButton", "刷新免费模型");
             AiZenRefreshIcon.Glyph = "\uE72C";
             LoadAiProviderIntoUi(null);
         }
@@ -1712,7 +1793,7 @@ public sealed partial class SettingsPage : Page
         if (_aiTesting) return;
         _aiTesting = true;
         AiTestButton.IsEnabled = false;
-        AiTestButtonText.Text = "测试中...";
+        AiTestButtonText.Text = LocalizationService.L("Settings_AiTesting", "测试中...");
         AiTestIcon.Glyph = "\uE950";
 
         try
@@ -1726,32 +1807,32 @@ public sealed partial class SettingsPage : Page
             if (result.Success)
             {
                 AiTestIcon.Glyph = "\uE73E";
-                AiTestButtonText.Text = "连接成功";
-                AiConfigStatusText.Text = "AI 服务已配置，连接测试成功";
+                AiTestButtonText.Text = LocalizationService.L("Settings_AiTestSuccess", "连接成功");
+                AiConfigStatusText.Text = LocalizationService.L("Settings_AiTestSuccessStatus", "AI 服务已配置，连接测试成功");
                 AiConfigStatusText.Foreground = new SolidColorBrush(Microsoft.UI.Colors.Green);
             }
             else
             {
                 AiTestIcon.Glyph = "\uE783";
-                AiTestButtonText.Text = "连接失败";
-                AiConfigStatusText.Text = $"连接失败：{result.Error}";
+                AiTestButtonText.Text = LocalizationService.L("Settings_AiTestFailed", "连接失败");
+                AiConfigStatusText.Text = string.Format(LocalizationService.L("Settings_AiTestFailedStatus", "连接失败：{0}"), result.Error);
                 AiConfigStatusText.Foreground = new SolidColorBrush(Microsoft.UI.Colors.Red);
 
                 var dialog = new ContentDialog
                 {
                     XamlRoot = XamlRoot,
-                    Title = "AI 连接测试失败",
+                    Title = LocalizationService.L("Settings_AiTestFailedDialogTitle", "AI 连接测试失败"),
                     Content = new ScrollViewer
                     {
                         MaxHeight = 200,
                         Content = new TextBlock
                         {
-                            Text = result.Error ?? "未知错误",
+                            Text = result.Error ?? LocalizationService.L("Common_UnknownError", "未知错误"),
                             TextWrapping = TextWrapping.Wrap,
                             FontSize = 13
                         }
                     },
-                    CloseButtonText = "确定",
+                    CloseButtonText = LocalizationService.L("Common_Confirm", "确定"),
                     RequestedTheme = ThemeService.CurrentElementTheme
                 };
                 await dialog.ShowAsync();
@@ -1767,7 +1848,7 @@ public sealed partial class SettingsPage : Page
             if (!_aiTesting)
             {
                 AiTestIcon.Glyph = "\uE73E";
-                AiTestButtonText.Text = "测试连接";
+                AiTestButtonText.Text = LocalizationService.L("Settings_AiTest_Button", "测试连接");
             }
         }
     }
@@ -1802,21 +1883,21 @@ public sealed partial class SettingsPage : Page
     {
         if (!ProxyService.IsProxyEnabled)
         {
-            ProxyStatusText.Text = "配置 HTTP/HTTPS 代理，所有网络请求将使用代理";
+            ProxyStatusText.Text = LocalizationService.L("Settings_Proxy_Desc", "配置 HTTP/HTTPS 代理，所有网络请求将使用代理");
             return;
         }
         
         var address = ProxyService.ProxyAddress;
         if (string.IsNullOrWhiteSpace(address))
         {
-            ProxyStatusText.Text = "代理已启用，但未配置地址";
+            ProxyStatusText.Text = LocalizationService.L("Settings_ProxyEnabledNoAddress", "代理已启用，但未配置地址");
             return;
         }
         
         var hasAuth = !string.IsNullOrWhiteSpace(ProxyService.ProxyUsername);
         ProxyStatusText.Text = hasAuth
-            ? $"代理已启用：{address}（已配置认证）"
-            : $"代理已启用：{address}";
+            ? string.Format(LocalizationService.L("Settings_ProxyEnabledWithAuth", "代理已启用：{0}（已配置认证）"), address)
+            : string.Format(LocalizationService.L("Settings_ProxyEnabled", "代理已启用：{0}"), address);
     }
 
     private void ProxyToggle_Toggled(object sender, RoutedEventArgs e)
@@ -1856,15 +1937,17 @@ public sealed partial class SettingsPage : Page
         var address = ProxyAddressTextBox.Text.Trim();
         if (string.IsNullOrWhiteSpace(address))
         {
-            await ShowMessageAsync("无法测试", "请先输入代理地址");
+            await ShowMessageAsync(
+                LocalizationService.L("Settings_ProxyTestCannotTitle", "无法测试"),
+                LocalizationService.L("Settings_ProxyTestNoAddress", "请先输入代理地址"));
             return;
         }
         
         _proxyTesting = true;
         ProxyTestButton.IsEnabled = false;
         ProxyTestIcon.Glyph = "\uE950";
-        ProxyTestButtonText.Text = "测试中...";
-        ProxyTestStatusText.Text = "正在测试代理连接...";
+        ProxyTestButtonText.Text = LocalizationService.L("Settings_AiTesting", "测试中...");
+        ProxyTestStatusText.Text = LocalizationService.L("Settings_ProxyTestTesting", "正在测试代理连接...");
         
         try
         {
@@ -1887,8 +1970,8 @@ public sealed partial class SettingsPage : Page
                     if (response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.Redirect)
                     {
                         ProxyTestIcon.Glyph = "\uE73E";
-                        ProxyTestButtonText.Text = "连接成功";
-                        ProxyTestStatusText.Text = $"代理连接成功（{response.StatusCode}）";
+                        ProxyTestButtonText.Text = LocalizationService.L("Settings_AiTestSuccess", "连接成功");
+                        ProxyTestStatusText.Text = string.Format(LocalizationService.L("Settings_ProxyTestSuccess", "代理连接成功（{0}）"), response.StatusCode);
                         ProxyTestStatusText.Foreground = new SolidColorBrush(Microsoft.UI.Colors.Green);
                         return;
                     }
@@ -1900,14 +1983,14 @@ public sealed partial class SettingsPage : Page
             }
             
             ProxyTestIcon.Glyph = "\uE783";
-            ProxyTestButtonText.Text = "连接失败";
-            ProxyTestStatusText.Text = lastError?.Message ?? "无法连接代理服务器";
+            ProxyTestButtonText.Text = LocalizationService.L("Settings_AiTestFailed", "连接失败");
+            ProxyTestStatusText.Text = lastError?.Message ?? LocalizationService.L("Settings_ProxyTestUnreachable", "无法连接代理服务器");
             ProxyTestStatusText.Foreground = new SolidColorBrush(Microsoft.UI.Colors.Red);
         }
         catch (Exception ex)
         {
             ProxyTestIcon.Glyph = "\uE783";
-            ProxyTestButtonText.Text = "连接失败";
+            ProxyTestButtonText.Text = LocalizationService.L("Settings_AiTestFailed", "连接失败");
             ProxyTestStatusText.Text = ex.Message;
             ProxyTestStatusText.Foreground = new SolidColorBrush(Microsoft.UI.Colors.Red);
         }
@@ -1921,7 +2004,7 @@ public sealed partial class SettingsPage : Page
             if (!_proxyTesting)
             {
                 ProxyTestIcon.Glyph = "\uE73E";
-                ProxyTestButtonText.Text = "测试连接";
+                ProxyTestButtonText.Text = LocalizationService.L("Settings_ProxyTest_Button", "测试连接");
                 ProxyTestStatusText.Foreground = (Brush)App.Current.Resources["TextFillColorSecondaryBrush"];
             }
         }
@@ -1958,7 +2041,7 @@ public sealed partial class SettingsPage : Page
         }
         catch (Exception ex)
         {
-            StorageUsageStatusText.Text = $"打开存储占用失败: {ex.Message}";
+            StorageUsageStatusText.Text = string.Format(LocalizationService.L("Settings_StorageUsageOpenFailed", "打开存储占用失败: {0}"), ex.Message);
         }
         finally
         {
@@ -1969,7 +2052,10 @@ public sealed partial class SettingsPage : Page
 
     private async void ExportAppButton_Click(object sender, RoutedEventArgs e)
     {
-        var exportPath = PickSaveFile("导出当前软件", "压缩包\0*.zip\0所有文件\0*.*\0\0", "TubaWinUi3-Custom.zip", "zip");
+        var exportPath = PickSaveFile(
+            LocalizationService.L("Settings_ExportApp_Title", "导出当前软件"),
+            LocalizationService.L("Settings_ZipFileFilter", "压缩包") + "\0*.zip\0" + LocalizationService.L("Settings_AllFilesFilter", "所有文件") + "\0*.*\0\0",
+            "TubaWinUi3-Custom.zip", "zip");
         if (string.IsNullOrWhiteSpace(exportPath))
             return;
 
@@ -1977,18 +2063,20 @@ public sealed partial class SettingsPage : Page
             exportPath += ".zip";
 
         ExportAppButton.IsEnabled = false;
-        ExportAppStatusText.Text = "正在打包当前软件...";
+        ExportAppStatusText.Text = LocalizationService.L("Settings_Exporting", "正在打包当前软件...");
 
         try
         {
             await CustomToolPackageService.ExportCurrentAppAsync(exportPath);
-            ExportAppStatusText.Text = $"已导出 {Path.GetFileName(exportPath)}";
-            await ShowMessageAsync("导出完成", $"已保存到：\n{exportPath}");
+            ExportAppStatusText.Text = string.Format(LocalizationService.L("Settings_Exported", "已导出 {0}"), Path.GetFileName(exportPath));
+            await ShowMessageAsync(
+                LocalizationService.L("Settings_ExportDoneTitle", "导出完成"),
+                string.Format(LocalizationService.L("Settings_ExportSavedTo", "已保存到：\n{0}"), exportPath));
         }
         catch (Exception ex)
         {
-            ExportAppStatusText.Text = $"导出失败: {ex.Message}";
-            await ShowMessageAsync("导出失败", ex.Message);
+            ExportAppStatusText.Text = string.Format(LocalizationService.L("Settings_ExportFailedStatus", "导出失败: {0}"), ex.Message);
+            await ShowMessageAsync(LocalizationService.L("Common_ExportFailed", "导出失败"), ex.Message);
         }
         finally
         {
@@ -2024,7 +2112,7 @@ public sealed partial class SettingsPage : Page
                 var user = await GitHubAuthService.GetCurrentUserAsync();
                 if (user is not null)
                 {
-                    GitHubLoginStatusText.Text = $"已登录：{user.Name ?? user.Login}";
+                    GitHubLoginStatusText.Text = string.Format(LocalizationService.L("Settings_GitHubLoggedIn", "已登录：{0}"), user.Name ?? user.Login);
                     GitHubLoginButton.Visibility = Visibility.Collapsed;
                     GitHubLogoutButton.Visibility = Visibility.Visible;
                     GitHubAvatar.Visibility = Visibility.Visible;
@@ -2037,14 +2125,14 @@ public sealed partial class SettingsPage : Page
                 }
             }
 
-            GitHubLoginStatusText.Text = "未登录";
+            GitHubLoginStatusText.Text = LocalizationService.L("Settings_GitHub_Status", "未登录");
             GitHubLoginButton.Visibility = Visibility.Visible;
             GitHubLogoutButton.Visibility = Visibility.Collapsed;
             GitHubAvatar.Visibility = Visibility.Collapsed;
         }
         catch
         {
-            GitHubLoginStatusText.Text = "未登录";
+            GitHubLoginStatusText.Text = LocalizationService.L("Settings_GitHub_Status", "未登录");
         }
     }
 
@@ -2082,7 +2170,7 @@ public sealed partial class SettingsPage : Page
 
         var descriptionBox = new TextBox
         {
-            PlaceholderText = "请描述您的问题或建议...",
+            PlaceholderText = LocalizationService.L("Settings_FeedbackDescPlaceholder", "请描述您的问题或建议..."),
             AcceptsReturn = true,
             TextWrapping = TextWrapping.Wrap,
             MinHeight = 80,
@@ -2092,7 +2180,7 @@ public sealed partial class SettingsPage : Page
 
         var stepsBox = new TextBox
         {
-            PlaceholderText = "1. 打开xxx页面\n2. 点击xxx按钮\n3. 出现xxx问题",
+            PlaceholderText = LocalizationService.L("Settings_FeedbackStepsPlaceholder", "1. 打开xxx页面\n2. 点击xxx按钮\n3. 出现xxx问题"),
             AcceptsReturn = true,
             TextWrapping = TextWrapping.Wrap,
             MinHeight = 80,
@@ -2101,19 +2189,19 @@ public sealed partial class SettingsPage : Page
         };
 
         var panel = new StackPanel { Spacing = 12 };
-        panel.Children.Add(new TextBlock { Text = "问题描述", FontWeight = Microsoft.UI.Text.FontWeights.Bold, FontSize = 14 });
+        panel.Children.Add(new TextBlock { Text = LocalizationService.L("Settings_FeedbackDescLabel", "问题描述"), FontWeight = Microsoft.UI.Text.FontWeights.Bold, FontSize = 14 });
         panel.Children.Add(descriptionBox);
-        panel.Children.Add(new TextBlock { Text = "复现步骤 *必填", FontWeight = Microsoft.UI.Text.FontWeights.Bold, FontSize = 14 });
+        panel.Children.Add(new TextBlock { Text = LocalizationService.L("Settings_FeedbackStepsLabel", "复现步骤 *必填"), FontWeight = Microsoft.UI.Text.FontWeights.Bold, FontSize = 14 });
         panel.Children.Add(stepsBox);
 
         while (true)
         {
             var dialog = new ContentDialog
             {
-                Title = "提交反馈",
+                Title = LocalizationService.L("Settings_Feedback_Button", "提交反馈"),
                 Content = panel,
-                PrimaryButtonText = "提交",
-                CloseButtonText = "取消",
+                PrimaryButtonText = LocalizationService.L("Settings_FeedbackSubmit", "提交"),
+                CloseButtonText = LocalizationService.L("Common_Cancel", "取消"),
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = XamlRoot,
                 RequestedTheme = ThemeService.CurrentElementTheme,
@@ -2127,9 +2215,9 @@ public sealed partial class SettingsPage : Page
             {
                 var warn = new ContentDialog
                 {
-                    Title = "请填写复现步骤",
-                    Content = "提交反馈前请描述复现步骤，这能帮助我们快速定位和修复问题。",
-                    CloseButtonText = "返回填写",
+                    Title = LocalizationService.L("Settings_FeedbackStepsRequiredTitle", "请填写复现步骤"),
+                    Content = LocalizationService.L("Settings_FeedbackStepsRequiredMessage", "提交反馈前请描述复现步骤，这能帮助我们快速定位和修复问题。"),
+                    CloseButtonText = LocalizationService.L("Settings_FeedbackBackToEdit", "返回填写"),
                     XamlRoot = XamlRoot,
                     RequestedTheme = ThemeService.CurrentElementTheme,
                 };
@@ -2138,12 +2226,14 @@ public sealed partial class SettingsPage : Page
             }
 
             var description = descriptionBox.Text.Trim();
-            var descSection = string.IsNullOrEmpty(description) ? "" : $"## 描述\n\n{description}\n\n";
+            var descSection = string.IsNullOrEmpty(description)
+                ? ""
+                : "## " + LocalizationService.L("Settings_FeedbackIssueDescSection", "描述") + "\n\n" + description + "\n\n";
             var body = Uri.EscapeDataString(
                 descSection +
-                "## 复现步骤\n\n" + steps + "\n\n" +
-                "## 系统信息\n\n```\n" + GetSystemInfoForFeedback() + "\n```\n");
-            var url = $"{repoIssuesUrl}?title=[反馈]+&body={body}";
+                "## " + LocalizationService.L("Settings_FeedbackIssueStepsSection", "复现步骤") + "\n\n" + steps + "\n\n" +
+                "## " + LocalizationService.L("Settings_FeedbackIssueSystemSection", "系统信息") + "\n\n```\n" + GetSystemInfoForFeedback() + "\n```\n");
+            var url = $"{repoIssuesUrl}?title=[{Uri.EscapeDataString(LocalizationService.L("Settings_FeedbackIssueTitle", "反馈"))}]+&body={body}";
             await global::Windows.System.Launcher.LaunchUriAsync(new Uri(url));
             return;
         }
@@ -2167,26 +2257,26 @@ public sealed partial class SettingsPage : Page
     private async void ErrorReportButton_Click(object sender, RoutedEventArgs e)
     {
         ErrorReportButton.IsEnabled = false;
-        ErrorReportButtonText.Text = "正在打包…";
+        ErrorReportButtonText.Text = LocalizationService.L("Settings_ErrorReportPacking", "正在打包…");
         try
         {
             var result = await ErrorReportService.CreateReportAsync();
 
-            var content = $"压缩包位置：\n{result.ZipPath}\n\n" +
-                          $"大小：{TempCleanupService.FormatBytes(result.SizeBytes)}\n" +
-                          $"Windows 事件日志：{result.EventCount} 条\n" +
-                          $"应用日志文件：{result.LogFileCount} 个\n\n" +
-                          "如需反馈，请把该压缩包拖入 GitHub Issue 的附件区上传。";
+            var content = LocalizationService.L("Settings_ErrorReportZipPath", "压缩包位置：") + $"\n{result.ZipPath}\n\n" +
+                          string.Format(LocalizationService.L("Settings_ErrorReportSize", "大小：{0}"), TempCleanupService.FormatBytes(result.SizeBytes)) + "\n" +
+                          string.Format(LocalizationService.L("Settings_ErrorReportEvents", "Windows 事件日志：{0} 条"), result.EventCount) + "\n" +
+                          string.Format(LocalizationService.L("Settings_ErrorReportLogs", "应用日志文件：{0} 个"), result.LogFileCount) + "\n\n" +
+                          LocalizationService.L("Settings_ErrorReportHint", "如需反馈，请把该压缩包拖入 GitHub Issue 的附件区上传。");
             if (!string.IsNullOrEmpty(result.Warning))
                 content += $"\n\n⚠ {result.Warning}";
 
             var dialog = new ContentDialog
             {
                 XamlRoot = XamlRoot,
-                Title = "错误日志打包完成",
+                Title = LocalizationService.L("Settings_ErrorReportDoneTitle", "错误日志打包完成"),
                 Content = new TextBlock { Text = content, TextWrapping = TextWrapping.Wrap },
-                PrimaryButtonText = "打开文件夹",
-                CloseButtonText = "关闭",
+                PrimaryButtonText = LocalizationService.L("Settings_OpenFolderButton", "打开文件夹"),
+                CloseButtonText = LocalizationService.L("Common_Close", "关闭"),
                 DefaultButton = ContentDialogButton.Primary,
                 RequestedTheme = ThemeService.CurrentElementTheme,
             };
@@ -2196,12 +2286,12 @@ public sealed partial class SettingsPage : Page
         }
         catch (Exception ex)
         {
-            await ShowMessageAsync("打包失败", ex.Message);
+            await ShowMessageAsync(LocalizationService.L("Settings_ErrorReportFailedTitle", "打包失败"), ex.Message);
         }
         finally
         {
             ErrorReportButton.IsEnabled = true;
-            ErrorReportButtonText.Text = "打包日志";
+            ErrorReportButtonText.Text = LocalizationService.L("Settings_ErrorReport_Button", "打包日志");
         }
     }
 
@@ -2225,7 +2315,9 @@ public sealed partial class SettingsPage : Page
         {
             if (!IsStorePackagedApp())
             {
-                await ShowMessageAsync("暂不可用", "当前为开发版本，商店评分仅在从 Microsoft Store 安装的版本中可用。");
+                await ShowMessageAsync(
+                    LocalizationService.L("Settings_StoreRatingUnavailableTitle", "暂不可用"),
+                    LocalizationService.L("Settings_StoreRatingUnavailableMessage", "当前为开发版本，商店评分仅在从 Microsoft Store 安装的版本中可用。"));
                 return;
             }
 
@@ -2282,12 +2374,16 @@ public sealed partial class SettingsPage : Page
         {
             var launched = await Windows.System.Launcher.LaunchUriAsync(new Uri($"ms-windows-store://review/?ProductId={StoreProductId}"));
             if (!launched)
-                await ShowMessageAsync("打开失败", "暂时无法打开商店评分，请稍后重试。");
+                await ShowMessageAsync(
+                    LocalizationService.L("Settings_OpenFailedTitle", "打开失败"),
+                    LocalizationService.L("Settings_StoreRatingOpenFailed", "暂时无法打开商店评分，请稍后重试。"));
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"[SettingsPage] 打开商店评分页失败: {ex}");
-            await ShowMessageAsync("打开失败", "暂时无法打开商店评分，请稍后重试。");
+            await ShowMessageAsync(
+                LocalizationService.L("Settings_OpenFailedTitle", "打开失败"),
+                LocalizationService.L("Settings_StoreRatingOpenFailed", "暂时无法打开商店评分，请稍后重试。"));
         }
     }
 
@@ -2572,23 +2668,24 @@ public sealed partial class SettingsPage : Page
 
     private void ThrowErrorButton_Click(object sender, RoutedEventArgs e)
     {
-        throw new InvalidOperationException("这是一条手动抛出的测试异常，用于验证全局错误页面是否正常工作。");
+        throw new InvalidOperationException(LocalizationService.L("Settings_TestErrorThrow", "这是一条手动抛出的测试异常，用于验证全局错误页面是否正常工作。"));
     }
 
     private int _easterEggClickCount;
     private CancellationTokenSource? _easterEggCts;
-    private static readonly string[] EasterEggMessages =
+
+    private static string[] EasterEggMessages =>
     [
-        "被你发现啦～ 🎉",
-        "呜呜别戳我啦 >_<",
-        "再戳就要坏掉了哦～",
-        "嘻嘻，你真有耐心呢 ✨",
-        "今天也要元气满满鸭！",
-        "偷偷告诉你：开发者很可爱 🤫",
-        "戳我干嘛～看配置去啦！",
-        "我是一只工具箱喵～ 🐱",
-        "你点我一下，我开心一下 ☺️",
-        "好啦好啦，知道你在啦～",
+        LocalizationService.L("Settings_Egg1", "被你发现啦～ 🎉"),
+        LocalizationService.L("Settings_Egg2", "呜呜别戳我啦 >_<"),
+        LocalizationService.L("Settings_Egg3", "再戳就要坏掉了哦～"),
+        LocalizationService.L("Settings_Egg4", "嘻嘻，你真有耐心呢 ✨"),
+        LocalizationService.L("Settings_Egg5", "今天也要元气满满鸭！"),
+        LocalizationService.L("Settings_Egg6", "偷偷告诉你：开发者很可爱 🤫"),
+        LocalizationService.L("Settings_Egg7", "戳我干嘛～看配置去啦！"),
+        LocalizationService.L("Settings_Egg8", "我是一只工具箱喵～ 🐱"),
+        LocalizationService.L("Settings_Egg9", "你点我一下，我开心一下 ☺️"),
+        LocalizationService.L("Settings_Egg10", "好啦好啦，知道你在啦～"),
     ];
 
     private void AppInfoCard_Tapped(object sender, TappedRoutedEventArgs e)
@@ -2628,7 +2725,7 @@ public sealed partial class SettingsPage : Page
 
         AppInfoCardScale.ScaleX = 0.95;
         AppInfoCardScale.ScaleY = 1.05;
-        AppTitleText.Text = "图吧工具箱CE";
+        ApplyLocalizedAppTitle();
         AppSubtitleText.Opacity = 1.0;
 
         var restore = new Storyboard();
@@ -2654,7 +2751,7 @@ public sealed partial class SettingsPage : Page
                 Text = message,
                 TextWrapping = TextWrapping.Wrap
             },
-            CloseButtonText = "确定",
+            CloseButtonText = LocalizationService.L("Common_Confirm", "确定"),
             RequestedTheme = ThemeService.CurrentElementTheme
         };
 
@@ -2673,9 +2770,9 @@ public sealed partial class SettingsPage : Page
 
         HttpDownloadActionComboBox.ItemsSource = new[]
         {
-            new { Key = "none", Label = "仅下载" },
-            new { Key = "extract", Label = "下载并解压" },
-            new { Key = "install", Label = "下载并运行" },
+            new { Key = "none", Label = LocalizationService.L("Settings_DownloadActionNone", "仅下载") },
+            new { Key = "extract", Label = LocalizationService.L("Settings_DownloadActionExtract", "下载并解压") },
+            new { Key = "install", Label = LocalizationService.L("Settings_DownloadActionInstall", "下载并运行") },
         };
         HttpDownloadActionComboBox.DisplayMemberPath = "Label";
         HttpDownloadActionComboBox.SelectedValuePath = "Key";
@@ -2685,14 +2782,17 @@ public sealed partial class SettingsPage : Page
         if (HttpDownloadActionComboBox.SelectedIndex < 0)
             HttpDownloadActionComboBox.SelectedIndex = 0;
 
-        HttpDownloadActionComboBox.SelectionChanged += (_, _) =>
-        {
-            var selected = HttpDownloadActionComboBox.SelectedValue as string;
-            if (selected is not null)
-                AppSettings.Set("HttpDownloadAction", selected);
-        };
+        HttpDownloadActionComboBox.SelectionChanged -= HttpDownloadActionComboBox_SelectionChanged;
+        HttpDownloadActionComboBox.SelectionChanged += HttpDownloadActionComboBox_SelectionChanged;
 
         UpdateDownloadQueueStatus();
+    }
+
+    private void HttpDownloadActionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var selected = HttpDownloadActionComboBox.SelectedValue as string;
+        if (selected is not null)
+            AppSettings.Set("HttpDownloadAction", selected);
     }
 
     private void UpdateDownloadQueueStatus()
@@ -2702,10 +2802,10 @@ public sealed partial class SettingsPage : Page
         DispatcherQueue.TryEnqueue(() =>
         {
             HttpDownloadQueueStatusText.Text = pending > 0
-                ? $"队列中 {total} 项，{pending} 项待下载"
+                ? string.Format(LocalizationService.L("Settings_DownloadQueuePending", "队列中 {0} 项，{1} 项待下载"), total, pending)
                 : total > 0
-                    ? $"队列中 {total} 项，全部完成"
-                    : "队列为空";
+                    ? string.Format(LocalizationService.L("Settings_DownloadQueueAllDone", "队列中 {0} 项，全部完成"), total)
+                    : LocalizationService.L("Settings_DownloadQueueEmpty", "队列为空");
         });
     }
 
@@ -2730,14 +2830,14 @@ public sealed partial class SettingsPage : Page
         var url = HttpDownloadUrlTextBox.Text?.Trim();
         if (string.IsNullOrEmpty(url))
         {
-            _ = ShowMessageAsync("提示", "请输入下载链接");
+            _ = ShowMessageAsync(LocalizationService.L("Settings_PromptTitle", "提示"), LocalizationService.L("Settings_DownloadEnterUrl", "请输入下载链接"));
             return;
         }
 
         if (!url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
             !url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
         {
-            _ = ShowMessageAsync("提示", "请输入有效的 HTTP/HTTPS 链接");
+            _ = ShowMessageAsync(LocalizationService.L("Settings_PromptTitle", "提示"), LocalizationService.L("Settings_DownloadInvalidUrl", "请输入有效的 HTTP/HTTPS 链接"));
             return;
         }
 
@@ -2756,7 +2856,7 @@ public sealed partial class SettingsPage : Page
         if (string.IsNullOrWhiteSpace(fileName) || fileName.Contains('?') || fileName.Contains('='))
             fileName = null;
 
-        var displayName = fileName ?? $"下载文件 {DateTime.Now:HH:mm:ss}";
+        var displayName = fileName ?? string.Format(LocalizationService.L("Settings_DownloadFileDefaultName", "下载文件 {0}"), DateTime.Now.ToString("HH:mm:ss"));
 
         DownloadQueueService.Enqueue(displayName, url, destPath, postProcessor,
             description: url, glyph: "\uE896");
@@ -2764,7 +2864,9 @@ public sealed partial class SettingsPage : Page
         HttpDownloadUrlTextBox.Text = "";
         UpdateDownloadQueueStatus();
 
-        _ = ShowMessageAsync("已加入下载", $"\"{displayName}\" 已加入下载队列\n保存至：{destPath}");
+        _ = ShowMessageAsync(
+            LocalizationService.L("Settings_DownloadEnqueuedTitle", "已加入下载"),
+            string.Format(LocalizationService.L("Settings_DownloadEnqueuedMessage", "\"{0}\" 已加入下载队列\n保存至：{1}"), displayName, destPath));
     }
 
     private Flyout? _downloadFlyout;

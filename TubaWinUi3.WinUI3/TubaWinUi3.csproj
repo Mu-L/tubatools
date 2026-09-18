@@ -22,6 +22,10 @@
     <DefaultItemExcludes>$(DefaultItemExcludes);artifacts\**;publish*\**</DefaultItemExcludes>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <NoWarn>CA2252;CA2014;NU1510</NoWarn>
+    <!-- 界面本地化 resw 由 WinUI3Localizer 直接读取（exe 旁 Strings/<lang>/*.resw），不参与 PRI：
+         MakePri 会把 "Key.Property" 形式的资源名解析为路径层级，与纯 "Key" 项冲突（PRI175/PRI278）；
+         且默认 glob "**/*.resw" 在自定义 BaseOutputPath 时会捡到输出目录里的副本。 -->
+    <EnableDefaultPRIResourceItems>false</EnableDefaultPRIResourceItems>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="TubaWinUi3.Tests" />
@@ -31,6 +35,19 @@
     <Content Include="Assets\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <!-- 界面本地化资源（WinUI3Localizer 直接读取 exe 旁 Strings/<lang>/*.resw，不使用 PRI）。
+       必须从 PRI 资源中排除：MakePri 会把 "Key.Property" 形式的资源名解析为路径层级，
+       与同一文件里的纯 "Key" 项冲突（PRI175 / PRI278）。 -->
+  <ItemGroup>
+    <Content Include="Strings\**\*.resw">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <PRIResource Remove="Strings\**\*.resw" />
+    <PRIResource Remove="bin\**\*.resw" />
+    <PRIResource Remove="obj\**\*.resw" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(ExcludeToolsFromPublish)' != 'true'">
@@ -150,6 +167,8 @@
     <PackageReference Include="SIPSorcery" Version="10.0.14" />
 
     <PackageReference Include="System.Speech" Version="10.0.10" />
+
+    <PackageReference Include="WinUI3Localizer" Version="2.3.0" />
 
   </ItemGroup>
 

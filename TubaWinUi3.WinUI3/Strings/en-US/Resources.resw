@@ -1,0 +1,3269 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- App -->
+  <data name="App_Title" xml:space="preserve">
+    <value>Tuba Toolbox CE</value>
+  </data>
+
+  <!-- Common -->
+  <data name="Common_UnknownError" xml:space="preserve">
+    <value>Unknown error</value>
+  </data>
+  <data name="Common_Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="Common_NoDescription" xml:space="preserve">
+    <value>No description yet.</value>
+  </data>
+  <data name="Common_Builtin" xml:space="preserve">
+    <value>Built-in</value>
+  </data>
+  <data name="Common_Open" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="Common_Download" xml:space="preserve">
+    <value>Download</value>
+  </data>
+  <data name="Common_Installing" xml:space="preserve">
+    <value>Installing...</value>
+  </data>
+  <data name="Common_InstallingTitle" xml:space="preserve">
+    <value>Installing</value>
+  </data>
+  <data name="Common_InstallDone" xml:space="preserve">
+    <value>Installed</value>
+  </data>
+  <data name="Common_InstallFailed" xml:space="preserve">
+    <value>Installation failed</value>
+  </data>
+  <data name="Common_Launched" xml:space="preserve">
+    <value>Launched</value>
+  </data>
+  <data name="Common_LaunchedAsAdmin" xml:space="preserve">
+    <value>Launched as administrator</value>
+  </data>
+  <data name="Common_LaunchFailed" xml:space="preserve">
+    <value>Launch failed</value>
+  </data>
+  <data name="Common_Opened" xml:space="preserve">
+    <value>Opened</value>
+  </data>
+  <data name="Common_Created" xml:space="preserve">
+    <value>Created</value>
+  </data>
+  <data name="Common_CreateFailed" xml:space="preserve">
+    <value>Failed to create</value>
+  </data>
+  <data name="Common_DesktopShortcutCreated" xml:space="preserve">
+    <value>Desktop shortcut for "{0}" created</value>
+  </data>
+  <data name="Common_Deleted" xml:space="preserve">
+    <value>Deleted</value>
+  </data>
+  <data name="Common_DeletedMessage" xml:space="preserve">
+    <value>"{0}" has been deleted</value>
+  </data>
+  <data name="Common_DeleteFailed" xml:space="preserve">
+    <value>Failed to delete</value>
+  </data>
+  <data name="Common_ImportFailed" xml:space="preserve">
+    <value>Import failed</value>
+  </data>
+  <data name="Common_ImportSuccess" xml:space="preserve">
+    <value>Imported</value>
+  </data>
+  <data name="Common_Favorite" xml:space="preserve">
+    <value>Favorite</value>
+  </data>
+  <data name="Common_Unfavorite" xml:space="preserve">
+    <value>Unfavorite</value>
+  </data>
+  <data name="Common_Done" xml:space="preserve">
+    <value>Done</value>
+  </data>
+  <data name="Common_All" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="Common_Default" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="Common_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Common_Confirm" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+
+  <!-- Context menu -->
+  <data name="Common_SendToDesktop.Text" xml:space="preserve">
+    <value>Send to Desktop</value>
+  </data>
+  <data name="Common_RunAsAdmin.Text" xml:space="preserve">
+    <value>Run as Administrator</value>
+  </data>
+  <data name="Common_OpenLocation.Text" xml:space="preserve">
+    <value>Open File Location</value>
+  </data>
+  <data name="Common_OpenTutorial.Text" xml:space="preserve">
+    <value>Open Tutorial</value>
+  </data>
+  <data name="Common_SelectArch.Text" xml:space="preserve">
+    <value>Select Architecture</value>
+  </data>
+  <data name="Common_DeleteTool.Text" xml:space="preserve">
+    <value>Delete Tool</value>
+  </data>
+
+  <!-- Main window -->
+  <data name="MainWindow_SplashTitle.Text" xml:space="preserve">
+    <value>Tuba Toolbox CE</value>
+  </data>
+  <data name="MainWindow_SplashStatus.Text" xml:space="preserve">
+    <value>Starting up...</value>
+  </data>
+  <data name="MainWindow_SearchPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Search tools and settings...</value>
+  </data>
+  <data name="MainWindow_AiButton.ToolTip" xml:space="preserve">
+    <value>AI Assistant</value>
+  </data>
+  <data name="MainWindow_NewbieTutorialButton.ToolTip" xml:space="preserve">
+    <value>Getting Started</value>
+  </data>
+  <data name="MainWindow_NavAll.Content" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="MainWindow_NavFavorites.Content" xml:space="preserve">
+    <value>Favorites</value>
+  </data>
+  <data name="MainWindow_NavHardware.Content" xml:space="preserve">
+    <value>Hardware</value>
+  </data>
+  <data name="MainWindow_NavBuiltin.Content" xml:space="preserve">
+    <value>Built-in</value>
+  </data>
+  <data name="MainWindow_NavBenchmark.Content" xml:space="preserve">
+    <value>Benchmarks</value>
+  </data>
+  <data name="MainWindow_NavCommunity.Content" xml:space="preserve">
+    <value>Community</value>
+  </data>
+  <data name="MainWindow_AiButton" xml:space="preserve">
+    <value>AI Assistant</value>
+  </data>
+  <data name="MainWindow_NewbieTutorialButton" xml:space="preserve">
+    <value>Getting Started</value>
+  </data>
+  <data name="MainWindow_DownloadQueueButton" xml:space="preserve">
+    <value>Downloads</value>
+  </data>
+  <data name="MainWindow_NavSettings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="MainWindow_BuiltinToolFallback" xml:space="preserve">
+    <value>Built-in Tool</value>
+  </data>
+  <data name="MainWindow_ToolUpdateDoneTitle" xml:space="preserve">
+    <value>Tool updated</value>
+  </data>
+  <data name="MainWindow_ToolUpdateDoneMessage" xml:space="preserve">
+    <value>"{0}" has been updated to the latest version</value>
+  </data>
+  <data name="MainWindow_ToolUpdateProgressTitle" xml:space="preserve">
+    <value>Updating tool</value>
+  </data>
+  <data name="MainWindow_ToolUpdateProgressMessage" xml:space="preserve">
+    <value>Updating "{0}"...</value>
+  </data>
+  <data name="MainWindow_ToolUpdateFailedTitle" xml:space="preserve">
+    <value>Tool update failed</value>
+  </data>
+  <data name="MainWindow_ToolUpdateFailedMessage" xml:space="preserve">
+    <value>Failed to update "{0}": {1}</value>
+  </data>
+
+  <!-- Home page -->
+  <data name="HomePage_EditOrderButton.ToolTip" xml:space="preserve">
+    <value>Enter reorder mode, then drag cards up or down</value>
+  </data>
+  <data name="HomePage_EditOrderButtonText.Text" xml:space="preserve">
+    <value>Reorder</value>
+  </data>
+  <data name="HomePage_EditOrderButtonText" xml:space="preserve">
+    <value>Reorder</value>
+  </data>
+  <data name="HomePage_FavoriteButton.ToolTip" xml:space="preserve">
+    <value>Favorite</value>
+  </data>
+  <data name="HomePage_SendToDesktopButton.ToolTip" xml:space="preserve">
+    <value>Send to Desktop</value>
+  </data>
+  <data name="HomePage_RunAsAdminButton.ToolTip" xml:space="preserve">
+    <value>Run as Administrator</value>
+  </data>
+  <data name="HomePage_DropHintFooter.Text" xml:space="preserve">
+    <value>Drop a zip/exe/ps1/bat here to add your own tool. Right-click a tool for more actions.</value>
+  </data>
+  <data name="HomePage_EditModeHint.Text" xml:space="preserve">
+    <value>Drag any row up or down to reorder, then click "Done" in the top-right corner.</value>
+  </data>
+  <data name="HomePage_EmptyStateTitle.Text" xml:space="preserve">
+    <value>No matching tools</value>
+  </data>
+  <data name="HomePage_DownloadToolsButton.Text" xml:space="preserve">
+    <value>Download Tool Pack</value>
+  </data>
+  <data name="HomePage_ToolDetailTip.CloseButtonContent" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="HomePage_TitleSearch" xml:space="preserve">
+    <value>Search: {0}</value>
+  </data>
+  <data name="HomePage_TitleTag" xml:space="preserve">
+    <value>Tag: {0}</value>
+  </data>
+  <data name="HomePage_SubtitleSearch" xml:space="preserve">
+    <value>Showing matching tools from all categories.</value>
+  </data>
+  <data name="HomePage_SubtitleTag" xml:space="preserve">
+    <value>Showing tools tagged "{0}".</value>
+  </data>
+  <data name="HomePage_SubtitleAll" xml:space="preserve">
+    <value>Pick a category on the left, click a card for details, or click a card to launch a tool.</value>
+  </data>
+  <data name="HomePage_SubtitleCategory" xml:space="preserve">
+    <value>Browsing the "{0}" category.</value>
+  </data>
+  <data name="HomePage_ToolCount" xml:space="preserve">
+    <value>{0} tools</value>
+  </data>
+  <data name="HomePage_EmptySearch" xml:space="preserve">
+    <value>No tools found for "{0}".</value>
+  </data>
+  <data name="HomePage_EmptyTag" xml:space="preserve">
+    <value>No tools tagged "{0}".</value>
+  </data>
+  <data name="HomePage_EmptyCategory" xml:space="preserve">
+    <value>No tools available in this category.</value>
+  </data>
+  <data name="HomePage_EmptyAll" xml:space="preserve">
+    <value>No tools found. Check the Tools folder.</value>
+  </data>
+  <data name="HomePage_TutorialWindowTitle" xml:space="preserve">
+    <value>{0} - Tutorial</value>
+  </data>
+  <data name="HomePage_DetailType" xml:space="preserve">
+    <value>Type: {0}</value>
+  </data>
+  <data name="HomePage_DetailPublisher" xml:space="preserve">
+    <value>Publisher: {0}</value>
+  </data>
+  <data name="HomePage_DetailVersion" xml:space="preserve">
+    <value>Version: {0}</value>
+  </data>
+  <data name="HomePage_LaunchFileMissing" xml:space="preserve">
+    <value>File not found: {0}</value>
+  </data>
+  <data name="HomePage_InstallScriptTitle" xml:space="preserve">
+    <value>Install {0}</value>
+  </data>
+  <data name="HomePage_BuiltinNotFound" xml:space="preserve">
+    <value>Built-in tool not found</value>
+  </data>
+  <data name="HomePage_WingetInstallingMessage" xml:space="preserve">
+    <value>Installing "{0}" via winget...</value>
+  </data>
+  <data name="HomePage_WingetInstalledMessage" xml:space="preserve">
+    <value>"{0}" installed. Click to open.</value>
+  </data>
+  <data name="HomePage_DeleteDialogTitle" xml:space="preserve">
+    <value>Delete "{0}"</value>
+  </data>
+  <data name="HomePage_DeleteDialogConfirm" xml:space="preserve">
+    <value>Delete this tool? This cannot be undone!</value>
+  </data>
+  <data name="HomePage_DeleteDialogDetail" xml:space="preserve">
+    <value>The tool folder and all related files will be deleted:</value>
+  </data>
+  <data name="HomePage_ImportNoWindow" xml:space="preserve">
+    <value>Window unavailable, please try again</value>
+  </data>
+  <data name="HomePage_ImportUnreadable" xml:space="preserve">
+    <value>Unable to read file</value>
+  </data>
+  <data name="HomePage_ImportNoExeTitle" xml:space="preserve">
+    <value>No importable tool found</value>
+  </data>
+  <data name="HomePage_ImportNoExeMessage" xml:space="preserve">
+    <value>The archive must contain at least one .exe file.</value>
+  </data>
+  <data name="HomePage_ImportSuccessMessage" xml:space="preserve">
+    <value>Imported {0}</value>
+  </data>
+
+  <!-- Favorites page -->
+  <data name="Favorites_Title.Text" xml:space="preserve">
+    <value>Favorites</value>
+  </data>
+  <data name="Favorites_Subtitle.Text" xml:space="preserve">
+    <value>Your favorite tools appear here. Drag to reorder.</value>
+  </data>
+  <data name="Favorites_FrequentTitle.Text" xml:space="preserve">
+    <value>Frequently Used</value>
+  </data>
+  <data name="Favorites_FrequentSubtitle.Text" xml:space="preserve">
+    <value>Sorted by usage frequency</value>
+  </data>
+  <data name="Favorites_MyFavorites.Text" xml:space="preserve">
+    <value>My Favorites</value>
+  </data>
+  <data name="Favorites_EditOrderButtonText.Text" xml:space="preserve">
+    <value>Reorder</value>
+  </data>
+  <data name="Favorites_EditOrderButtonText" xml:space="preserve">
+    <value>Reorder</value>
+  </data>
+  <data name="Favorites_ClearAll.Text" xml:space="preserve">
+    <value>Clear All</value>
+  </data>
+  <data name="Favorites_SendToDesktopButton.ToolTip" xml:space="preserve">
+    <value>Send to Desktop</value>
+  </data>
+  <data name="Favorites_RunAsAdminButton.ToolTip" xml:space="preserve">
+    <value>Run as Administrator</value>
+  </data>
+  <data name="Favorites_RemoveFavoriteButton.ToolTip" xml:space="preserve">
+    <value>Unfavorite</value>
+  </data>
+  <data name="Favorites_EditModeHint.Text" xml:space="preserve">
+    <value>Drag any card up or down to reorder, then click "Done" in the top-right corner.</value>
+  </data>
+  <data name="Favorites_EmptyTitle.Text" xml:space="preserve">
+    <value>No favorites yet</value>
+  </data>
+  <data name="Favorites_EmptyHint.Text" xml:space="preserve">
+    <value>Click the star button on the All page to add favorites</value>
+  </data>
+  <data name="Favorites_ToolDetailTip.CloseButtonContent" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Favorites_FrequentSubtitleTop" xml:space="preserve">
+    <value>Sorted by usage frequency · top {0}</value>
+  </data>
+  <data name="Favorites_FrequentSubtitleCount" xml:space="preserve">
+    <value>Sorted by usage frequency · {0}</value>
+  </data>
+  <data name="Favorites_NoFavorites" xml:space="preserve">
+    <value>No favorites</value>
+  </data>
+  <data name="Favorites_LoadFailed" xml:space="preserve">
+    <value>Failed to load</value>
+  </data>
+  <data name="Favorites_FavoriteCount" xml:space="preserve">
+    <value>{0} favorites</value>
+  </data>
+  <data name="Favorites_ClearAllDialogTitle" xml:space="preserve">
+    <value>Clear all favorites</value>
+  </data>
+  <data name="Favorites_ClearAllDialogMessage" xml:space="preserve">
+    <value>Remove all tools from favorites? This cannot be undone.</value>
+  </data>
+  <data name="Favorites_ClearAllDialogPrimary" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+
+  <!-- Search -->
+  <data name="Search_KindTool" xml:space="preserve">
+    <value>Tool</value>
+  </data>
+  <data name="Search_KindBuiltin" xml:space="preserve">
+    <value>Built-in</value>
+  </data>
+  <data name="Search_KindSetting" xml:space="preserve">
+    <value>Setting</value>
+  </data>
+  <data name="Search_KindCustom" xml:space="preserve">
+    <value>Custom</value>
+  </data>
+  <data name="Search_KindQuick" xml:space="preserve">
+    <value>Quick</value>
+  </data>
+  <data name="Search_KindCommunity" xml:space="preserve">
+    <value>Community</value>
+  </data>
+  <data name="Search_CustomSubtitle" xml:space="preserve">
+    <value>Custom · {0}</value>
+  </data>
+  <data name="Search_SettingTheme" xml:space="preserve">
+    <value>App theme</value>
+  </data>
+  <data name="Search_SettingThemeDesc" xml:space="preserve">
+    <value>Choose light, dark, or follow system</value>
+  </data>
+  <data name="Search_SettingCompact" xml:space="preserve">
+    <value>Compact list mode</value>
+  </data>
+  <data name="Search_SettingCompactDesc" xml:space="preserve">
+    <value>The classic Tuba Toolbox style</value>
+  </data>
+  <data name="Search_SettingBrandLogo" xml:space="preserve">
+    <value>Show brand logo</value>
+  </data>
+  <data name="Search_SettingBrandLogoDesc" xml:space="preserve">
+    <value>Show brand icons on the hardware page</value>
+  </data>
+  <data name="Search_SettingDefaultPage" xml:space="preserve">
+    <value>Default page</value>
+  </data>
+  <data name="Search_SettingDefaultPageDesc" xml:space="preserve">
+    <value>Choose the page shown on startup</value>
+  </data>
+  <data name="Search_SettingFastMode" xml:space="preserve">
+    <value>Fast mode</value>
+  </data>
+  <data name="Search_SettingFastModeDesc" xml:space="preserve">
+    <value>Disable all animations for faster response</value>
+  </data>
+  <data name="Search_SettingWatermark" xml:space="preserve">
+    <value>Screenshot watermark</value>
+  </data>
+  <data name="Search_SettingWatermarkDesc" xml:space="preserve">
+    <value>Add a watermark to hardware screenshots</value>
+  </data>
+  <data name="Search_SettingRememberWindow" xml:space="preserve">
+    <value>Remember window position and size</value>
+  </data>
+  <data name="Search_SettingRememberWindowDesc" xml:space="preserve">
+    <value>Restore the window on next launch</value>
+  </data>
+  <data name="Search_SettingBackground" xml:space="preserve">
+    <value>Background image</value>
+  </data>
+  <data name="Search_SettingBackgroundDesc" xml:space="preserve">
+    <value>Import an image as the main page background</value>
+  </data>
+  <data name="Search_SettingUpdate" xml:space="preserve">
+    <value>Check for updates</value>
+  </data>
+  <data name="Search_SettingUpdateDesc" xml:space="preserve">
+    <value>Check whether a new version is available</value>
+  </data>
+  <data name="Search_SettingConfigManager" xml:space="preserve">
+    <value>Config manager</value>
+  </data>
+  <data name="Search_SettingConfigManagerDesc" xml:space="preserve">
+    <value>Manage config storage location, export and import</value>
+  </data>
+  <data name="Search_SettingCustomToolManager" xml:space="preserve">
+    <value>Custom tool manager</value>
+  </data>
+  <data name="Search_SettingCustomToolManagerDesc" xml:space="preserve">
+    <value>Manage categories and import custom tools</value>
+  </data>
+  <data name="Search_SettingExportApp" xml:space="preserve">
+    <value>Export app</value>
+  </data>
+  <data name="Search_SettingExportAppDesc" xml:space="preserve">
+    <value>Package as a distributable archive</value>
+  </data>
+  <data name="Search_QuickHardware" xml:space="preserve">
+    <value>Hardware info</value>
+  </data>
+  <data name="Search_QuickHardwareDesc" xml:space="preserve">
+    <value>View CPU, GPU, memory and other hardware details</value>
+  </data>
+  <data name="Search_QuickFavorites" xml:space="preserve">
+    <value>Favorite tools</value>
+  </data>
+  <data name="Search_QuickFavoritesDesc" xml:space="preserve">
+    <value>View your favorite tools</value>
+  </data>
+  <data name="Search_QuickBuiltin" xml:space="preserve">
+    <value>Built-in tools</value>
+  </data>
+  <data name="Search_QuickBuiltinDesc" xml:space="preserve">
+    <value>System tools that need no external files</value>
+  </data>
+  <data name="Search_QuickSettings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Search_QuickSettingsDesc" xml:space="preserve">
+    <value>App appearance and feature settings</value>
+  </data>
+
+  <!-- Settings page -->
+  <data name="Settings_LanguageTitle.Text" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Settings_LanguageDesc.Text" xml:space="preserve">
+    <value>Choose the display language</value>
+  </data>
+  <data name="Settings_LanguageAuto" xml:space="preserve">
+    <value>Follow system</value>
+  </data>
+
+  <!-- Update banner -->
+  <data name="UpdateBanner_ChangelogButton.Content" xml:space="preserve">
+    <value>View Changelog</value>
+  </data>
+  <data name="UpdateBanner_ActionButton" xml:space="preserve">
+    <value>Update Now</value>
+  </data>
+  <data name="UpdateBanner_ChangelogButton" xml:space="preserve">
+    <value>View Changelog</value>
+  </data>
+  <data name="UpdateBanner_CloseButton" xml:space="preserve">
+    <value>Dismiss update notice</value>
+  </data>
+  <data name="UpdateBanner_NewVersion" xml:space="preserve">
+    <value>New version v{0} available</value>
+  </data>
+  <data name="UpdateBanner_Downloading" xml:space="preserve">
+    <value>Downloading update...</value>
+  </data>
+  <data name="UpdateBanner_DownloadingButton" xml:space="preserve">
+    <value>Downloading</value>
+  </data>
+  <data name="UpdateBanner_InvalidFile" xml:space="preserve">
+    <value>The update file is invalid or was removed. Please download again.</value>
+  </data>
+  <data name="UpdateBanner_Ready" xml:space="preserve">
+    <value>Update ready. Click to install.</value>
+  </data>
+  <data name="UpdateBanner_InstallButton" xml:space="preserve">
+    <value>Install Now</value>
+  </data>
+  <data name="UpdateBanner_DownloadFailed" xml:space="preserve">
+    <value>Update download failed: {0}</value>
+  </data>
+  <data name="UpdateBanner_RetryButton" xml:space="preserve">
+    <value>Retry</value>
+  </data>
+  <data name="UpdateBanner_LaunchFailedTitle" xml:space="preserve">
+    <value>Update file unavailable</value>
+  </data>
+  <data name="UpdateBanner_LaunchFailedMessage" xml:space="preserve">
+    <value>The update package was removed or is corrupted (possibly by security software, cleanup tools, or disk errors) and cannot be launched. Please download it again.</value>
+  </data>
+  <data name="UpdateBanner_RedownloadButton" xml:space="preserve">
+    <value>Download Again</value>
+  </data>
+  <data name="UpdateBanner_OpenFolderButton" xml:space="preserve">
+    <value>Open Download Folder</value>
+  </data>
+
+  <!-- Category display names (keyed by the physical Tools/ folder name or built-in category name; value is display-only) -->
+  <data name="Category_Processor" xml:space="preserve">
+    <value>Processors</value>
+  </data>
+  <data name="Category_Graphics" xml:space="preserve">
+    <value>Graphics</value>
+  </data>
+  <data name="Category_Display" xml:space="preserve">
+    <value>Displays</value>
+  </data>
+  <data name="Category_Storage" xml:space="preserve">
+    <value>Storage</value>
+  </data>
+  <data name="Category_Memory" xml:space="preserve">
+    <value>Memory</value>
+  </data>
+  <data name="Category_Peripherals" xml:space="preserve">
+    <value>Peripherals</value>
+  </data>
+  <data name="Category_Gaming" xml:space="preserve">
+    <value>Gaming</value>
+  </data>
+  <data name="Category_Audio" xml:space="preserve">
+    <value>Audio</value>
+  </data>
+  <data name="Category_Network" xml:space="preserve">
+    <value>Network</value>
+  </data>
+  <data name="Category_StressTest" xml:space="preserve">
+    <value>Stress Test</value>
+  </data>
+  <data name="Category_GeneralCheck" xml:space="preserve">
+    <value>Diagnostics</value>
+  </data>
+  <data name="Category_General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Category_Other" xml:space="preserve">
+    <value>Other</value>
+  </data>
+  <data name="Category_Builtin_System" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="Category_Builtin_Hardware" xml:space="preserve">
+    <value>Hardware</value>
+  </data>
+  <data name="Category_Builtin_Network" xml:space="preserve">
+    <value>Network</value>
+  </data>
+  <data name="Category_Builtin_Gaming" xml:space="preserve">
+    <value>Gaming</value>
+  </data>
+  <data name="Category_Builtin_Utility" xml:space="preserve">
+    <value>Utilities</value>
+  </data>
+
+  <!-- 设置页 + 时间同步（第二轮） -->
+  <data name="Common_ExportFailed" xml:space="preserve">
+    <value>Export failed</value>
+  </data>
+  <data name="Common_GotIt" xml:space="preserve">
+    <value>Got it</value>
+  </data>
+  <data name="Settings_ActiveIntercept_Desc.Text" xml:space="preserve">
+    <value>Monitors context-menu entries in the background and blocks newly added third-party menu items (blocked first, reviewed later). Approve or release them in "Rogue Cleaner - Active Intercept".</value>
+  </data>
+  <data name="Settings_ActiveIntercept_Title.Text" xml:space="preserve">
+    <value>Active intercept</value>
+  </data>
+  <data name="Settings_Ai_Status.Text" xml:space="preserve">
+    <value>Configure an AI provider and model to enable AI features</value>
+  </data>
+  <data name="Settings_Ai_Title.Text" xml:space="preserve">
+    <value>AI service</value>
+  </data>
+  <data name="Settings_AiAddModel_Button.Text" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Settings_AiApiKey_GetButton.Text" xml:space="preserve">
+    <value>Get API Key</value>
+  </data>
+  <data name="Settings_AiApiKey_Hint" xml:space="preserve">
+    <value>API key, stored securely on this device</value>
+  </data>
+  <data name="Settings_AiApiKey_Hint.Text" xml:space="preserve">
+    <value>API key, stored securely on this device</value>
+  </data>
+  <data name="Settings_AiConfigured" xml:space="preserve">
+    <value>Configured: {0} · {1}</value>
+  </data>
+  <data name="Settings_AiDefaultModel_Desc.Text" xml:space="preserve">
+    <value>The model selected automatically when starting a new chat</value>
+  </data>
+  <data name="Settings_AiDefaultModel_Title.Text" xml:space="preserve">
+    <value>Default model</value>
+  </data>
+  <data name="Settings_AiEndpoint_Desc.Text" xml:space="preserve">
+    <value>Base URL of the OpenAI-compatible API (locked for presets; leave blank for custom providers to use the built-in gateway)</value>
+  </data>
+  <data name="Settings_AiEndpoint_Title.Text" xml:space="preserve">
+    <value>API endpoint</value>
+  </data>
+  <data name="Settings_AiKeyHintZen" xml:space="preserve">
+    <value>API Key (optional): leave blank for the anonymous free tier (low quota); signing in raises the quota significantly</value>
+  </data>
+  <data name="Settings_AiModels_Desc.Text" xml:space="preserve">
+    <value>Preset or custom model IDs, switchable any time in the AI chat</value>
+  </data>
+  <data name="Settings_AiModels_Title.Text" xml:space="preserve">
+    <value>Models</value>
+  </data>
+  <data name="Settings_AiNewModel_Placeholder.PlaceholderText" xml:space="preserve">
+    <value>Enter a model ID, e.g. deepseek-chat</value>
+  </data>
+  <data name="Settings_AiProvider_AddButton.Text" xml:space="preserve">
+    <value>New custom</value>
+  </data>
+  <data name="Settings_AiProvider_Desc.Text" xml:space="preserve">
+    <value>Built-in DeepSeek / Xiaomi MiMo / OpenCode Zen presets only need an API Key; custom providers are fully editable</value>
+  </data>
+  <data name="Settings_AiProvider_ResetButton.Text" xml:space="preserve">
+    <value>Reset to default</value>
+  </data>
+  <data name="Settings_AiProvider_Title.Text" xml:space="preserve">
+    <value>AI provider</value>
+  </data>
+  <data name="Settings_AiTest_Button" xml:space="preserve">
+    <value>Test connection</value>
+  </data>
+  <data name="Settings_AiTest_Button.Text" xml:space="preserve">
+    <value>Test connection</value>
+  </data>
+  <data name="Settings_AiTestFailed" xml:space="preserve">
+    <value>Connection failed</value>
+  </data>
+  <data name="Settings_AiTestFailedDialogTitle" xml:space="preserve">
+    <value>AI connection test failed</value>
+  </data>
+  <data name="Settings_AiTestFailedStatus" xml:space="preserve">
+    <value>Connection failed: {0}</value>
+  </data>
+  <data name="Settings_AiTesting" xml:space="preserve">
+    <value>Testing...</value>
+  </data>
+  <data name="Settings_AiTestSuccess" xml:space="preserve">
+    <value>Connected</value>
+  </data>
+  <data name="Settings_AiTestSuccessStatus" xml:space="preserve">
+    <value>AI service configured, connection test succeeded</value>
+  </data>
+  <data name="Settings_AiUsingDefaultModel" xml:space="preserve">
+    <value>⚠️ Using the built-in default model: expect queues and rate limits with lower quality. DeepSeek V4 Pro is recommended.</value>
+  </data>
+  <data name="Settings_AiZen_Desc.Text" xml:space="preserve">
+    <value>Free models (such as deepseek-v4-flash-free, mimo-v2.5-free) cost nothing; the anonymous quota is low (~2 rounds in practice), and signing in with an API Key raises it significantly.</value>
+  </data>
+  <data name="Settings_AiZen_LoginButton" xml:space="preserve">
+    <value>Sign in and get Key</value>
+  </data>
+  <data name="Settings_AiZen_LoginButton.Text" xml:space="preserve">
+    <value>Sign in and get Key</value>
+  </data>
+  <data name="Settings_AiZen_RefreshButton" xml:space="preserve">
+    <value>Refresh free models</value>
+  </data>
+  <data name="Settings_AiZen_RefreshButton.Text" xml:space="preserve">
+    <value>Refresh free models</value>
+  </data>
+  <data name="Settings_AiZen_Title.Text" xml:space="preserve">
+    <value>OpenCode Zen free models</value>
+  </data>
+  <data name="Settings_AiZenGetKeyFailed" xml:space="preserve">
+    <value>Failed to get Key: {0}</value>
+  </data>
+  <data name="Settings_AiZenHasKey" xml:space="preserve">
+    <value>Key configured: {0} (higher quota)</value>
+  </data>
+  <data name="Settings_AiZenNoKey" xml:space="preserve">
+    <value>No Key configured (low anonymous quota)</value>
+  </data>
+  <data name="Settings_AiZenRefreshed" xml:space="preserve">
+    <value>Refreshed {0} free models</value>
+  </data>
+  <data name="Settings_AiZenRefreshFailed" xml:space="preserve">
+    <value>Refresh failed: {0}</value>
+  </data>
+  <data name="Settings_AiZenRefreshing" xml:space="preserve">
+    <value>Refreshing...</value>
+  </data>
+  <data name="Settings_AiZenWaitingLogin" xml:space="preserve">
+    <value>Waiting for sign-in...</value>
+  </data>
+  <data name="Settings_AllFilesFilter" xml:space="preserve">
+    <value>All files</value>
+  </data>
+  <data name="Settings_Appearance_Desc.Text" xml:space="preserve">
+    <value>Window material, background image, fonts, watermark, brand logo</value>
+  </data>
+  <data name="Settings_Appearance_Title.Text" xml:space="preserve">
+    <value>Appearance</value>
+  </data>
+  <data name="Settings_AppSubtitle.Text" xml:space="preserve">
+    <value>A PC hardware toolbox built on WinUI 3</value>
+  </data>
+  <data name="Settings_AppTitle.Text" xml:space="preserve">
+    <value>Tuba Toolbox CE</value>
+  </data>
+  <data name="Settings_Backdrop_Desc.Text" xml:space="preserve">
+    <value>Pick the window backdrop material and optionally customize the tint</value>
+  </data>
+  <data name="Settings_Backdrop_Title.Text" xml:space="preserve">
+    <value>Window material</value>
+  </data>
+  <data name="Settings_BackdropAcrylic_Desc.Text" xml:space="preserve">
+    <value>Frosted glass</value>
+  </data>
+  <data name="Settings_BackdropAcrylic_Title.Text" xml:space="preserve">
+    <value>Acrylic</value>
+  </data>
+  <data name="Settings_BackdropAcrylicThin_Desc.Text" xml:space="preserve">
+    <value>Lighter frost</value>
+  </data>
+  <data name="Settings_BackdropAcrylicThin_Title.Text" xml:space="preserve">
+    <value>Acrylic Thin</value>
+  </data>
+  <data name="Settings_BackdropMica_Desc.Text" xml:space="preserve">
+    <value>Soft mica</value>
+  </data>
+  <data name="Settings_BackdropMicaAlt_Desc.Text" xml:space="preserve">
+    <value>Layered mica</value>
+  </data>
+  <data name="Settings_Background_Desc.Text" xml:space="preserve">
+    <value>Import an image as the main page background</value>
+  </data>
+  <data name="Settings_Background_Title.Text" xml:space="preserve">
+    <value>Background image</value>
+  </data>
+  <data name="Settings_BackgroundClear_Button.Text" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="Settings_BackgroundImport_Button.Text" xml:space="preserve">
+    <value>Import image</value>
+  </data>
+  <data name="Settings_BackgroundOpacity_Label.Text" xml:space="preserve">
+    <value>Opacity</value>
+  </data>
+  <data name="Settings_BgHistory_Empty.Text" xml:space="preserve">
+    <value>No images imported yet</value>
+  </data>
+  <data name="Settings_BgHistory_Title.Text" xml:space="preserve">
+    <value>Imported images</value>
+  </data>
+  <data name="Settings_BrandLogo_Desc.Text" xml:space="preserve">
+    <value>Show brand icons next to CPU and GPU rows on the hardware page</value>
+  </data>
+  <data name="Settings_BrandLogo_Title.Text" xml:space="preserve">
+    <value>Show brand logo</value>
+  </data>
+  <data name="Settings_BuiltinOpenMode_Desc.Text" xml:space="preserve">
+    <value>Open built-in tools embedded in the current page, or in a separate window</value>
+  </data>
+  <data name="Settings_BuiltinOpenMode_Title.Text" xml:space="preserve">
+    <value>Built-in tool open mode</value>
+  </data>
+  <data name="Settings_BuiltinOpenModeOptionEmbedded" xml:space="preserve">
+    <value>Embedded page</value>
+  </data>
+  <data name="Settings_BuiltinOpenModeOptionWindow" xml:space="preserve">
+    <value>Separate window</value>
+  </data>
+  <data name="Settings_CommunitySubmit_Button.Text" xml:space="preserve">
+    <value>Submit tool</value>
+  </data>
+  <data name="Settings_CommunitySubmit_Desc.Text" xml:space="preserve">
+    <value>Submit a tool to the community repository; visible to everyone after review</value>
+  </data>
+  <data name="Settings_CommunitySubmit_Title.Text" xml:space="preserve">
+    <value>Submit community tool</value>
+  </data>
+  <data name="Settings_Compact_Desc.Text" xml:space="preserve">
+    <value>The classic Tuba Toolbox style</value>
+  </data>
+  <data name="Settings_Compact_Title.Text" xml:space="preserve">
+    <value>Compact list mode</value>
+  </data>
+  <data name="Settings_ComponentTest_Desc.Text" xml:space="preserve">
+    <value>Preview the HealthGauge and SparklineGraph components</value>
+  </data>
+  <data name="Settings_ComponentTest_Title.Text" xml:space="preserve">
+    <value>Component test</value>
+  </data>
+  <data name="Settings_ConfigManager_Button.Text" xml:space="preserve">
+    <value>Manage</value>
+  </data>
+  <data name="Settings_ConfigManager_Desc.Text" xml:space="preserve">
+    <value>Manage config storage location, export and import</value>
+  </data>
+  <data name="Settings_ConfigManager_Title.Text" xml:space="preserve">
+    <value>Config manager</value>
+  </data>
+  <data name="Settings_CpuzButtonRevert" xml:space="preserve">
+    <value>Use default</value>
+  </data>
+  <data name="Settings_CpuzDialogPrimary" xml:space="preserve">
+    <value>Switch</value>
+  </data>
+  <data name="Settings_CpuzDialogTitle" xml:space="preserve">
+    <value>Switch hardware info data source</value>
+  </data>
+  <data name="Settings_CpuzFetchError" xml:space="preserve">
+    <value>An error occurred while reading data with CPU-Z:`n{0}</value>
+  </data>
+  <data name="Settings_CpuzFetchFailedMessage" xml:space="preserve">
+    <value>CPU-Z could not read the hardware information.`n`nPossible reasons:`n• CPU-Z timed out`n• CPU-Z was blocked by security software`n• This CPU-Z build does not support the current architecture</value>
+  </data>
+  <data name="Settings_CpuzFetchFailedTitle" xml:space="preserve">
+    <value>Read failed</value>
+  </data>
+  <data name="Settings_CpuzFetching" xml:space="preserve">
+    <value>Reading hardware information via CPU-Z, please wait...</value>
+  </data>
+  <data name="Settings_CpuzHowBody" xml:space="preserve">
+    <value>CPU-Z reads CPU registers directly through the CPUID instruction, enumerates hardware via PCI, and reads memory modules via the SPD chip — data at the hardware level that vendors cannot fake by editing SMBIOS.</value>
+  </data>
+  <data name="Settings_CpuzHowTitle" xml:space="preserve">
+    <value>✓ How CPU-Z reads data</value>
+  </data>
+  <data name="Settings_CpuzIntro" xml:space="preserve">
+    <value>Hardware information currently comes from WMI (Windows Management Instrumentation), based on what the vendor wrote into SMBIOS/DMI.</value>
+  </data>
+  <data name="Settings_CpuzNotesBody" xml:space="preserve">
+    <value>• Reading with CPU-Z takes about 3-8 seconds and briefly starts the CPU-Z process`n• The CPU-Z process is closed automatically afterwards`n• You can switch back to the WMI source at any time in Settings</value>
+  </data>
+  <data name="Settings_CpuzNotesTitle" xml:space="preserve">
+    <value>⏱ Notes</value>
+  </data>
+  <data name="Settings_CpuzNotFoundMessage" xml:space="preserve">
+    <value>CPU-Z was not found in the tools folder, so this feature is unavailable.`n`nMake sure cpuz_x64.exe exists under Tools/处理器工具/CPUZ/.</value>
+  </data>
+  <data name="Settings_CpuzNotFoundTitle" xml:space="preserve">
+    <value>CPU-Z not found</value>
+  </data>
+  <data name="Settings_CpuzSource_Button" xml:space="preserve">
+    <value>Switch</value>
+  </data>
+  <data name="Settings_CpuzSource_Button.Text" xml:space="preserve">
+    <value>Switch</value>
+  </data>
+  <data name="Settings_CpuzSource_Status.Text" xml:space="preserve">
+    <value>Read real hardware information with CPU-Z to prevent vendor spoofing</value>
+  </data>
+  <data name="Settings_CpuzSource_Title.Text" xml:space="preserve">
+    <value>Hardware info data source</value>
+  </data>
+  <data name="Settings_CpuzStatusInUse" xml:space="preserve">
+    <value>Currently using the CPU-Z data source (real hardware values)</value>
+  </data>
+  <data name="Settings_CpuzStatusNotFound" xml:space="preserve">
+    <value>CPU-Z data source enabled, but CPU-Z was not found</value>
+  </data>
+  <data name="Settings_CpuzStatusWaiting" xml:space="preserve">
+    <value>CPU-Z data source enabled, waiting for data...</value>
+  </data>
+  <data name="Settings_CpuzStatusWmiCanSwitch" xml:space="preserve">
+    <value>Currently using the WMI data source; switch to CPU-Z for real values</value>
+  </data>
+  <data name="Settings_CpuzStatusWmiNoTool" xml:space="preserve">
+    <value>Currently using the WMI data source (CPU-Z not found)</value>
+  </data>
+  <data name="Settings_CpuzWmiWarningBody" xml:space="preserve">
+    <value>Some vendors or resellers modify BIOS/SMBIOS data to fake the CPU model, memory brand, motherboard model, and more — making WMI values differ from the real hardware.</value>
+  </data>
+  <data name="Settings_CpuzWmiWarningTitle" xml:space="preserve">
+    <value>⚠ WMI data can be spoofed</value>
+  </data>
+  <data name="Settings_Credits_Desc.Text" xml:space="preserve">
+    <value>Tool sources, author, website, open-source credits</value>
+  </data>
+  <data name="Settings_Credits_Title.Text" xml:space="preserve">
+    <value>About &amp; credits</value>
+  </data>
+  <data name="Settings_Credits_VisitSite.Content" xml:space="preserve">
+    <value>Visit website</value>
+  </data>
+  <data name="Settings_CreditsApp_Desc.Text" xml:space="preserve">
+    <value>All hardware detection and testing tools bundled here come from the "Tuba Toolbox" project.</value>
+  </data>
+  <data name="Settings_CreditsApp_Title.Text" xml:space="preserve">
+    <value>Tuba Toolbox CE</value>
+  </data>
+  <data name="Settings_CreditsAuthor_Role.Text" xml:space="preserve">
+    <value>Developer / Designer</value>
+  </data>
+  <data name="Settings_CreditsNexBox_Desc.Text" xml:space="preserve">
+    <value>A gaming toolbox for modern players - special thanks</value>
+  </data>
+  <data name="Settings_CreditsNexBox_Title.Text" xml:space="preserve">
+    <value>NexBox</value>
+  </data>
+  <data name="Settings_CreditsOfficialSite_Title.Text" xml:space="preserve">
+    <value>Official website</value>
+  </data>
+  <data name="Settings_DefaultPage_Desc.Text" xml:space="preserve">
+    <value>Choose the page shown on startup</value>
+  </data>
+  <data name="Settings_DefaultPage_Title.Text" xml:space="preserve">
+    <value>Default page</value>
+  </data>
+  <data name="Settings_DownloadActionExtract" xml:space="preserve">
+    <value>Download and extract</value>
+  </data>
+  <data name="Settings_DownloadActionInstall" xml:space="preserve">
+    <value>Download and run</value>
+  </data>
+  <data name="Settings_DownloadActionNone" xml:space="preserve">
+    <value>Download only</value>
+  </data>
+  <data name="Settings_DownloadEnqueuedMessage" xml:space="preserve">
+    <value>"{0}" was added to the download queue.`nSaving to: {1}</value>
+  </data>
+  <data name="Settings_DownloadEnqueuedTitle" xml:space="preserve">
+    <value>Added to downloads</value>
+  </data>
+  <data name="Settings_DownloadEnterUrl" xml:space="preserve">
+    <value>Please enter a download URL</value>
+  </data>
+  <data name="Settings_DownloadFileDefaultName" xml:space="preserve">
+    <value>Download {0}</value>
+  </data>
+  <data name="Settings_DownloadInvalidUrl" xml:space="preserve">
+    <value>Please enter a valid HTTP/HTTPS URL</value>
+  </data>
+  <data name="Settings_DownloadQueue_Button.Text" xml:space="preserve">
+    <value>Manage queue</value>
+  </data>
+  <data name="Settings_DownloadQueue_Status.Text" xml:space="preserve">
+    <value>View current download queue status</value>
+  </data>
+  <data name="Settings_DownloadQueue_Title.Text" xml:space="preserve">
+    <value>Download queue</value>
+  </data>
+  <data name="Settings_DownloadQueueAllDone" xml:space="preserve">
+    <value>{0} items in queue, all completed</value>
+  </data>
+  <data name="Settings_DownloadQueueEmpty" xml:space="preserve">
+    <value>Queue is empty</value>
+  </data>
+  <data name="Settings_DownloadQueuePending" xml:space="preserve">
+    <value>{0} items in queue, {1} pending</value>
+  </data>
+  <data name="Settings_Egg1" xml:space="preserve">
+    <value>You found me! 🎉</value>
+  </data>
+  <data name="Settings_Egg10" xml:space="preserve">
+    <value>Alright alright, I know you are here~</value>
+  </data>
+  <data name="Settings_Egg2" xml:space="preserve">
+    <value>Ow, stop poking me >_&lt;</value>
+  </data>
+  <data name="Settings_Egg3" xml:space="preserve">
+    <value>Poke me again and I might break~</value>
+  </data>
+  <data name="Settings_Egg4" xml:space="preserve">
+    <value>Hehe, you are patient ✨</value>
+  </data>
+  <data name="Settings_Egg5" xml:space="preserve">
+    <value>Stay energetic today!</value>
+  </data>
+  <data name="Settings_Egg6" xml:space="preserve">
+    <value>Psst: the developer is cute 🤫</value>
+  </data>
+  <data name="Settings_Egg7" xml:space="preserve">
+    <value>Why poke me? Go check your specs!</value>
+  </data>
+  <data name="Settings_Egg8" xml:space="preserve">
+    <value>I am a toolbox kitty~ 🐱</value>
+  </data>
+  <data name="Settings_Egg9" xml:space="preserve">
+    <value>You tap me, I am happy ☺️</value>
+  </data>
+  <data name="Settings_ErrorReport_Button" xml:space="preserve">
+    <value>Package logs</value>
+  </data>
+  <data name="Settings_ErrorReport_Button.Text" xml:space="preserve">
+    <value>Package logs</value>
+  </data>
+  <data name="Settings_ErrorReport_Desc.Text" xml:space="preserve">
+    <value>Collect crash reports related to this app from Windows event logs, bundle them with application logs and system info into a zip for filing a GitHub issue</value>
+  </data>
+  <data name="Settings_ErrorReport_Title.Text" xml:space="preserve">
+    <value>Error log packaging</value>
+  </data>
+  <data name="Settings_ErrorReportDoneTitle" xml:space="preserve">
+    <value>Error log package created</value>
+  </data>
+  <data name="Settings_ErrorReportEvents" xml:space="preserve">
+    <value>Windows event log entries: {0}</value>
+  </data>
+  <data name="Settings_ErrorReportFailedTitle" xml:space="preserve">
+    <value>Packaging failed</value>
+  </data>
+  <data name="Settings_ErrorReportHint" xml:space="preserve">
+    <value>To report a problem, drag this zip into the attachment area of a GitHub issue.</value>
+  </data>
+  <data name="Settings_ErrorReportLogs" xml:space="preserve">
+    <value>Application log files: {0}</value>
+  </data>
+  <data name="Settings_ErrorReportPacking" xml:space="preserve">
+    <value>Packaging...</value>
+  </data>
+  <data name="Settings_ErrorReportSize" xml:space="preserve">
+    <value>Size: {0}</value>
+  </data>
+  <data name="Settings_ErrorReportZipPath" xml:space="preserve">
+    <value>Archive location:</value>
+  </data>
+  <data name="Settings_ExportApp_Button.Text" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="Settings_ExportApp_Status.Text" xml:space="preserve">
+    <value>Package the current program folder, tools, and metadata into a distributable archive.</value>
+  </data>
+  <data name="Settings_ExportApp_Title" xml:space="preserve">
+    <value>Export current app</value>
+  </data>
+  <data name="Settings_ExportApp_Title.Text" xml:space="preserve">
+    <value>Export current app</value>
+  </data>
+  <data name="Settings_ExportDoneTitle" xml:space="preserve">
+    <value>Export complete</value>
+  </data>
+  <data name="Settings_Exported" xml:space="preserve">
+    <value>Exported {0}</value>
+  </data>
+  <data name="Settings_ExportFailedStatus" xml:space="preserve">
+    <value>Export failed: {0}</value>
+  </data>
+  <data name="Settings_Exporting" xml:space="preserve">
+    <value>Packaging the current app...</value>
+  </data>
+  <data name="Settings_ExportSavedTo" xml:space="preserve">
+    <value>Saved to:`n{0}</value>
+  </data>
+  <data name="Settings_FastMode_Desc.Text" xml:space="preserve">
+    <value>Disable all animations for faster response</value>
+  </data>
+  <data name="Settings_FastMode_Title.Text" xml:space="preserve">
+    <value>Fast mode</value>
+  </data>
+  <data name="Settings_Feedback_Button" xml:space="preserve">
+    <value>Submit feedback</value>
+  </data>
+  <data name="Settings_Feedback_Button.Text" xml:space="preserve">
+    <value>Submit feedback</value>
+  </data>
+  <data name="Settings_Feedback_Desc.Text" xml:space="preserve">
+    <value>Report issues, suggest features, or give feedback on GitHub</value>
+  </data>
+  <data name="Settings_Feedback_Title.Text" xml:space="preserve">
+    <value>Feedback &amp; suggestions</value>
+  </data>
+  <data name="Settings_FeedbackBackToEdit" xml:space="preserve">
+    <value>Back to editing</value>
+  </data>
+  <data name="Settings_FeedbackDescLabel" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Settings_FeedbackDescPlaceholder" xml:space="preserve">
+    <value>Describe the problem or suggestion...</value>
+  </data>
+  <data name="Settings_FeedbackIssueDescSection" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Settings_FeedbackIssueStepsSection" xml:space="preserve">
+    <value>Steps to reproduce</value>
+  </data>
+  <data name="Settings_FeedbackIssueSystemSection" xml:space="preserve">
+    <value>System information</value>
+  </data>
+  <data name="Settings_FeedbackIssueTitle" xml:space="preserve">
+    <value>Feedback</value>
+  </data>
+  <data name="Settings_FeedbackStepsLabel" xml:space="preserve">
+    <value>Steps to reproduce *required</value>
+  </data>
+  <data name="Settings_FeedbackStepsPlaceholder" xml:space="preserve">
+    <value>1. Open the xxx page`n2. Click the xxx button`n3. The xxx problem appears</value>
+  </data>
+  <data name="Settings_FeedbackStepsRequiredMessage" xml:space="preserve">
+    <value>Please describe the steps to reproduce before submitting — it helps us locate and fix the problem quickly.</value>
+  </data>
+  <data name="Settings_FeedbackStepsRequiredTitle" xml:space="preserve">
+    <value>Please fill in the repro steps</value>
+  </data>
+  <data name="Settings_FeedbackSubmit" xml:space="preserve">
+    <value>Submit</value>
+  </data>
+  <data name="Settings_General_Desc.Text" xml:space="preserve">
+    <value>Theme, updates, startup page, fast mode</value>
+  </data>
+  <data name="Settings_General_Title.Text" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Settings_GitHub_LoginButton.Text" xml:space="preserve">
+    <value>Sign in</value>
+  </data>
+  <data name="Settings_GitHub_LogoutButton.Text" xml:space="preserve">
+    <value>Sign out</value>
+  </data>
+  <data name="Settings_GitHub_Status" xml:space="preserve">
+    <value>Not signed in</value>
+  </data>
+  <data name="Settings_GitHub_Status.Text" xml:space="preserve">
+    <value>Not signed in</value>
+  </data>
+  <data name="Settings_GitHub_Title.Text" xml:space="preserve">
+    <value>GitHub account</value>
+  </data>
+  <data name="Settings_GitHubLoggedIn" xml:space="preserve">
+    <value>Signed in as {0}</value>
+  </data>
+  <data name="Settings_HardwareAi_Desc.Text" xml:space="preserve">
+    <value>Hardware display options, data source, AI service configuration</value>
+  </data>
+  <data name="Settings_HardwareAi_Title.Text" xml:space="preserve">
+    <value>Hardware &amp; AI</value>
+  </data>
+  <data name="Settings_HardwareFitScreen_Desc.Text" xml:space="preserve">
+    <value>Auto-scale so all hardware information fits on one screen; disable to allow scrolling</value>
+  </data>
+  <data name="Settings_HardwareFitScreen_Title.Text" xml:space="preserve">
+    <value>Fit hardware info on one screen</value>
+  </data>
+  <data name="Settings_HardwareMultiDevice_Desc.Text" xml:space="preserve">
+    <value>Show each GPU, disk, and other device on its own line</value>
+  </data>
+  <data name="Settings_HardwareMultiDevice_Title.Text" xml:space="preserve">
+    <value>Multi-device line breaks</value>
+  </data>
+  <data name="Settings_HttpDownload_AddButton.Text" xml:space="preserve">
+    <value>Add to downloads</value>
+  </data>
+  <data name="Settings_HttpDownload_Desc.Text" xml:space="preserve">
+    <value>Paste a link to download it, with resume support</value>
+  </data>
+  <data name="Settings_HttpDownload_Title.Text" xml:space="preserve">
+    <value>HTTP download</value>
+  </data>
+  <data name="Settings_HttpDownloadAction_Desc.Text" xml:space="preserve">
+    <value>Choose what happens after a download completes</value>
+  </data>
+  <data name="Settings_HttpDownloadAction_Title.Text" xml:space="preserve">
+    <value>After download</value>
+  </data>
+  <data name="Settings_HttpDownloadBrowse_Button.Text" xml:space="preserve">
+    <value>Browse</value>
+  </data>
+  <data name="Settings_HttpDownloadPath_Title.Text" xml:space="preserve">
+    <value>Save location</value>
+  </data>
+  <data name="Settings_HttpDownloadResetPath_Button.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Restore default path</value>
+  </data>
+  <data name="Settings_HttpDownloadUrl_Desc.Text" xml:space="preserve">
+    <value>Enter an HTTP/HTTPS direct link</value>
+  </data>
+  <data name="Settings_HttpDownloadUrl_Title.Text" xml:space="preserve">
+    <value>Download URL</value>
+  </data>
+  <data name="Settings_ImageFileFilter" xml:space="preserve">
+    <value>Image files</value>
+  </data>
+  <data name="Settings_InterceptNotify_Desc.Text" xml:space="preserve">
+    <value>Choose whether blocked context-menu entries trigger a Windows notification</value>
+  </data>
+  <data name="Settings_InterceptNotify_Title.Text" xml:space="preserve">
+    <value>Intercept notification mode</value>
+  </data>
+  <data name="Settings_InterceptNotifyAlways" xml:space="preserve">
+    <value>Notify on every block</value>
+  </data>
+  <data name="Settings_InterceptNotifyBatch" xml:space="preserve">
+    <value>Notify for batches only</value>
+  </data>
+  <data name="Settings_InterceptNotifyNever" xml:space="preserve">
+    <value>Never notify</value>
+  </data>
+  <data name="Settings_InterceptStatusBackendMissing" xml:space="preserve">
+    <value>Not running (backend missing)</value>
+  </data>
+  <data name="Settings_InterceptStatusOff" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="Settings_InterceptStatusRunning" xml:space="preserve">
+    <value>Running</value>
+  </data>
+  <data name="Settings_NavLayout_Desc.Text" xml:space="preserve">
+    <value>Switch between sidebar and top tab navigation</value>
+  </data>
+  <data name="Settings_NavLayout_Title.Text" xml:space="preserve">
+    <value>Navigation layout</value>
+  </data>
+  <data name="Settings_NavLayoutOptionSidebar" xml:space="preserve">
+    <value>Sidebar</value>
+  </data>
+  <data name="Settings_NavLayoutOptionTabs" xml:space="preserve">
+    <value>Top tabs</value>
+  </data>
+  <data name="Settings_OpenFailedTitle" xml:space="preserve">
+    <value>Failed to open</value>
+  </data>
+  <data name="Settings_OpenFolderButton" xml:space="preserve">
+    <value>Open folder</value>
+  </data>
+  <data name="Settings_OpenSource_AppSdk.Text" xml:space="preserve">
+    <value>Microsoft.WindowsAppSDK — application framework</value>
+  </data>
+  <data name="Settings_OpenSource_BuildTools.Text" xml:space="preserve">
+    <value>WinApp runtime support</value>
+  </data>
+  <data name="Settings_OpenSource_Button.Text" xml:space="preserve">
+    <value>View all</value>
+  </data>
+  <data name="Settings_OpenSource_Desc.Text" xml:space="preserve">
+    <value>See all open-source projects used by this app</value>
+  </data>
+  <data name="Settings_OpenSource_Drawing.Text" xml:space="preserve">
+    <value>Icon extraction and image processing</value>
+  </data>
+  <data name="Settings_OpenSource_EventLog.Text" xml:space="preserve">
+    <value>System event log reading — blue-screen analysis</value>
+  </data>
+  <data name="Settings_OpenSource_Lhm.Text" xml:space="preserve">
+    <value>LibreHardwareMonitorLib — hardware sensor monitoring</value>
+  </data>
+  <data name="Settings_OpenSource_Management.Text" xml:space="preserve">
+    <value>WMI hardware information queries</value>
+  </data>
+  <data name="Settings_OpenSource_Title.Text" xml:space="preserve">
+    <value>Open-source credits</value>
+  </data>
+  <data name="Settings_OpenSource_Win2D.Text" xml:space="preserve">
+    <value>Microsoft.Graphics.Win2D — 2D rendering library</value>
+  </data>
+  <data name="Settings_PageSubtitle.Text" xml:space="preserve">
+    <value>Manage appearance, updates, and view about information.</value>
+  </data>
+  <data name="Settings_PageTitle.Text" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Settings_PickBackgroundImage" xml:space="preserve">
+    <value>Choose a background image</value>
+  </data>
+  <data name="Settings_PromptTitle" xml:space="preserve">
+    <value>Notice</value>
+  </data>
+  <data name="Settings_Proxy_Desc" xml:space="preserve">
+    <value>Configure an HTTP/HTTPS proxy; all network requests will use it</value>
+  </data>
+  <data name="Settings_Proxy_Desc.Text" xml:space="preserve">
+    <value>Configure an HTTP/HTTPS proxy; all network requests will use it</value>
+  </data>
+  <data name="Settings_Proxy_Title.Text" xml:space="preserve">
+    <value>Proxy settings</value>
+  </data>
+  <data name="Settings_ProxyAddress_Desc.Text" xml:space="preserve">
+    <value>Format: http://host:port or socks5://host:port</value>
+  </data>
+  <data name="Settings_ProxyAddress_Title.Text" xml:space="preserve">
+    <value>Proxy address</value>
+  </data>
+  <data name="Settings_ProxyAuth_Desc.Text" xml:space="preserve">
+    <value>Enter username and password if authentication is required</value>
+  </data>
+  <data name="Settings_ProxyAuth_Title.Text" xml:space="preserve">
+    <value>Proxy authentication (optional)</value>
+  </data>
+  <data name="Settings_ProxyEnabled" xml:space="preserve">
+    <value>Proxy enabled: {0}</value>
+  </data>
+  <data name="Settings_ProxyEnabledNoAddress" xml:space="preserve">
+    <value>Proxy enabled, but no address configured</value>
+  </data>
+  <data name="Settings_ProxyEnabledWithAuth" xml:space="preserve">
+    <value>Proxy enabled: {0} (authentication configured)</value>
+  </data>
+  <data name="Settings_ProxyPassword_Placeholder.PlaceholderText" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="Settings_ProxyTest_Button" xml:space="preserve">
+    <value>Test connection</value>
+  </data>
+  <data name="Settings_ProxyTest_Button.Text" xml:space="preserve">
+    <value>Test connection</value>
+  </data>
+  <data name="Settings_ProxyTest_Desc.Text" xml:space="preserve">
+    <value>Verify that the proxy works</value>
+  </data>
+  <data name="Settings_ProxyTest_Title.Text" xml:space="preserve">
+    <value>Test proxy connection</value>
+  </data>
+  <data name="Settings_ProxyTestCannotTitle" xml:space="preserve">
+    <value>Cannot test</value>
+  </data>
+  <data name="Settings_ProxyTestNoAddress" xml:space="preserve">
+    <value>Please enter a proxy address first</value>
+  </data>
+  <data name="Settings_ProxyTestSuccess" xml:space="preserve">
+    <value>Proxy connection succeeded ({0})</value>
+  </data>
+  <data name="Settings_ProxyTestTesting" xml:space="preserve">
+    <value>Testing proxy connection...</value>
+  </data>
+  <data name="Settings_ProxyTestUnreachable" xml:space="preserve">
+    <value>Cannot reach the proxy server</value>
+  </data>
+  <data name="Settings_ProxyUsername_Placeholder.PlaceholderText" xml:space="preserve">
+    <value>Username</value>
+  </data>
+  <data name="Settings_RatingThanks_Button.Content" xml:space="preserve">
+    <value>Awesome</value>
+  </data>
+  <data name="Settings_RatingThanks_Desc.Text" xml:space="preserve">
+    <value>Every review makes Tuba Toolbox better.</value>
+  </data>
+  <data name="Settings_RatingThanks_Title.Text" xml:space="preserve">
+    <value>Thanks for your support!</value>
+  </data>
+  <data name="Settings_RememberWindow_Desc.Text" xml:space="preserve">
+    <value>When off, the window is centered on next launch to avoid odd positions after disconnecting monitors</value>
+  </data>
+  <data name="Settings_RememberWindow_Title.Text" xml:space="preserve">
+    <value>Remember window position and size</value>
+  </data>
+  <data name="Settings_SearchApiKey_Desc.Text" xml:space="preserve">
+    <value>uapis.cn search API key (leave blank to use the free quota)</value>
+  </data>
+  <data name="Settings_SearchApiKey_Title.Text" xml:space="preserve">
+    <value>Search API key</value>
+  </data>
+  <data name="Settings_SearchIndex_Desc.Text" xml:space="preserve">
+    <value>Search a tool name (e.g. CPU-Z) in the Start menu to launch it directly without opening the toolbox; duplicate versions are deduplicated, and shortcuts are cleaned up when disabled</value>
+  </data>
+  <data name="Settings_SearchIndex_Title.Text" xml:space="preserve">
+    <value>Register in Windows Search</value>
+  </data>
+  <data name="Settings_StorageUsage_Button.Text" xml:space="preserve">
+    <value>View usage</value>
+  </data>
+  <data name="Settings_StorageUsage_Status.Text" xml:space="preserve">
+    <value>Measure the program folder, caches, and files created by built-in tools (downloads, logs, leftovers), then clean them item by item.</value>
+  </data>
+  <data name="Settings_StorageUsage_Title.Text" xml:space="preserve">
+    <value>Tuba Toolbox storage usage</value>
+  </data>
+  <data name="Settings_StorageUsageOpenFailed" xml:space="preserve">
+    <value>Failed to open storage usage: {0}</value>
+  </data>
+  <data name="Settings_StoreRating_Button.Text" xml:space="preserve">
+    <value>Rate now</value>
+  </data>
+  <data name="Settings_StoreRating_Desc.Text" xml:space="preserve">
+    <value>Leave a rating! Click to open the Store review page</value>
+  </data>
+  <data name="Settings_StoreRating_Title.Text" xml:space="preserve">
+    <value>Enjoying the app?</value>
+  </data>
+  <data name="Settings_StoreRatingOpenFailed" xml:space="preserve">
+    <value>Unable to open the Store review page right now, please try again later.</value>
+  </data>
+  <data name="Settings_StoreRatingUnavailableMessage" xml:space="preserve">
+    <value>This is a development build; Store ratings are only available in the Microsoft Store version.</value>
+  </data>
+  <data name="Settings_StoreRatingUnavailableTitle" xml:space="preserve">
+    <value>Not available</value>
+  </data>
+  <data name="Settings_TestError_Button.Content" xml:space="preserve">
+    <value>Throw exception</value>
+  </data>
+  <data name="Settings_TestError_Desc.Text" xml:space="preserve">
+    <value>Manually throw an unhandled exception to verify the global error page.</value>
+  </data>
+  <data name="Settings_TestError_Title.Text" xml:space="preserve">
+    <value>Test error page</value>
+  </data>
+  <data name="Settings_TestErrorThrow" xml:space="preserve">
+    <value>This is a manually thrown test exception used to verify the global error page.</value>
+  </data>
+  <data name="Settings_Tint_Desc.Text" xml:space="preserve">
+    <value>When off, the system default tint follows light/dark theme automatically; when on, a custom tint is used (same in both themes)</value>
+  </data>
+  <data name="Settings_Tint_Title.Text" xml:space="preserve">
+    <value>Custom tint</value>
+  </data>
+  <data name="Settings_TintCustomColor.Text" xml:space="preserve">
+    <value>Custom color...</value>
+  </data>
+  <data name="Settings_TintLuminosity_Label.Text" xml:space="preserve">
+    <value>Luminosity opacity</value>
+  </data>
+  <data name="Settings_TintOpacity_Label.Text" xml:space="preserve">
+    <value>Tint opacity</value>
+  </data>
+  <data name="Settings_ToolsBundle_Button.Text" xml:space="preserve">
+    <value>Check for updates</value>
+  </data>
+  <data name="Settings_ToolsBundle_Status" xml:space="preserve">
+    <value>Click to check for kernel updates</value>
+  </data>
+  <data name="Settings_ToolsBundle_Status.Text" xml:space="preserve">
+    <value>Click to check for kernel updates</value>
+  </data>
+  <data name="Settings_ToolsBundle_Title.Text" xml:space="preserve">
+    <value>Kernel update</value>
+  </data>
+  <data name="Settings_ToolsBundleCheckFailedRetry" xml:space="preserve">
+    <value>Check failed, please try again later</value>
+  </data>
+  <data name="Settings_ToolsBundleChecking" xml:space="preserve">
+    <value>Checking for kernel updates...</value>
+  </data>
+  <data name="Settings_ToolsBundleFull" xml:space="preserve">
+    <value>Full kernel v{0} installed</value>
+  </data>
+  <data name="Settings_ToolsBundleLatest" xml:space="preserve">
+    <value>The kernel is up to date (v{0})</value>
+  </data>
+  <data name="Settings_ToolsBundleLite" xml:space="preserve">
+    <value>Lite kernel v{0} installed; can upgrade to full</value>
+  </data>
+  <data name="Settings_ToolsBundleLiteBuiltIn" xml:space="preserve">
+    <value>Lite tool set is built in; full kernel can be downloaded</value>
+  </data>
+  <data name="Settings_ToolsBundleNewVersion" xml:space="preserve">
+    <value>New version v{0} available</value>
+  </data>
+  <data name="Settings_ToolsBundleNotDownloaded" xml:space="preserve">
+    <value>Kernel not downloaded</value>
+  </data>
+  <data name="Settings_ToolsBundleQueued" xml:space="preserve">
+    <value>Added to the download queue; check progress via the title-bar button</value>
+  </data>
+  <data name="Settings_ToolsBundleReadyUnknown" xml:space="preserve">
+    <value>Kernel ready (version unknown)</value>
+  </data>
+  <data name="Settings_ToolsCommunity_Desc.Text" xml:space="preserve">
+    <value>Config manager, custom tools, export, GitHub</value>
+  </data>
+  <data name="Settings_ToolsCommunity_DescMsix" xml:space="preserve">
+    <value>Config manager, custom tools, export</value>
+  </data>
+  <data name="Settings_ToolsCommunity_Title.Text" xml:space="preserve">
+    <value>Tools &amp; community</value>
+  </data>
+  <data name="Settings_ToolsCommunity_TitleMsix" xml:space="preserve">
+    <value>Tools</value>
+  </data>
+  <data name="Settings_Update_Button.Text" xml:space="preserve">
+    <value>Check for updates</value>
+  </data>
+  <data name="Settings_Update_Status.Text" xml:space="preserve">
+    <value>Click to check for a new version</value>
+  </data>
+  <data name="Settings_Update_Title.Text" xml:space="preserve">
+    <value>Check for updates</value>
+  </data>
+  <data name="Settings_UpdateCheckFailed" xml:space="preserve">
+    <value>Check failed: {0}</value>
+  </data>
+  <data name="Settings_UpdateChecking" xml:space="preserve">
+    <value>Checking for updates...</value>
+  </data>
+  <data name="Settings_UpdateFound" xml:space="preserve">
+    <value>New version v{0} found; see the banner at the top</value>
+  </data>
+  <data name="Settings_UpdateLatest" xml:space="preserve">
+    <value>You are up to date</value>
+  </data>
+  <data name="Settings_VersionFormat" xml:space="preserve">
+    <value>Version {0}</value>
+  </data>
+  <data name="Settings_Watermark_Desc.Text" xml:space="preserve">
+    <value>Add a watermark at the bottom-right of hardware screenshots</value>
+  </data>
+  <data name="Settings_Watermark_Title.Text" xml:space="preserve">
+    <value>Screenshot watermark</value>
+  </data>
+  <data name="Settings_WatermarkFont_Desc.Text" xml:space="preserve">
+    <value>Font used by the screenshot watermark</value>
+  </data>
+  <data name="Settings_WatermarkFont_Title.Text" xml:space="preserve">
+    <value>Watermark font</value>
+  </data>
+  <data name="Settings_WatermarkText_Desc.Text" xml:space="preserve">
+    <value>Text shown in the screenshot watermark</value>
+  </data>
+  <data name="Settings_WatermarkText_Placeholder.PlaceholderText" xml:space="preserve">
+    <value>Tuba Toolbox CE</value>
+  </data>
+  <data name="Settings_WatermarkText_Title.Text" xml:space="preserve">
+    <value>Watermark text</value>
+  </data>
+  <data name="Settings_WhatsNew_Desc.Text" xml:space="preserve">
+    <value>See changelogs and new features for each version</value>
+  </data>
+  <data name="Settings_WhatsNew_Title.Text" xml:space="preserve">
+    <value>What is new</value>
+  </data>
+  <data name="Settings_ZipFileFilter" xml:space="preserve">
+    <value>Zip archives</value>
+  </data>
+  <data name="TimeSync_ActionDetails" xml:space="preserve">
+    <value>Action details</value>
+  </data>
+  <data name="TimeSync_AdvancedExpander.Header" xml:space="preserve">
+    <value>Advanced (sync interval / SSL time seed / service reset / diagnostic report)</value>
+  </data>
+  <data name="TimeSync_AllGood.Text" xml:space="preserve">
+    <value>Time service, time source, and sync status all look good.</value>
+  </data>
+  <data name="TimeSync_AllNormal" xml:space="preserve">
+    <value>All good</value>
+  </data>
+  <data name="TimeSync_AllServersUnreachable" xml:space="preserve">
+    <value>No server responded: UDP 123 may be blocked on this network (switch networks or check the firewall)</value>
+  </data>
+  <data name="TimeSync_ApplyButton.Text" xml:space="preserve">
+    <value>Apply and Sync Now</value>
+  </data>
+  <data name="TimeSync_ApplyIntervalButton.Content" xml:space="preserve">
+    <value>Apply interval</value>
+  </data>
+  <data name="TimeSync_BusyApplying" xml:space="preserve">
+    <value>Writing the time source, restarting the time service, and syncing...</value>
+  </data>
+  <data name="TimeSync_BusyApplyingInterval" xml:space="preserve">
+    <value>Applying the sync interval...</value>
+  </data>
+  <data name="TimeSync_BusyCollecting" xml:space="preserve">
+    <value>Collecting diagnostic information...</value>
+  </data>
+  <data name="TimeSync_BusyRepairing" xml:space="preserve">
+    <value>Repairing the time service...</value>
+  </data>
+  <data name="TimeSync_BusyReregister" xml:space="preserve">
+    <value>Re-registering the time service...</value>
+  </data>
+  <data name="TimeSync_BusyRestoring" xml:space="preserve">
+    <value>Restoring the system default time source...</value>
+  </data>
+  <data name="TimeSync_BusyResync" xml:space="preserve">
+    <value>Syncing with the time source...</value>
+  </data>
+  <data name="TimeSync_BusySslDisable" xml:space="preserve">
+    <value>Disabling the SSL time seed...</value>
+  </data>
+  <data name="TimeSync_BusySslEnable" xml:space="preserve">
+    <value>Enabling the SSL time seed...</value>
+  </data>
+  <data name="TimeSync_CopiedSource" xml:space="preserve">
+    <value>Current time source: {0}</value>
+  </data>
+  <data name="TimeSync_CopiedTitle" xml:space="preserve">
+    <value>Copied</value>
+  </data>
+  <data name="TimeSync_CopyButton.Text" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="TimeSync_CopyReportButton.Text" xml:space="preserve">
+    <value>Copy diagnostic report</value>
+  </data>
+  <data name="TimeSync_CopyReportFailed" xml:space="preserve">
+    <value>Failed to copy the diagnostic report</value>
+  </data>
+  <data name="TimeSync_CurrentConfig" xml:space="preserve">
+    <value>Current config: {0}</value>
+  </data>
+  <data name="TimeSync_CurrentSourceLabel.Text" xml:space="preserve">
+    <value>Current time source</value>
+  </data>
+  <data name="TimeSync_CustomCardHost" xml:space="preserve">
+    <value>Manual input</value>
+  </data>
+  <data name="TimeSync_CustomCardName" xml:space="preserve">
+    <value>Custom</value>
+  </data>
+  <data name="TimeSync_CustomCardSummary" xml:space="preserve">
+    <value>Use your own NTP server address</value>
+  </data>
+  <data name="TimeSync_CustomCardTooltip" xml:space="preserve">
+    <value>Enter any NTP server (domain or IP); if the speed test succeeds you can apply it.</value>
+  </data>
+  <data name="TimeSync_CustomHostPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Custom NTP address, e.g. ntp.aliyun.com or 203.107.6.88 (separate multiple entries with spaces/commas, no port)</value>
+  </data>
+  <data name="TimeSync_DaysAgo" xml:space="preserve">
+    <value>{0} days ago</value>
+  </data>
+  <data name="TimeSync_DriftHint" xml:space="preserve">
+    <value>Click "Server Speed Test" at the top-right to measure the local clock offset</value>
+  </data>
+  <data name="TimeSync_DriftMeasured" xml:space="preserve">
+    <value>Measured {1} off {0} (latency {2:F0} ms)</value>
+  </data>
+  <data name="TimeSync_DriftUnknown.Text" xml:space="preserve">
+    <value>Clock offset not measured yet</value>
+  </data>
+  <data name="TimeSync_ElevateButton.Text" xml:space="preserve">
+    <value>Restart as Administrator</value>
+  </data>
+  <data name="TimeSync_ElevateFailedMessage" xml:space="preserve">
+    <value>Close the toolbox, right-click the Tuba Toolbox icon, and choose "Run as administrator". The MSIX (Microsoft Store) version cannot elevate itself due to system restrictions.</value>
+  </data>
+  <data name="TimeSync_ElevateFailedTitle" xml:space="preserve">
+    <value>Cannot elevate automatically</value>
+  </data>
+  <data name="TimeSync_ElevateRequestedMessage" xml:space="preserve">
+    <value>The toolbox will restart as administrator; return to the Time Sync page to continue switching the time source.</value>
+  </data>
+  <data name="TimeSync_ElevateRequestedTitle" xml:space="preserve">
+    <value>Administrator rights requested</value>
+  </data>
+  <data name="TimeSync_EnterCustomAddress" xml:space="preserve">
+    <value>Fill in a custom address before applying</value>
+  </data>
+  <data name="TimeSync_ErrAddressChars" xml:space="preserve">
+    <value>Address may only contain letters, digits, dots, hyphens, and underscores</value>
+  </data>
+  <data name="TimeSync_ErrAddressEmpty" xml:space="preserve">
+    <value>Address cannot be empty</value>
+  </data>
+  <data name="TimeSync_ErrAddressPort" xml:space="preserve">
+    <value>Do not include a port; NTP always uses UDP 123</value>
+  </data>
+  <data name="TimeSync_ErrAddressScheme" xml:space="preserve">
+    <value>Enter the server address only, without an http:// style prefix</value>
+  </data>
+  <data name="TimeSync_ErrAddressSlash" xml:space="preserve">
+    <value>Address cannot contain slashes</value>
+  </data>
+  <data name="TimeSync_ErrAddressTooLong" xml:space="preserve">
+    <value>Address is too long</value>
+  </data>
+  <data name="TimeSync_ErrDomainFormat" xml:space="preserve">
+    <value>Invalid domain name format</value>
+  </data>
+  <data name="TimeSync_ErrNoServers" xml:space="preserve">
+    <value>Enter at least one NTP server address</value>
+  </data>
+  <data name="TimeSync_FailureDetails" xml:space="preserve">
+    <value>Failure details: {0}</value>
+  </data>
+  <data name="TimeSync_HealthSectionTitle.Text" xml:space="preserve">
+    <value>Health check</value>
+  </data>
+  <data name="TimeSync_HelpBody" xml:space="preserve">
+    <value>Why it matters
+· Website certificates, sign-ins, captchas, and ticket bookings all rely on an accurate system clock; if it drifts too far, things fail even when the network is fine.
+· Windows ships with time.windows.com as its default time source, which can time out or respond slowly on some networks — a common cause of "some websites just feel off". Switching to a nearby time source fixes it.
+
+Three steps
+1. Check the status card above: is the time service running, what is the current source, and when did it last sync?
+2. Click "Server Speed Test" in the top-right corner to see which servers respond and their latency; results appear right on the cards.
+3. Pick one (green or amber badges both work; green is faster) → "Apply and Sync Now".
+
+Changed your mind?
+· Click "Restore System Default": domain PCs go back to the domain hierarchy, regular PCs go back to time.windows.com.
+
+Going deeper
+· Advanced settings let you pin a sync interval (system-adaptive by default), toggle the SSL time seed, and reset the time service;
+· "Copy Diagnostic Report" collects service status, time source, NTP configuration, and probe results into text you can paste for help.
+
+Permissions
+· Changing the time source and starting/stopping the time service require administrator rights; the unpackaged build requests elevation at startup, and you can also use "Restart as Administrator".
+· Everything goes through the built-in w32tm command (see Microsoft Learn: Windows Time service tools and settings) — no drivers, no background process.</value>
+  </data>
+  <data name="TimeSync_HelpButton.Text" xml:space="preserve">
+    <value>Help</value>
+  </data>
+  <data name="TimeSync_HelpTitle" xml:space="preserve">
+    <value>How to use Time Sync</value>
+  </data>
+  <data name="TimeSync_HoursAgo" xml:space="preserve">
+    <value>{0} hours ago</value>
+  </data>
+  <data name="TimeSync_Interval_0" xml:space="preserve">
+    <value>System adaptive (recommended)</value>
+  </data>
+  <data name="TimeSync_Interval_21600" xml:space="preserve">
+    <value>Every 6 hours</value>
+  </data>
+  <data name="TimeSync_Interval_3600" xml:space="preserve">
+    <value>Every hour</value>
+  </data>
+  <data name="TimeSync_Interval_43200" xml:space="preserve">
+    <value>Every 12 hours</value>
+  </data>
+  <data name="TimeSync_Interval_86400" xml:space="preserve">
+    <value>Every day</value>
+  </data>
+  <data name="TimeSync_IntervalDesc.Text" xml:space="preserve">
+    <value>By default Windows polls adaptively (stretching or shrinking the interval based on clock accuracy). Pick a fixed interval to write SpecialPollInterval and add the 0x1 flag to the time source.</value>
+  </data>
+  <data name="TimeSync_IntervalTitle.Text" xml:space="preserve">
+    <value>Sync interval</value>
+  </data>
+  <data name="TimeSync_InvalidAddressTitle" xml:space="preserve">
+    <value>Invalid address</value>
+  </data>
+  <data name="TimeSync_IssueNotAdminPrefix" xml:space="preserve">
+    <value>Not running as administrator</value>
+  </data>
+  <data name="TimeSync_IssuesFixable" xml:space="preserve">
+    <value>{0} item(s) to fix (one-click repair available)</value>
+  </data>
+  <data name="TimeSync_IssuesPending" xml:space="preserve">
+    <value>{0} item(s) to fix</value>
+  </data>
+  <data name="TimeSync_JustNow" xml:space="preserve">
+    <value>just now</value>
+  </data>
+  <data name="TimeSync_LastSyncFormat" xml:space="preserve">
+    <value>Last successful sync: {0} ({1})　·　Sync mode: {2}</value>
+  </data>
+  <data name="TimeSync_LatencyAvailable" xml:space="preserve">
+    <value>Latency {0:F0} ms · {1}/{2} servers available</value>
+  </data>
+  <data name="TimeSync_LatencyOffset" xml:space="preserve">
+    <value>Latency {0:F0} ms · {1}</value>
+  </data>
+  <data name="TimeSync_LocalClockDetail" xml:space="preserve">
+    <value>No network time source is active; the local clock error will keep accumulating. Pick an NTP server and apply it.</value>
+  </data>
+  <data name="TimeSync_LocalClockTitle" xml:space="preserve">
+    <value>Using the local hardware clock</value>
+  </data>
+  <data name="TimeSync_MinutesAgo" xml:space="preserve">
+    <value>{0} minutes ago</value>
+  </data>
+  <data name="TimeSync_NeverSyncedDetail" xml:space="preserve">
+    <value>Pick a server and click "Apply and Sync Now", or run "Server Speed Test" first to see which ones respond.</value>
+  </data>
+  <data name="TimeSync_NeverSyncedTitle" xml:space="preserve">
+    <value>Time service is running but has never synced</value>
+  </data>
+  <data name="TimeSync_NoResponse" xml:space="preserve">
+    <value>no response</value>
+  </data>
+  <data name="TimeSync_NotAdminMessage" xml:space="preserve">
+    <value>Changing the time source and starting/stopping the time service require administrator rights. Use "Advanced → Restart as Administrator" to elevate, then try again.</value>
+  </data>
+  <data name="TimeSync_NotAdminTitle" xml:space="preserve">
+    <value>Not running as administrator</value>
+  </data>
+  <data name="TimeSync_OpenTimeSettings.Text" xml:space="preserve">
+    <value>Windows time settings</value>
+  </data>
+  <data name="TimeSync_OpenTimeSettingsFailed" xml:space="preserve">
+    <value>Cannot open Windows time settings</value>
+  </data>
+  <data name="TimeSync_PageHeader.Subtitle" xml:space="preserve">
+    <value>Switch the system NTP time server · Server speed test · Sync now · Time service repair</value>
+  </data>
+  <data name="TimeSync_PickServerMessage" xml:space="preserve">
+    <value>Click a card to select it (choose "Custom" and fill in your own address if you prefer), then click "Apply and Sync Now".</value>
+  </data>
+  <data name="TimeSync_PickServerTitle" xml:space="preserve">
+    <value>Pick a time server first</value>
+  </data>
+  <data name="TimeSync_Preset_aliyun_Name" xml:space="preserve">
+    <value>Aliyun NTP</value>
+  </data>
+  <data name="TimeSync_Preset_aliyun_Note" xml:space="preserve">
+    <value>Aliyun official public NTP service, optimized for China routes; the everyday first choice.</value>
+  </data>
+  <data name="TimeSync_Preset_aliyun_Summary" xml:space="preserve">
+    <value>The most widely used public time source in China; low latency and stable</value>
+  </data>
+  <data name="TimeSync_Preset_apple_Name" xml:space="preserve">
+    <value>Apple NTP</value>
+  </data>
+  <data name="TimeSync_Preset_apple_Note" xml:space="preserve">
+    <value>Apple public time source, directly reachable from China; stability depends on the outbound route.</value>
+  </data>
+  <data name="TimeSync_Preset_apple_Summary" xml:space="preserve">
+    <value>Time server pool, international routes</value>
+  </data>
+  <data name="TimeSync_Preset_google_Name" xml:space="preserve">
+    <value>Google NTP</value>
+  </data>
+  <data name="TimeSync_Preset_google_Note" xml:space="preserve">
+    <value>Performs better on overseas or cross-border networks; latency from China is relatively higher.</value>
+  </data>
+  <data name="TimeSync_Preset_google_Summary" xml:space="preserve">
+    <value>Global anycast, friendly to international routes</value>
+  </data>
+  <data name="TimeSync_Preset_microsoft_Name" xml:space="preserve">
+    <value>Windows default</value>
+  </data>
+  <data name="TimeSync_Preset_microsoft_Note" xml:space="preserve">
+    <value>Windows factory default (time.windows.com, flag 0x9). Occasional timeouts and slow responses on China routes make it a common cause of "network is fine but the time is wrong" — run a speed test before deciding.</value>
+  </data>
+  <data name="TimeSync_Preset_microsoft_Summary" xml:space="preserve">
+    <value>System factory default time source</value>
+  </data>
+  <data name="TimeSync_Preset_ntsc_Name" xml:space="preserve">
+    <value>NTSC (National Time Service Center)</value>
+  </data>
+  <data name="TimeSync_Preset_ntsc_Note" xml:space="preserve">
+    <value>The address itself is official (ntp.ntsc.ac.cn); reachability depends on your network — some networks block public UDP 123. Use "Speed test" to verify directly.</value>
+  </data>
+  <data name="TimeSync_Preset_ntsc_Summary" xml:space="preserve">
+    <value>National Time Service Center, CAS; an authoritative source</value>
+  </data>
+  <data name="TimeSync_Preset_pool_Name" xml:space="preserve">
+    <value>NTP Pool (China)</value>
+  </data>
+  <data name="TimeSync_Preset_pool_Note" xml:space="preserve">
+    <value>The China zone of pool.ntp.org; node quality varies and latency fluctuates more than vendor sources.</value>
+  </data>
+  <data name="TimeSync_Preset_pool_Summary" xml:space="preserve">
+    <value>Community server pool with random nodes</value>
+  </data>
+  <data name="TimeSync_Preset_sjtu_Name" xml:space="preserve">
+    <value>SJTU NTP</value>
+  </data>
+  <data name="TimeSync_Preset_sjtu_Note" xml:space="preserve">
+    <value>Lowest latency for campus/education networks; public access may be rate limited.</value>
+  </data>
+  <data name="TimeSync_Preset_sjtu_Summary" xml:space="preserve">
+    <value>Tier-1 education network time source (stratum 1)</value>
+  </data>
+  <data name="TimeSync_Preset_tencent_Name" xml:space="preserve">
+    <value>Tencent Cloud NTP</value>
+  </data>
+  <data name="TimeSync_Preset_tencent_Note" xml:space="preserve">
+    <value>Tencent Cloud official public NTP service, with good coverage across China Telecom/Unicom/Mobile routes.</value>
+  </data>
+  <data name="TimeSync_Preset_tencent_Summary" xml:space="preserve">
+    <value>Stable China routes; a backup for Aliyun</value>
+  </data>
+  <data name="TimeSync_PresetHint" xml:space="preserve">
+    <value>Click a card to select; run a speed test first if unsure</value>
+  </data>
+  <data name="TimeSync_PresetHint.Text" xml:space="preserve">
+    <value>Click a card to select; run a speed test first if unsure</value>
+  </data>
+  <data name="TimeSync_ProbeButton" xml:space="preserve">
+    <value>Server Speed Test</value>
+  </data>
+  <data name="TimeSync_ProbeButton.Text" xml:space="preserve">
+    <value>Server Speed Test</value>
+  </data>
+  <data name="TimeSync_ProbeCustomButton.Text" xml:space="preserve">
+    <value>Test</value>
+  </data>
+  <data name="TimeSync_ProbeDoneBest" xml:space="preserve">
+    <value>Test complete: {0} servers available, fastest {1} ({2:F0} ms)</value>
+  </data>
+  <data name="TimeSync_Probing" xml:space="preserve">
+    <value>Testing...</value>
+  </data>
+  <data name="TimeSync_ProbingAll" xml:space="preserve">
+    <value>Testing availability and latency of all servers...</value>
+  </data>
+  <data name="TimeSync_ReadFailedTitle" xml:space="preserve">
+    <value>Failed to read the system time configuration</value>
+  </data>
+  <data name="TimeSync_RepairButton.Text" xml:space="preserve">
+    <value>One-click repair</value>
+  </data>
+  <data name="TimeSync_RepairConfirmPrimary" xml:space="preserve">
+    <value>Start repair</value>
+  </data>
+  <data name="TimeSync_RepairConfirmTitle" xml:space="preserve">
+    <value>Repair time sync</value>
+  </data>
+  <data name="TimeSync_RepairStepApplyHosts" xml:space="preserve">
+    <value>Apply the selected time source ({0}) and sync now</value>
+  </data>
+  <data name="TimeSync_RepairStepEnableService" xml:space="preserve">
+    <value>Set the Windows Time service to Automatic (Delayed Start) and start it</value>
+  </data>
+  <data name="TimeSync_RepairStepEnsureClient" xml:space="preserve">
+    <value>Ensure the NTP client is enabled</value>
+  </data>
+  <data name="TimeSync_RepairStepRestartOnly" xml:space="preserve">
+    <value>Restart the time service and sync now (keeping the current time source)</value>
+  </data>
+  <data name="TimeSync_ReportCopiedDetail" xml:space="preserve">
+    <value>The report includes service status, the current time source, NTP configuration, and probe results — paste it anywhere for troubleshooting.</value>
+  </data>
+  <data name="TimeSync_ReportCopiedTitle" xml:space="preserve">
+    <value>Diagnostic report copied to clipboard</value>
+  </data>
+  <data name="TimeSync_ResetConfirmMessage" xml:space="preserve">
+    <value>This unregisters and re-registers the Windows Time service (w32tm /unregister + /register). All custom service configuration is cleared and the time source returns to the system default.`nUse this when the time service configuration is broken and nothing else helps. Afterwards, click "Apply and Sync Now" again to write your preferred servers.</value>
+  </data>
+  <data name="TimeSync_ResetConfirmPrimary" xml:space="preserve">
+    <value>Reset service</value>
+  </data>
+  <data name="TimeSync_ResetConfirmTitle" xml:space="preserve">
+    <value>Reset Windows Time service</value>
+  </data>
+  <data name="TimeSync_ResetServiceButton.Text" xml:space="preserve">
+    <value>Reset time service</value>
+  </data>
+  <data name="TimeSync_RestoreButton.Text" xml:space="preserve">
+    <value>Restore system default</value>
+  </data>
+  <data name="TimeSync_RestoreConfirmMessage" xml:space="preserve">
+    <value>The time source will be set back to {0}, then the service restarts and syncs immediately.`nThe sync interval is left unchanged (adjust it under "Advanced → Sync interval").</value>
+  </data>
+  <data name="TimeSync_RestoreConfirmPrimary" xml:space="preserve">
+    <value>Restore default</value>
+  </data>
+  <data name="TimeSync_RestoreConfirmTitle" xml:space="preserve">
+    <value>Restore the default time source</value>
+  </data>
+  <data name="TimeSync_ResyncButton.Text" xml:space="preserve">
+    <value>Sync now</value>
+  </data>
+  <data name="TimeSync_SecondsFormat" xml:space="preserve">
+    <value>{0} seconds</value>
+  </data>
+  <data name="TimeSync_SelectServerFirst" xml:space="preserve">
+    <value>Pick a server first</value>
+  </data>
+  <data name="TimeSync_ServersSectionTitle.Text" xml:space="preserve">
+    <value>Time servers</value>
+  </data>
+  <data name="TimeSync_ServiceMissingDetail" xml:space="preserve">
+    <value>The w32time service does not exist, so time sync is completely unavailable. Use "Advanced → Reset time service" to re-register it.</value>
+  </data>
+  <data name="TimeSync_ServiceMissingTitle" xml:space="preserve">
+    <value>Windows Time service not found</value>
+  </data>
+  <data name="TimeSync_ServiceStoppedDetail" xml:space="preserve">
+    <value>While the service is stopped the system cannot sync or read a time source. Click "One-click repair" to start it.</value>
+  </data>
+  <data name="TimeSync_ServiceStoppedTitle" xml:space="preserve">
+    <value>Windows Time service is not running</value>
+  </data>
+  <data name="TimeSync_SslSeedDesc.Text" xml:space="preserve">
+    <value>Windows uses HTTPS handshake timestamps as a fallback clock correction (UtilizeSslTimeData). On some machines this causes unexpected time jumps; turn it off if that happens.</value>
+  </data>
+  <data name="TimeSync_SslSeedTitle.Text" xml:space="preserve">
+    <value>SSL time seed</value>
+  </data>
+  <data name="TimeSync_SslSeedToggle.OffContent" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="TimeSync_StatusLoading.Text" xml:space="preserve">
+    <value>Reading the system time configuration...</value>
+  </data>
+  <data name="TimeSync_StatusLoadingDetail.Text" xml:space="preserve">
+    <value>Reading the time service status, time source, and last sync time.</value>
+  </data>
+  <data name="TimeSync_SyncModeNoRecord" xml:space="preserve">
+    <value>Sync mode: {0}　·　no successful sync recorded</value>
+  </data>
+  <data name="TimeSync_TargetDefault" xml:space="preserve">
+    <value>time.windows.com (system factory default)</value>
+  </data>
+  <data name="TimeSync_TargetDomain" xml:space="preserve">
+    <value>Domain time hierarchy (NT5DS)</value>
+  </data>
+  <data name="TimeSync_Testing" xml:space="preserve">
+    <value>Testing...</value>
+  </data>
+  <data name="TimeSync_UnavailableWithError" xml:space="preserve">
+    <value>Unavailable ({0})</value>
+  </data>
+  <data name="TimeSync_ViewDetails" xml:space="preserve">
+    <value>View details</value>
+  </data>
+  <data name="TimeSync_Why1.Text" xml:space="preserve">
+    <value>· Website certificates have validity periods; if the clock is too far off, browsers treat them as invalid ("Not secure / Your connection is not private"). Sign-in checks, captchas, and ticket bookings also fail when timestamps do not line up.</value>
+  </data>
+  <data name="TimeSync_Why2.Text" xml:space="preserve">
+    <value>· Windows defaults to time.windows.com, which occasionally times out or responds slowly on some networks — a common reason "some websites feel off" even though the network is fine. Switching to a nearby time source fixes it.</value>
+  </data>
+  <data name="TimeSync_Why3.Text" xml:space="preserve">
+    <value>· This tool drives the built-in w32tm command (the official Windows Time service CLI). No drivers, no background process; switching the time source simply writes the NTP server list and restarts the time service, and "Restore system default" is always available.</value>
+  </data>
+  <data name="TimeSync_Why4.Text" xml:space="preserve">
+    <value>· Changing the time source and starting/stopping the service require administrator rights: the unpackaged build requests elevation automatically at startup, or use the "Restart as Administrator" button above.</value>
+  </data>
+  <data name="TimeSync_Why5.Text" xml:space="preserve">
+    <value>· Official reference: Microsoft Learn, "Windows Time service tools and settings" — w32tm /config /manualpeerlist:&lt;servers> /syncfromflags:manual /update, w32tm /resync /rediscover, w32tm /query /status and /query /source.</value>
+  </data>
+  <data name="TimeSync_WhyTitle.Text" xml:space="preserve">
+    <value>Why does a wrong clock break websites and sign-ins?</value>
+  </data>
+  <data name="TimeSync_WillWrite" xml:space="preserve">
+    <value>Will write: {0}</value>
+  </data>
+  <data name="TimeSync_WorkingDetail" xml:space="preserve">
+    <value>The system is syncing with the time source below; pick another one and apply to switch.</value>
+  </data>
+  <data name="TimeSync_WorkingTitle" xml:space="preserve">
+    <value>Time sync is active</value>
+  </data>
+
+  <!-- 内置工具名称与简介（第三轮） -->
+  <data name="Builtin_ai-assistant_Desc" xml:space="preserve">
+    <value>An intelligent system agent that can diagnose problems, optimize settings, read/write files, run commands, search the web, and take actions.</value>
+  </data>
+  <data name="Builtin_ai-assistant_Name" xml:space="preserve">
+    <value>AI Assistant</value>
+  </data>
+  <data name="Builtin_anti-motion-sickness_Desc" xml:space="preserve">
+    <value>Center crosshair plus edge markers to reduce 3D motion sickness. Saves you 13 yuan in one click!</value>
+  </data>
+  <data name="Builtin_anti-motion-sickness_Name" xml:space="preserve">
+    <value>Motion Sickness Relief</value>
+  </data>
+  <data name="Builtin_battery-analyzer_Desc" xml:space="preserve">
+    <value>Analyze battery drain trends and per-app power rankings — a stronger battery tool than Windows Settings</value>
+  </data>
+  <data name="Builtin_battery-analyzer_Name" xml:space="preserve">
+    <value>Battery Usage Analysis</value>
+  </data>
+  <data name="Builtin_benchmark-cloud_Desc" xml:space="preserve">
+    <value>Upload test reports to the community, browse global leaderboards, and compare against users with the same hardware.</value>
+  </data>
+  <data name="Builtin_benchmark-cloud_Name" xml:space="preserve">
+    <value>Benchmark Leaderboard</value>
+  </data>
+  <data name="Builtin_cert-block_Desc" xml:space="preserve">
+    <value>Blocks rogue software from installing or running by adding vendor certificates to the system untrusted list.</value>
+  </data>
+  <data name="Builtin_cert-block_Name" xml:space="preserve">
+    <value>Malware Blocker</value>
+  </data>
+  <data name="Builtin_community-tools_Desc" xml:space="preserve">
+    <value>Community-contributed tool plugins; install and use right away. Supports submitting and removing tools.</value>
+  </data>
+  <data name="Builtin_community-tools_Name" xml:space="preserve">
+    <value>Community Tools</value>
+  </data>
+  <data name="Builtin_context-menu-mgr_Desc" xml:space="preserve">
+    <value>Manage Windows context menu entries: enable/disable/edit/add/remove, New/Send to/Open with plus WinX/Modern/IE menus (built-in)</value>
+  </data>
+  <data name="Builtin_context-menu-mgr_Name" xml:space="preserve">
+    <value>Context Menu Manager</value>
+  </data>
+  <data name="Builtin_cpu-ranking_Desc" xml:space="preserve">
+    <value>Browse desktop and laptop CPU performance rankings with brand filters and sorting. Data from NanoReview</value>
+  </data>
+  <data name="Builtin_cpu-ranking_Name" xml:space="preserve">
+    <value>CPU Ranking</value>
+  </data>
+  <data name="Builtin_digital-literacy-test_Desc" xml:space="preserve">
+    <value>Test your PC knowledge: are you an "electronic illiterate"? 25 multiple-choice questions, 100 points total.</value>
+  </data>
+  <data name="Builtin_digital-literacy-test_Name" xml:space="preserve">
+    <value>Digital Literacy Test</value>
+  </data>
+  <data name="Builtin_disk-health_Desc" xml:space="preserve">
+    <value>SMART health check (CrystalDiskInfo approach): temperature, power-on hours, lifespan, read/write totals, with SSD TRIM and HDD defragmentation</value>
+  </data>
+  <data name="Builtin_disk-health_Name" xml:space="preserve">
+    <value>Disk Health</value>
+  </data>
+  <data name="Builtin_dotnet-completion_Desc" xml:space="preserve">
+    <value>Detect and complete .NET Runtime/SDK/Framework; fetch the latest versions from the official site and install missing components in one click.</value>
+  </data>
+  <data name="Builtin_dotnet-completion_Name" xml:space="preserve">
+    <value>.NET Runtime Completion</value>
+  </data>
+  <data name="Builtin_energy-star_Desc" xml:space="preserve">
+    <value>Throttle background processes via Windows 11 Efficiency Mode (EcoQoS) to save power and reduce heat while keeping foreground apps smooth (Energy Star X core).</value>
+  </data>
+  <data name="Builtin_energy-star_Name" xml:space="preserve">
+    <value>Background Power Saver</value>
+  </data>
+  <data name="Builtin_format-converter_Desc" xml:space="preserve">
+    <value>Convert images/audio/video/Word/Excel/PPT/PDF/text, OCR, PDF merge &amp; split, ZIP packaging — batch queue, drag and drop</value>
+  </data>
+  <data name="Builtin_format-converter_Name" xml:space="preserve">
+    <value>Format Converter</value>
+  </data>
+  <data name="Builtin_game-monitor_Desc" xml:space="preserve">
+    <value>Design your monitoring overlay by dragging widgets; built-in layout presets show FPS, temperature, load, and more in real time, with recordable metrics and JSON / Markdown export</value>
+  </data>
+  <data name="Builtin_game-monitor_Name" xml:space="preserve">
+    <value>Game Monitor</value>
+  </data>
+  <data name="Builtin_game-monitor-records_Desc" xml:space="preserve">
+    <value>Open JSON / CSV recordings exported by Game Monitor and replay historical FPS, temperature, and load data: one chart per metric with its own axis, plus grouping, range trimming, and P1/P99 statistics</value>
+  </data>
+  <data name="Builtin_game-monitor-records_Name" xml:space="preserve">
+    <value>Record Viewer</value>
+  </data>
+  <data name="Builtin_game-tunnel_Desc" xml:space="preserve">
+    <value>Virtual LAN multiplayer for Minecraft, Terraria, Palworld and more — put two PCs on the same virtual network; friends just paste an invite code. No public IP, no router changes</value>
+  </data>
+  <data name="Builtin_game-tunnel_Name" xml:space="preserve">
+    <value>Game Tunnel</value>
+  </data>
+  <data name="Builtin_gpu-ranking_Desc" xml:space="preserve">
+    <value>Browse desktop and laptop GPU performance rankings with brand filters and sorting. Data from NanoReview</value>
+  </data>
+  <data name="Builtin_gpu-ranking_Name" xml:space="preserve">
+    <value>GPU Ranking</value>
+  </data>
+  <data name="Builtin_hardware-spoofer_Desc" xml:space="preserve">
+    <value>Edit how CPU, GPU, and system information appear in the registry, with one-click restore of the original values.</value>
+  </data>
+  <data name="Builtin_hardware-spoofer_Name" xml:space="preserve">
+    <value>Hardware Info Editor</value>
+  </data>
+  <data name="Builtin_hosts-editor_Desc" xml:space="preserve">
+    <value>Edit the system Hosts file with a UI, toggle rules, and flush DNS.</value>
+  </data>
+  <data name="Builtin_hosts-editor_Name" xml:space="preserve">
+    <value>Hosts Editor</value>
+  </data>
+  <data name="Builtin_junk-cleaner_Desc" xml:space="preserve">
+    <value>Scan and clean app caches, temp files, and registry leftovers using the Winapp2 rule library (engine from FluentCleaner).</value>
+  </data>
+  <data name="Builtin_junk-cleaner_Name" xml:space="preserve">
+    <value>Junk Cleaner</value>
+  </data>
+  <data name="Builtin_keyboard-test_Desc" xml:space="preserve">
+    <value>Check that every key works with press highlighting; supports full-size/TKL layouts, left/right Shift/Ctrl/Alt distinction, and the Copilot key.</value>
+  </data>
+  <data name="Builtin_keyboard-test_Name" xml:space="preserve">
+    <value>Keyboard Test</value>
+  </data>
+  <data name="Builtin_lan-file-share_Desc" xml:space="preserve">
+    <value>Serve files over HTTP on your LAN so other devices can browse and download them; drag-and-drop upload supported.</value>
+  </data>
+  <data name="Builtin_lan-file-share_Name" xml:space="preserve">
+    <value>LAN File Share</value>
+  </data>
+  <data name="Builtin_latency-image-query_Desc" xml:space="preserve">
+    <value>Browse community-uploaded core-to-core latency heatmaps and compare inter-core communication across CPUs.</value>
+  </data>
+  <data name="Builtin_latency-image-query_Name" xml:space="preserve">
+    <value>Core Latency Lookup</value>
+  </data>
+  <data name="Builtin_network-adapter-proxy_Desc" xml:space="preserve">
+    <value>Aggregate multiple network adapters, distribute traffic intelligently, and accelerate Wi-Fi and Ethernet automatically.</value>
+  </data>
+  <data name="Builtin_network-adapter-proxy_Name" xml:space="preserve">
+    <value>Network Dispatcher</value>
+  </data>
+  <data name="Builtin_network-optimize_Desc" xml:space="preserve">
+    <value>TCP tuning (congestion control / Chimney / Nagle / NIC power saving), DNS latency test and configuration, public IP lookup, network reset, and DHCP repair</value>
+  </data>
+  <data name="Builtin_network-optimize_Name" xml:space="preserve">
+    <value>Network Optimizer</value>
+  </data>
+  <data name="Builtin_official-websites_Desc" xml:space="preserve">
+    <value>Quick links to official sites for Steam, Epic, UU Accelerator, and other common software.</value>
+  </data>
+  <data name="Builtin_official-websites_Name" xml:space="preserve">
+    <value>Official Websites</value>
+  </data>
+  <data name="Builtin_optimizer-duck_Desc" xml:space="preserve">
+    <value>An open-source Windows optimizer with system cleaning, performance tuning, and privacy protection.</value>
+  </data>
+  <data name="Builtin_optimizer-duck_Name" xml:space="preserve">
+    <value>OptimizerDuck</value>
+  </data>
+  <data name="Builtin_pc-tutorial_Desc" xml:space="preserve">
+    <value>New-PC setup guides, basic operations, stress testing, and myth-busting — learn to get the most out of your computer</value>
+  </data>
+  <data name="Builtin_pc-tutorial_Name" xml:space="preserve">
+    <value>PC Tutorials</value>
+  </data>
+  <data name="Builtin_performance-benchmark_Desc" xml:space="preserve">
+    <value>Benchmark CPU/GPU/RAM/disk/browser performance, compute proportional gaming and office scores, and export a professional PDF report.</value>
+  </data>
+  <data name="Builtin_performance-benchmark_Name" xml:space="preserve">
+    <value>Performance Benchmark</value>
+  </data>
+  <data name="Builtin_port-viewer_Desc" xml:space="preserve">
+    <value>View all TCP/UDP port usage and find the process holding each port.</value>
+  </data>
+  <data name="Builtin_port-viewer_Name" xml:space="preserve">
+    <value>Port Usage</value>
+  </data>
+  <data name="Builtin_quick-device-check_Desc" xml:space="preserve">
+    <value>A new-PC inspection wizard: appearance, hardware info, disk power-on, screen defects, peripherals, camera, audio, and triple stress test — all in one place</value>
+  </data>
+  <data name="Builtin_quick-device-check_Name" xml:space="preserve">
+    <value>Quick Device Check</value>
+  </data>
+  <data name="Builtin_rating-system_Desc" xml:space="preserve">
+    <value>Score your laptop or desktop hardware and compare with community leaderboards.</value>
+  </data>
+  <data name="Builtin_rating-system_Name" xml:space="preserve">
+    <value>Hardware Rating</value>
+  </data>
+  <data name="Builtin_rogue-cleaner_Desc" xml:space="preserve">
+    <value>Scan and clean rogue context menus, startup entries, scheduled tasks, services, browser plugins, and file-association leftovers, with a restore center</value>
+  </data>
+  <data name="Builtin_rogue-cleaner_Name" xml:space="preserve">
+    <value>Rogue Software Cleaner</value>
+  </data>
+  <data name="Builtin_runtime-repair_Desc" xml:space="preserve">
+    <value>Detect and repair missing Visual C++ 2008-2026, .NET Framework 4.8.1, and legacy DirectX game components; downloads from official Microsoft sources with signature verification</value>
+  </data>
+  <data name="Builtin_runtime-repair_Name" xml:space="preserve">
+    <value>Runtime Repair</value>
+  </data>
+  <data name="Builtin_sandboxie_Desc" xml:space="preserve">
+    <value>A Sandboxie-Plus sandbox for safely running and analyzing suspicious programs/malware; delete the sandbox to restore the system</value>
+  </data>
+  <data name="Builtin_sandboxie_Name" xml:space="preserve">
+    <value>Malware Sandbox</value>
+  </data>
+  <data name="Builtin_screen-test_Desc" xml:space="preserve">
+    <value>Play solid colors and test patterns full screen to spot dead pixels, backlight bleed, and banding quickly.</value>
+  </data>
+  <data name="Builtin_screen-test_Name" xml:space="preserve">
+    <value>Screen Defect Test</value>
+  </data>
+  <data name="Builtin_service-center_Desc" xml:space="preserve">
+    <value>Look up official service center addresses for major laptop and desktop brands.</value>
+  </data>
+  <data name="Builtin_service-center_Name" xml:space="preserve">
+    <value>Service Centers</value>
+  </data>
+  <data name="Builtin_speed-test_Desc" xml:space="preserve">
+    <value>Natively measure latency, download, and upload speed with switchable Zhejiang University / Ookla / Cloudflare test nodes</value>
+  </data>
+  <data name="Builtin_speed-test_Name" xml:space="preserve">
+    <value>Speed Test</value>
+  </data>
+  <data name="Builtin_startup-manager_Desc" xml:space="preserve">
+    <value>Scan startup items (registry Run keys, Startup folder, scheduled tasks, services) with Microsoft entries hidden to locate anomalies fast.</value>
+  </data>
+  <data name="Builtin_startup-manager_Name" xml:space="preserve">
+    <value>Startup Manager</value>
+  </data>
+  <data name="Builtin_stress-test_Desc" xml:space="preserve">
+    <value>CPU / GPU / NIC stress testing with freely selectable items; NIC testing supports custom data sizes and rate reference, with live temperature, frequency, power, and throughput monitoring.</value>
+  </data>
+  <data name="Builtin_stress-test_Name" xml:space="preserve">
+    <value>Triple Stress Test</value>
+  </data>
+  <data name="Builtin_time-sync_Desc" xml:space="preserve">
+    <value>Switch the system NTP time server in one click (Aliyun / Tencent Cloud / NTSC...), with server speed test, offset check, sync now, time service repair, and system default restore</value>
+  </data>
+  <data name="Builtin_time-sync_Name" xml:space="preserve">
+    <value>Time Sync</value>
+  </data>
+  <data name="Builtin_traffic-monitor_Desc" xml:space="preserve">
+    <value>Pick a network adapter to watch per-connection traffic, speed, and latency, with whole-adapter throughput charts, snapshot recording, and slider replay.</value>
+  </data>
+  <data name="Builtin_traffic-monitor_Name" xml:space="preserve">
+    <value>Traffic Monitor</value>
+  </data>
+  <data name="Builtin_unigetui_Desc" xml:space="preserve">
+    <value>An open-source GUI for Windows package managers: winget/scoop/chocolatey/pip/npm and more.</value>
+  </data>
+  <data name="Builtin_unigetui_Name" xml:space="preserve">
+    <value>UniGetUI Package Manager</value>
+  </data>
+  <data name="Builtin_volume-shader-test_Desc" xml:space="preserve">
+    <value>GPU fractal stress test with Easy / Medium / Insane levels, supersampled rendering beyond screen resolution, and live frame-rate monitoring.</value>
+  </data>
+  <data name="Builtin_volume-shader-test_Name" xml:space="preserve">
+    <value>Toxic Mushroom Test</value>
+  </data>
+  <data name="Builtin_wifi-password_Desc" xml:space="preserve">
+    <value>View the names and passwords of WiFi networks this PC has connected to.</value>
+  </data>
+  <data name="Builtin_wifi-password_Name" xml:space="preserve">
+    <value>WiFi Passwords</value>
+  </data>
+  <data name="Builtin_windows-feature_Desc" xml:space="preserve">
+    <value>Query, enable, disable, and reset Windows experimental feature flags (ViVe engine port with direct ntdll feature-configuration API reads, millisecond response)</value>
+  </data>
+  <data name="Builtin_windows-feature_Name" xml:space="preserve">
+    <value>Windows Hidden Features</value>
+  </data>
+  <data name="Builtin_windows-image_Desc" xml:space="preserve">
+    <value>Download genuine Windows ISO/ESD images, with ESD to ISO conversion.</value>
+  </data>
+  <data name="Builtin_windows-image_Name" xml:space="preserve">
+    <value>Windows Images</value>
+  </data>
+  <data name="Builtin_winget-store_Desc" xml:space="preserve">
+    <value>Browse and install genuine software from the WinGet sources</value>
+  </data>
+  <data name="Builtin_winget-store_Name" xml:space="preserve">
+    <value>Software Store</value>
+  </data>
+
+  <!-- 内置工具页（第三轮） -->
+  <data name="BuiltinPage_Subtitle.Text" xml:space="preserve">
+    <value>System tools you can use right away — no external files needed.</value>
+  </data>
+  <data name="BuiltinPage_OpenModeLabel.Text" xml:space="preserve">
+    <value>Open mode</value>
+  </data>
+  <data name="Builtin_FavoriteButton.ToolTip" xml:space="preserve">
+    <value>Favorite</value>
+  </data>
+  <data name="Builtin_SendDesktopButton.ToolTip" xml:space="preserve">
+    <value>Send desktop shortcut</value>
+  </data>
+  <data name="Builtin_ToolCountFormat" xml:space="preserve">
+    <value>{0} built-in tools</value>
+  </data>
+
+  <!-- Windows 镜像下载页（第四轮） -->
+  <data name="WindowsImage_PageHeader.Title" xml:space="preserve">
+    <value>Windows Image Download</value>
+  </data>
+  <data name="WindowsImage_PageHeader.Subtitle" xml:space="preserve">
+    <value>Genuine Windows image downloads with ESD to ISO conversion (requires UltraISO)</value>
+  </data>
+  <data name="WindowsImage_Known.CloseButtonContent" xml:space="preserve">
+    <value>Got it</value>
+  </data>
+  <data name="WindowsImage_TabMicrosoft.Header" xml:space="preserve">
+    <value>Microsoft Official</value>
+  </data>
+  <data name="WindowsImage_MsNoticeTitle.Title" xml:space="preserve">
+    <value>About Microsoft Official Downloads</value>
+  </data>
+  <data name="WindowsImage_MsNoticeBody.Text" xml:space="preserve">
+    <value>Fetch ISO download links from Microsoft's official servers. Pick an edition and language to get a link; links stay valid for 24 hours. A VPN may be required in some regions.&#x0a;Note: for LTSC, Enterprise, Education, IoT, Server, and similar editions, use the "UUP Dump" tab.</value>
+  </data>
+  <data name="WindowsImage_MsEditionPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Select a Windows edition...</value>
+  </data>
+  <data name="WindowsImage_MsLangPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Select a language...</value>
+  </data>
+  <data name="WindowsImage_MsFetch.Text" xml:space="preserve">
+    <value>Get official download link</value>
+  </data>
+  <data name="WindowsImage_AddToQueue.Text" xml:space="preserve">
+    <value>Add to download queue</value>
+  </data>
+  <data name="WindowsImage_OpenInBrowser.Text" xml:space="preserve">
+    <value>Open in browser</value>
+  </data>
+  <data name="WindowsImage_CopyLink.Text" xml:space="preserve">
+    <value>Copy link</value>
+  </data>
+  <data name="WindowsImage_TabCommunity.Header" xml:space="preserve">
+    <value>Community Mirrors</value>
+  </data>
+  <data name="WindowsImage_CommunityNoticeTitle.Title" xml:space="preserve">
+    <value>Community Mirror Warning</value>
+  </data>
+  <data name="WindowsImage_SearchPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Search Windows editions or languages...</value>
+  </data>
+  <data name="WindowsImage_Refresh.Text" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="WindowsImage_ColEdition.Text" xml:space="preserve">
+    <value>Edition</value>
+  </data>
+  <data name="WindowsImage_ColFile.Text" xml:space="preserve">
+    <value>File name</value>
+  </data>
+  <data name="WindowsImage_ColSize.Text" xml:space="preserve">
+    <value>Size</value>
+  </data>
+  <data name="WindowsImage_ColLanguage.Text" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="WindowsImage_ColArch.Text" xml:space="preserve">
+    <value>Arch</value>
+  </data>
+  <data name="WindowsImage_ColAction.Text" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="WindowsImage_LoadingList.Text" xml:space="preserve">
+    <value>Loading image list...</value>
+  </data>
+  <data name="WindowsImage_EmptyList.Text" xml:space="preserve">
+    <value>No matching images found</value>
+  </data>
+  <data name="WindowsImage_UupNoticeTitle.Title" xml:space="preserve">
+    <value>About UUP Dump</value>
+  </data>
+  <data name="WindowsImage_UupNoticeBody.Text" xml:space="preserve">
+    <value>Download the original system files from Microsoft's official Windows Update servers and convert them to ISO automatically; all direct file links come from Microsoft's official CDN. Best for Insider builds, specific build numbers, Enterprise / LTSC, Server, and other images the official download page does not offer.</value>
+  </data>
+  <data name="WindowsImage_Step1.Text" xml:space="preserve">
+    <value>1. Choose a Windows build</value>
+  </data>
+  <data name="WindowsImage_UupSearchPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Search a build number or keyword, e.g. 26100, 24H2, LTSC</value>
+  </data>
+  <data name="WindowsImage_UupSearchButton.Text" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="WindowsImage_UupBuildLoading.Text" xml:space="preserve">
+    <value>Fetching build list...</value>
+  </data>
+  <data name="WindowsImage_Step2.Text" xml:space="preserve">
+    <value>2. Choose language and edition</value>
+  </data>
+  <data name="WindowsImage_UupSelectBuildHint.Text" xml:space="preserve">
+    <value>Select a Windows build in step 1 first</value>
+  </data>
+  <data name="WindowsImage_LabelLanguage.Text" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="WindowsImage_LabelEdition.Text" xml:space="preserve">
+    <value>Edition</value>
+  </data>
+  <data name="WindowsImage_VirtualEditionsHeader.Header" xml:space="preserve">
+    <value>Extra editions (virtual, optional)</value>
+  </data>
+  <data name="WindowsImage_VirtualEditionsHint.Text" xml:space="preserve">
+    <value>Extra editions are synthesized from the base edition files in the same download, at no extra data cost. For example, to get an Enterprise image, choose "Windows Pro" as the base edition and tick "Enterprise" here.</value>
+  </data>
+  <data name="WindowsImage_Step3.Text" xml:space="preserve">
+    <value>3. Download and convert to ISO</value>
+  </data>
+  <data name="WindowsImage_UupSummaryHint.Text" xml:space="preserve">
+    <value>Once the first two steps are done, a download summary appears here.</value>
+  </data>
+  <data name="WindowsImage_SaveLocation.Text" xml:space="preserve">
+    <value>Save location</value>
+  </data>
+  <data name="WindowsImage_Change.Text" xml:space="preserve">
+    <value>Change</value>
+  </data>
+  <data name="WindowsImage_ResetDefault.Text" xml:space="preserve">
+    <value>Reset to default</value>
+  </data>
+  <data name="WindowsImage_StartDownload.Text" xml:space="preserve">
+    <value>Start download and convert to ISO</value>
+  </data>
+  <data name="WindowsImage_NoConvert.Content" xml:space="preserve">
+    <value>Download file set only, no ISO conversion</value>
+  </data>
+  <data name="WindowsImage_ConvertOptionsHeader.Header" xml:space="preserve">
+    <value>Conversion options (advanced)</value>
+  </data>
+  <data name="WindowsImage_OptAddUpdates.Content" xml:space="preserve">
+    <value>Integrate updates (website default, recommended)</value>
+  </data>
+  <data name="WindowsImage_OptCleanup.Content" xml:space="preserve">
+    <value>Run component cleanup (smaller size, much slower conversion)</value>
+  </data>
+  <data name="WindowsImage_OptNetFx3.Content" xml:space="preserve">
+    <value>Integrate .NET Framework 3.5</value>
+  </data>
+  <data name="WindowsImage_OptEsd.Content" xml:space="preserve">
+    <value>Use solid (ESD) compression (creates install.esd, smaller size)</value>
+  </data>
+  <data name="WindowsImage_OptApps.Content" xml:space="preserve">
+    <value>Integrate full Store apps (hundreds of MB extra download, slower conversion)</value>
+  </data>
+  <data name="WindowsImage_DownloadNote.Text" xml:space="preserve">
+    <value>Download progress appears under the download button next to the home search box. When the download finishes, the official conversion script window opens automatically (the DISM step takes about 10-30 minutes) and the resulting ISO lands in the save location above. When queuing, a ConvertConfig.ini is generated in the package folder from the options above; you can edit it any time during the download, and the conversion script uses it as the source of truth.</value>
+  </data>
+  <data name="WindowsImage_FilterAll.Content" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="WindowsImage_FilterAllLanguages.Content" xml:space="preserve">
+    <value>All languages</value>
+  </data>
+  <data name="WindowsImage_LangChinese.Content" xml:space="preserve">
+    <value>Simplified Chinese</value>
+  </data>
+  <data name="WindowsImage_ChannelAll.Content" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="WindowsImage_ChannelRetail.Content" xml:space="preserve">
+    <value>Retail</value>
+  </data>
+  <data name="WindowsImage_ChannelInsider.Content" xml:space="preserve">
+    <value>Insider</value>
+  </data>
+  <data name="WindowsImage_ErrTimeout" xml:space="preserve">
+    <value>{0}: Request timed out. Check your network connection and try again.</value>
+  </data>
+  <data name="WindowsImage_ErrDns" xml:space="preserve">
+    <value>{0}: Could not resolve the server address. Check your network or DNS settings.</value>
+  </data>
+  <data name="WindowsImage_ErrGeneric" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="WindowsImage_LoadFailed" xml:space="preserve">
+    <value>Loading failed</value>
+  </data>
+  <data name="WindowsImage_FailLoadList" xml:space="preserve">
+    <value>Failed to fetch the image list</value>
+  </data>
+  <data name="WindowsImage_BtnDownload" xml:space="preserve">
+    <value>Download</value>
+  </data>
+  <data name="WindowsImage_BtnDownloadConvert" xml:space="preserve">
+    <value>Download + convert to ISO</value>
+  </data>
+  <data name="WindowsImage_TipSize" xml:space="preserve">
+    <value>{0}&#x0a;{1}&#x0a;Size: {2}</value>
+  </data>
+  <data name="WindowsImage_TipUpdated" xml:space="preserve">
+    <value>&#x0a;Updated: {0}</value>
+  </data>
+  <data name="WindowsImage_Queued" xml:space="preserve">
+    <value>Added to download queue</value>
+  </data>
+  <data name="WindowsImage_QueuedMsgDownload" xml:space="preserve">
+    <value>Downloading {0} to {1}</value>
+  </data>
+  <data name="WindowsImage_QueueTipSubtitle" xml:space="preserve">
+    <value>{0}&#x0a;Click the download button next to the home search box to see progress</value>
+  </data>
+  <data name="WindowsImage_UltraIsoRequired" xml:space="preserve">
+    <value>UltraISO required</value>
+  </data>
+  <data name="WindowsImage_UltraIsoContent" xml:space="preserve">
+    <value>Converting ESD to ISO requires UltraISO to be installed.</value>
+  </data>
+  <data name="WindowsImage_UltraIsoContentAsk" xml:space="preserve">
+    <value>Open the download page?</value>
+  </data>
+  <data name="WindowsImage_UltraIsoGo" xml:space="preserve">
+    <value>Open download page</value>
+  </data>
+  <data name="WindowsImage_UltraIsoCancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="WindowsImage_PostProcessorName" xml:space="preserve">
+    <value>ESD to ISO</value>
+  </data>
+  <data name="WindowsImage_WaitingDownload" xml:space="preserve">
+    <value>Waiting for the download to finish...</value>
+  </data>
+  <data name="WindowsImage_EsdIsoSuffix" xml:space="preserve">
+    <value> (ESD->ISO)</value>
+  </data>
+  <data name="WindowsImage_QueuedMsgConvert" xml:space="preserve">
+    <value>{0} will be converted to ISO automatically after download</value>
+  </data>
+  <data name="WindowsImage_MsInitSession" xml:space="preserve">
+    <value>Initializing session...</value>
+  </data>
+  <data name="WindowsImage_FetchingLanguages" xml:space="preserve">
+    <value>Fetching language list...</value>
+  </data>
+  <data name="WindowsImage_MsLanguagesCount" xml:space="preserve">
+    <value>Found {0} languages</value>
+  </data>
+  <data name="WindowsImage_FailLoadLanguages" xml:space="preserve">
+    <value>Failed to fetch the language list</value>
+  </data>
+  <data name="WindowsImage_MsFetchingLink" xml:space="preserve">
+    <value>Fetching download link...</value>
+  </data>
+  <data name="WindowsImage_MsResultInfo" xml:space="preserve">
+    <value>Arch: {0} | File: {1}</value>
+  </data>
+  <data name="WindowsImage_MsLinkOk" xml:space="preserve">
+    <value>Download link ready (valid for 24 hours)</value>
+  </data>
+  <data name="WindowsImage_MsLinkFail" xml:space="preserve">
+    <value>Could not get a download link. Try again later.</value>
+  </data>
+  <data name="WindowsImage_FailFetchLink" xml:space="preserve">
+    <value>Failed to fetch the download link</value>
+  </data>
+  <data name="WindowsImage_Copied" xml:space="preserve">
+    <value>Copied</value>
+  </data>
+  <data name="WindowsImage_CopiedMsg" xml:space="preserve">
+    <value>Download link copied to clipboard</value>
+  </data>
+  <data name="WindowsImage_SaveLocationTip" xml:space="preserve">
+    <value>Microsoft Official and Community Mirrors save directly to the chosen folder; UUP packages go into its UUPDump subfolder.</value>
+  </data>
+  <data name="WindowsImage_SaveLocationCurrent" xml:space="preserve">
+    <value>Current root folder: {0}</value>
+  </data>
+  <data name="WindowsImage_SaveLocationChanged" xml:space="preserve">
+    <value>Save location changed</value>
+  </data>
+  <data name="WindowsImage_SaveLocationChangedMsg" xml:space="preserve">
+    <value>All downloads on this page (Microsoft Official / Community Mirrors / UUP) will be saved to {0}</value>
+  </data>
+  <data name="WindowsImage_ArchFollowSystem" xml:space="preserve">
+    <value>Match system ({0})</value>
+  </data>
+  <data name="WindowsImage_ArchAll" xml:space="preserve">
+    <value>All architectures</value>
+  </data>
+  <data name="WindowsImage_ArchX86" xml:space="preserve">
+    <value>x86 (32-bit)</value>
+  </data>
+  <data name="WindowsImage_UupFetchingBuilds" xml:space="preserve">
+    <value>Fetching build list (the first request may take a few seconds on a slow network)...</value>
+  </data>
+  <data name="WindowsImage_UupNoBuilds" xml:space="preserve">
+    <value>No matching builds found. Try another keyword, e.g. 26100 or 24H2.</value>
+  </data>
+  <data name="WindowsImage_FailLoadBuilds" xml:space="preserve">
+    <value>Failed to fetch the build list</value>
+  </data>
+  <data name="WindowsImage_UupNoBuildsFiltered" xml:space="preserve">
+    <value>No builds match the current filters. Try switching the architecture to "All architectures".</value>
+  </data>
+  <data name="WindowsImage_UupSelected" xml:space="preserve">
+    <value>Selected: {0}</value>
+  </data>
+  <data name="WindowsImage_UupNoLanguages" xml:space="preserve">
+    <value>This build has no selectable languages.</value>
+  </data>
+  <data name="WindowsImage_UupFetchingEditions" xml:space="preserve">
+    <value>Fetching available editions for "{0}"...</value>
+  </data>
+  <data name="WindowsImage_UupNoEditions" xml:space="preserve">
+    <value>No editions are available for this language.</value>
+  </data>
+  <data name="WindowsImage_FailLoadEditions" xml:space="preserve">
+    <value>Failed to fetch the edition list</value>
+  </data>
+  <data name="WindowsImage_UupVirtualList" xml:space="preserve">
+    <value>&#x0a;Extra editions: {0}</value>
+  </data>
+  <data name="WindowsImage_ListSeparator" xml:space="preserve">
+    <value>, </value>
+  </data>
+  <data name="WindowsImage_UupFileSummary" xml:space="preserve">
+    <value>&#x0a;{0} files, about {1} (time depends on your network speed)</value>
+  </data>
+  <data name="WindowsImage_UupApproxSize" xml:space="preserve">
+    <value>about {0}</value>
+  </data>
+  <data name="WindowsImage_UupSizeUnknown" xml:space="preserve">
+    <value>Many files; time depends on your network speed</value>
+  </data>
+  <data name="WindowsImage_UupEditionWithVirtual" xml:space="preserve">
+    <value>{0} + extra editions ({1})</value>
+  </data>
+  <data name="WindowsImage_UupFileSetName" xml:space="preserve">
+    <value>{0} UUP file set</value>
+  </data>
+  <data name="WindowsImage_UupIsoName" xml:space="preserve">
+    <value>{0} ISO ({1})</value>
+  </data>
+  <data name="WindowsImage_UupStartedMsg" xml:space="preserve">
+    <value>{0} is downloading; files are saved to {1}</value>
+  </data>
+  <data name="WindowsImage_UupStartedMsgConvert" xml:space="preserve">
+    <value>{0} will be converted to ISO automatically after download; the final file lands in {1}</value>
+  </data>
+  <data name="WindowsImage_CommunitySource" xml:space="preserve">
+    <value>Source: GitHub ILLKX/Windows community project</value>
+  </data>
+  <data name="WindowsImage_CommunityRisk" xml:space="preserve">
+    <value>⚠ Warning: </value>
+  </data>
+  <data name="WindowsImage_CommunityRiskBody" xml:space="preserve">
+    <value>Community mirrors are not provided by Microsoft. Even though the community verifies them, file integrity and safety cannot be guaranteed. Verify the SHA256 after downloading, or prefer the "Microsoft Official" tab for genuine images.</value>
+  </data>
+
+  <!-- 端口占用 + 磁盘健康（第四轮） -->
+  <data name="PortViewer_PageHeader.Title" xml:space="preserve">
+    <value>Port Usage</value>
+  </data>
+  <data name="PortViewer_PageHeader.Subtitle" xml:space="preserve">
+    <value>Scan system TCP/UDP connections via iphlpapi to find the process holding a port</value>
+  </data>
+  <data name="PortViewer_SearchPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Search port, process, PID, tcp6, address...</value>
+  </data>
+  <data name="PortViewer_Refresh.Text" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="PortViewer_ColProtocol.Text" xml:space="preserve">
+    <value>Protocol</value>
+  </data>
+  <data name="PortViewer_ColPort.Text" xml:space="preserve">
+    <value>Port</value>
+  </data>
+  <data name="PortViewer_ColLocalAddress.Text" xml:space="preserve">
+    <value>Local address</value>
+  </data>
+  <data name="PortViewer_ColState.Text" xml:space="preserve">
+    <value>State</value>
+  </data>
+  <data name="PortViewer_ColProcess.Text" xml:space="preserve">
+    <value>Process</value>
+  </data>
+  <data name="PortViewer_ColAction.Text" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="PortViewer_Scanning.Text" xml:space="preserve">
+    <value>Scanning ports...</value>
+  </data>
+  <data name="PortViewer_FilterAll.Content" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="PortViewer_ConnectionCount" xml:space="preserve">
+    <value>{0} connections</value>
+  </data>
+  <data name="PortViewer_KillFailed" xml:space="preserve">
+    <value>Failed to end process</value>
+  </data>
+  <data name="PortViewer_KillFailedMsg" xml:space="preserve">
+    <value>Could not end process {0} (PID {1}): {2}</value>
+  </data>
+  <data name="DiskHealth_PageHeader.Title" xml:space="preserve">
+    <value>Disk Health</value>
+  </data>
+  <data name="DiskHealth_PageHeader.Subtitle" xml:space="preserve">
+    <value>SMART health check · CrystalDiskInfo criteria · Ring-gauge dashboard</value>
+  </data>
+  <data name="DiskHealth_Refresh.Text" xml:space="preserve">
+    <value>Rescan</value>
+  </data>
+  <data name="DiskHealth_ErrorTitle.Title" xml:space="preserve">
+    <value>Disk health check failed</value>
+  </data>
+  <data name="DiskHealth_Scanning.Text" xml:space="preserve">
+    <value>Scanning disk SMART data...</value>
+  </data>
+  <data name="DiskHealth_LoadFailed.Text" xml:space="preserve">
+    <value>Failed to load disk health information</value>
+  </data>
+  <data name="DiskHealth_Retry.Content" xml:space="preserve">
+    <value>Retry</value>
+  </data>
+  <data name="DiskHealth_TotalDisks.Text" xml:space="preserve">
+    <value>Total disks</value>
+  </data>
+  <data name="DiskHealth_Healthy.Text" xml:space="preserve">
+    <value>Healthy</value>
+  </data>
+  <data name="DiskHealth_Warning.Text" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="DiskHealth_Critical.Text" xml:space="preserve">
+    <value>Critical</value>
+  </data>
+  <data name="DiskHealth_PartitionUsage.Text" xml:space="preserve">
+    <value>Partition usage</value>
+  </data>
+  <data name="DiskHealth_HealthLabel.Text" xml:space="preserve">
+    <value>Health</value>
+  </data>
+  <data name="DiskHealth_TempLabel.Text" xml:space="preserve">
+    <value>Temp</value>
+  </data>
+  <data name="DiskHealth_Cancel.Content" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="DiskHealth_Confirm.Content" xml:space="preserve">
+    <value>Confirm</value>
+  </data>
+  <data name="DiskHealth_PowerOnHours.Text" xml:space="preserve">
+    <value>Power-on time</value>
+  </data>
+  <data name="DiskHealth_PowerOnCount.Text" xml:space="preserve">
+    <value>Power-on count</value>
+  </data>
+  <data name="DiskHealth_RwCompare.Text" xml:space="preserve">
+    <value>Read / write</value>
+  </data>
+  <data name="DiskHealth_OperationalStatus.Text" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="DiskHealth_OptimizeNote.Text" xml:space="preserve">
+    <value>SSDs run a fast TRIM optimization; mechanical drives defragment in the background at low priority, so you can keep using the PC.</value>
+  </data>
+  <data name="DiskHealth_OptimizeTrim" xml:space="preserve">
+    <value>Optimize/TRIM</value>
+  </data>
+  <data name="DiskHealth_Defragment" xml:space="preserve">
+    <value>Defragment</value>
+  </data>
+  <data name="DiskHealth_FlyoutTitle" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="DiskHealth_TrimConfirm" xml:space="preserve">
+    <value>Confirm TRIM</value>
+  </data>
+  <data name="DiskHealth_DefragConfirm" xml:space="preserve">
+    <value>Confirm defrag</value>
+  </data>
+  <data name="DiskHealth_FlyoutDescTrim" xml:space="preserve">
+    <value>TRIM optimization will run on {0}. It usually finishes in seconds and restores write performance immediately.</value>
+  </data>
+  <data name="DiskHealth_FlyoutDescDefrag" xml:space="preserve">
+    <value>Defragmentation starts in the background at low priority. It can take tens of minutes to hours; you can keep using the PC meanwhile.</value>
+  </data>
+  <data name="DiskHealth_NoDisk" xml:space="preserve">
+    <value>No physical disk detected</value>
+  </data>
+  <data name="DiskHealth_ReadFailed" xml:space="preserve">
+    <value>Read failed</value>
+  </data>
+  <data name="DiskHealth_Hours" xml:space="preserve">
+    <value>{0} h</value>
+  </data>
+  <data name="DiskHealth_ReadEmpty" xml:space="preserve">
+    <value>R --</value>
+  </data>
+  <data name="DiskHealth_ReadValue" xml:space="preserve">
+    <value>R {0}</value>
+  </data>
+  <data name="DiskHealth_WriteEmpty" xml:space="preserve">
+    <value>W --</value>
+  </data>
+  <data name="DiskHealth_WriteValue" xml:space="preserve">
+    <value>W {0}</value>
+  </data>
+  <data name="DiskHealth_StatusOk" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="DiskHealth_StatusDegraded" xml:space="preserve">
+    <value>Degraded</value>
+  </data>
+  <data name="DiskHealth_StatusFailure" xml:space="preserve">
+    <value>Failure</value>
+  </data>
+  <data name="DiskHealth_StatusUnknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="DiskHealth_UnknownError" xml:space="preserve">
+    <value>Unknown error</value>
+  </data>
+  <data name="DiskHealth_HealthHealthy" xml:space="preserve">
+    <value>Healthy</value>
+  </data>
+  <data name="DiskHealth_HealthWarning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="DiskHealth_HealthCritical" xml:space="preserve">
+    <value>Critical</value>
+  </data>
+  <data name="DiskHealth_HealthUnknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="DiskHealth_FirmwareDisk" xml:space="preserve">
+    <value>Firmware disk</value>
+  </data>
+  <data name="DiskHealth_SystemDisk" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="DiskHealth_SmartUnreadable" xml:space="preserve">
+    <value>SMART unreadable</value>
+  </data>
+  <data name="DiskHealth_Used" xml:space="preserve">
+    <value>Used {0}</value>
+  </data>
+  <data name="DiskHealth_Total" xml:space="preserve">
+    <value>of {0}</value>
+  </data>
+  <data name="DiskHealth_UsedOf" xml:space="preserve">
+    <value>Used {0} / {1}</value>
+  </data>
+  <data name="DiskHealth_TrimDone" xml:space="preserve">
+    <value>TRIM optimization complete</value>
+  </data>
+  <data name="DiskHealth_DefragDone" xml:space="preserve">
+    <value>Defragmentation complete</value>
+  </data>
+  <data name="DiskHealth_OptimizeFailed" xml:space="preserve">
+    <value>{0}: disk optimization failed</value>
+  </data>
+
+  <!-- 硬件信息页 + 详情页（第五轮） -->
+  <data name="Hw_Title.Text" xml:space="preserve">
+    <value>Hardware Info</value>
+  </data>
+  <data name="Hw_Subtitle.Text" xml:space="preserve">
+    <value>A summary of this PC's model, system, and key hardware specs.</value>
+  </data>
+  <data name="Hw_DetailButton.Text" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="Hw_Refresh.Text" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="Hw_Share.Text" xml:space="preserve">
+    <value>Share</value>
+  </data>
+  <data name="Hw_Screenshot.Text" xml:space="preserve">
+    <value>Screenshot</value>
+  </data>
+  <data name="Hw_CopyPlainText.Text" xml:space="preserve">
+    <value>Copy as text</value>
+  </data>
+  <data name="Hw_CopyMarkdown.Text" xml:space="preserve">
+    <value>Copy as Markdown</value>
+  </data>
+  <data name="Hw_ModelCard.Text" xml:space="preserve">
+    <value>Model</value>
+  </data>
+  <data name="Hw_SystemCard.Text" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="Hw_UptimeCard.Text" xml:space="preserve">
+    <value>Uptime</value>
+  </data>
+  <data name="Hw_DetailsHeader.Text" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="Hw_VerifiedBadge.Text" xml:space="preserve">
+    <value>Verified</value>
+  </data>
+  <data name="Hw_UptimeFormat" xml:space="preserve">
+    <value>{0}d {1}h {2}m {3}s</value>
+  </data>
+  <data name="Hw_NicknameModeOn" xml:space="preserve">
+    <value>Easter egg mode</value>
+  </data>
+  <data name="Hw_NicknameModeOff" xml:space="preserve">
+    <value>Normal mode</value>
+  </data>
+  <data name="Hw_NicknameOnHint" xml:space="preserve">
+    <value>Brand nicknames on; click the title to restore</value>
+  </data>
+  <data name="Hw_NicknameOffHint" xml:space="preserve">
+    <value>Brand nicknames off</value>
+  </data>
+  <data name="Hw_Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="Hw_LoadFailed" xml:space="preserve">
+    <value>Failed to read hardware information</value>
+  </data>
+  <data name="Hw_Copied" xml:space="preserve">
+    <value>Copied</value>
+  </data>
+  <data name="Hw_PlainCopied" xml:space="preserve">
+    <value>Text copied</value>
+  </data>
+  <data name="Hw_PlainCopiedMsg" xml:space="preserve">
+    <value>Hardware info copied to the clipboard</value>
+  </data>
+  <data name="Hw_CopyFailed" xml:space="preserve">
+    <value>Copy failed</value>
+  </data>
+  <data name="Hw_MarkdownCopied" xml:space="preserve">
+    <value>Markdown copied</value>
+  </data>
+  <data name="Hw_MarkdownCopiedMsg" xml:space="preserve">
+    <value>Hardware info Markdown copied to the clipboard</value>
+  </data>
+  <data name="Hw_NoData" xml:space="preserve">
+    <value>No hardware information</value>
+  </data>
+  <data name="Hw_MarkdownHeader" xml:space="preserve">
+    <value>| Item | Details |</value>
+  </data>
+  <data name="Hw_ScreenshotCopied" xml:space="preserve">
+    <value>Screenshot copied to the clipboard</value>
+  </data>
+  <data name="Hw_ScreenshotCopiedMsg" xml:space="preserve">
+    <value>Paste it anywhere</value>
+  </data>
+  <data name="Hw_ScreenshotFailed" xml:space="preserve">
+    <value>Screenshot failed</value>
+  </data>
+  <data name="Hw_CopyHint" xml:space="preserve">
+    <value>Click to copy</value>
+  </data>
+  <data name="HwDetail_Back.Text" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="HwDetail_Title.Text" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="HwDetail_Subtitle.Text" xml:space="preserve">
+    <value>Complete hardware specifications</value>
+  </data>
+  <data name="HwDetail_Export.Text" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="HwDetail_Refresh.Text" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="HwDetail_Realtime.Text" xml:space="preserve">
+    <value>Real-time</value>
+  </data>
+  <data name="HwDetail_RealtimeMem.Text" xml:space="preserve">
+    <value>Memory</value>
+  </data>
+  <data name="HwDetail_RealtimeDisk.Text" xml:space="preserve">
+    <value>Disk</value>
+  </data>
+  <data name="HwDetail_RealtimeBattery.Text" xml:space="preserve">
+    <value>Battery</value>
+  </data>
+  <data name="HwDetail_ExportFailed" xml:space="preserve">
+    <value>Export failed</value>
+  </data>
+  <data name="HwDetail_NoData" xml:space="preserve">
+    <value>No hardware data</value>
+  </data>
+  <data name="HwDetail_ExportFilePrefix" xml:space="preserve">
+    <value>HardwareInfo</value>
+  </data>
+  <data name="HwDetail_ExportOk" xml:space="preserve">
+    <value>Export successful</value>
+  </data>
+  <data name="HwDetail_HtmlTitle" xml:space="preserve">
+    <value>Hardware Details</value>
+  </data>
+  <data name="HwDetail_HtmlSubtitle" xml:space="preserve">
+    <value>{0} · exported at {1}</value>
+  </data>
+  <data name="HwDetail_HtmlFooter" xml:space="preserve">
+    <value>Generated by {0}</value>
+  </data>
+  <data name="HwDetail_EmptySlot" xml:space="preserve">
+    <value>Empty</value>
+  </data>
+  <data name="HwDetail_FreeSpace" xml:space="preserve">
+    <value>{0} free</value>
+  </data>
+  <data name="HwDetail_SlotsUsed" xml:space="preserve">
+    <value>{0}/{1} used</value>
+  </data>
+  <data name="Hw_Label_DeviceModel" xml:space="preserve">
+    <value>Device model</value>
+  </data>
+  <data name="Hw_Label_Motherboard" xml:space="preserve">
+    <value>Motherboard</value>
+  </data>
+  <data name="Hw_Label_Bios" xml:space="preserve">
+    <value>BIOS</value>
+  </data>
+  <data name="Hw_Label_System" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="Hw_Label_Version" xml:space="preserve">
+    <value>Version</value>
+  </data>
+  <data name="Hw_Label_Uptime" xml:space="preserve">
+    <value>Uptime</value>
+  </data>
+  <data name="Hw_Label_Cpu" xml:space="preserve">
+    <value>Processor</value>
+  </data>
+  <data name="Hw_Label_Memory" xml:space="preserve">
+    <value>Memory</value>
+  </data>
+  <data name="Hw_Label_Gpu" xml:space="preserve">
+    <value>Graphics</value>
+  </data>
+  <data name="Hw_Label_Npu" xml:space="preserve">
+    <value>NPU</value>
+  </data>
+  <data name="Hw_Label_Display" xml:space="preserve">
+    <value>Display</value>
+  </data>
+  <data name="Hw_Label_Disk" xml:space="preserve">
+    <value>Disk</value>
+  </data>
+  <data name="Hw_Label_Sound" xml:space="preserve">
+    <value>Sound card</value>
+  </data>
+  <data name="Hw_Label_Network" xml:space="preserve">
+    <value>Network adapter</value>
+  </data>
+  <data name="Hw_Field_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Hw_Field_CodeName" xml:space="preserve">
+    <value>Code name</value>
+  </data>
+  <data name="Hw_Field_Package" xml:space="preserve">
+    <value>Package</value>
+  </data>
+  <data name="Hw_Field_Cores" xml:space="preserve">
+    <value>Cores</value>
+  </data>
+  <data name="Hw_Field_Threads" xml:space="preserve">
+    <value>Threads</value>
+  </data>
+  <data name="Hw_Field_MaxClock" xml:space="preserve">
+    <value>Max clock</value>
+  </data>
+  <data name="Hw_Field_CurrentClock" xml:space="preserve">
+    <value>Current clock</value>
+  </data>
+  <data name="Hw_Field_BaseClock" xml:space="preserve">
+    <value>Base clock</value>
+  </data>
+  <data name="Hw_Field_L2Cache" xml:space="preserve">
+    <value>L2 cache</value>
+  </data>
+  <data name="Hw_Field_L3Cache" xml:space="preserve">
+    <value>L3 cache</value>
+  </data>
+  <data name="Hw_Field_Architecture" xml:space="preserve">
+    <value>Architecture</value>
+  </data>
+  <data name="Hw_Field_Manufacturer" xml:space="preserve">
+    <value>Manufacturer</value>
+  </data>
+  <data name="Hw_Field_ProcessorId" xml:space="preserve">
+    <value>Processor ID</value>
+  </data>
+  <data name="Hw_Field_Model" xml:space="preserve">
+    <value>Model</value>
+  </data>
+  <data name="Hw_Field_Chipset" xml:space="preserve">
+    <value>Chipset</value>
+  </data>
+  <data name="Hw_Field_BiosBrand" xml:space="preserve">
+    <value>BIOS vendor</value>
+  </data>
+  <data name="Hw_Field_BiosVersion" xml:space="preserve">
+    <value>BIOS version</value>
+  </data>
+  <data name="Hw_Field_BiosDate" xml:space="preserve">
+    <value>BIOS date</value>
+  </data>
+  <data name="Hw_Field_TotalCapacity" xml:space="preserve">
+    <value>Total capacity</value>
+  </data>
+  <data name="Hw_Field_Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Hw_Field_ChannelMode" xml:space="preserve">
+    <value>Channel mode</value>
+  </data>
+  <data name="Hw_Field_Slots" xml:space="preserve">
+    <value>Slots</value>
+  </data>
+  <data name="Hw_Field_GpuCode" xml:space="preserve">
+    <value>GPU code</value>
+  </data>
+  <data name="Hw_Field_Vram" xml:space="preserve">
+    <value>VRAM</value>
+  </data>
+  <data name="Hw_Field_VramType" xml:space="preserve">
+    <value>VRAM type</value>
+  </data>
+  <data name="Hw_Field_VramBus" xml:space="preserve">
+    <value>VRAM bus</value>
+  </data>
+  <data name="Hw_Field_DriverVersion" xml:space="preserve">
+    <value>Driver version</value>
+  </data>
+  <data name="Hw_Field_DriverDate" xml:space="preserve">
+    <value>Driver date</value>
+  </data>
+  <data name="Hw_Field_VideoProcessor" xml:space="preserve">
+    <value>Video processor</value>
+  </data>
+  <data name="Hw_Field_CurrentResolution" xml:space="preserve">
+    <value>Current resolution</value>
+  </data>
+  <data name="Hw_Field_RefreshRate" xml:space="preserve">
+    <value>Refresh rate</value>
+  </data>
+  <data name="Hw_Field_Capacity" xml:space="preserve">
+    <value>Capacity</value>
+  </data>
+  <data name="Hw_Field_Temperature" xml:space="preserve">
+    <value>Temperature</value>
+  </data>
+  <data name="Hw_Field_Interface" xml:space="preserve">
+    <value>Interface</value>
+  </data>
+  <data name="Hw_Field_Firmware" xml:space="preserve">
+    <value>Firmware</value>
+  </data>
+  <data name="Hw_Field_Serial" xml:space="preserve">
+    <value>Serial number</value>
+  </data>
+  <data name="Hw_Field_ComputePower" xml:space="preserve">
+    <value>Compute power</value>
+  </data>
+  <data name="Hw_Field_Resolution" xml:space="preserve">
+    <value>Resolution</value>
+  </data>
+  <data name="Hw_Field_Size" xml:space="preserve">
+    <value>Size</value>
+  </data>
+  <data name="Hw_Field_Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Hw_Field_MacAddress" xml:space="preserve">
+    <value>MAC address</value>
+  </data>
+  <data name="Hw_Field_Speed" xml:space="preserve">
+    <value>Speed</value>
+  </data>
+  <data name="Hw_Field_PrimaryDisplay" xml:space="preserve">
+    <value>Primary display</value>
+  </data>
+</root>

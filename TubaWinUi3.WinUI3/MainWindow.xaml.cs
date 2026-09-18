@@ -3,6 +3,7 @@ using Microsoft.UI.Dispatching;
 using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
@@ -54,7 +55,7 @@ public sealed partial class MainWindow : Window
                                 if (di.State == DownloadItemState.Completed)
                                     UpdateBanner.ShowDownloadComplete();
                                 else if (di.State == DownloadItemState.Failed)
-                                    UpdateBanner.ShowDownloadFailed(di.ErrorMessage ?? "未知错误");
+                                    UpdateBanner.ShowDownloadFailed(di.ErrorMessage ?? LocalizationService.L("Common_UnknownError", "未知错误"));
                                 break;
                             case nameof(DownloadItem.Progress):
                                 if (di.Progress is not null && di.Progress.TotalBytes > 0)
@@ -85,8 +86,8 @@ public sealed partial class MainWindow : Window
 
     public void ShowToolUpdateToast(string toolName)
     {
-        ToolUpdateToast.Title = "工具更新完成";
-        ToolUpdateToast.Message = $"「{toolName}」已更新到最新版本";
+        ToolUpdateToast.Title = LocalizationService.L("MainWindow_ToolUpdateDoneTitle", "工具更新完成");
+        ToolUpdateToast.Message = string.Format(LocalizationService.L("MainWindow_ToolUpdateDoneMessage", "「{0}」已更新到最新版本"), toolName);
         ToolUpdateToast.Severity = Microsoft.UI.Xaml.Controls.InfoBarSeverity.Success;
         ToolUpdateToast.IsOpen = true;
         StartToastAutoClose();
@@ -94,16 +95,16 @@ public sealed partial class MainWindow : Window
 
     public void ShowToolUpdateProgressToast(string toolName)
     {
-        ToolUpdateToast.Title = "正在更新工具";
-        ToolUpdateToast.Message = $"「{toolName}」正在同步更新...";
+        ToolUpdateToast.Title = LocalizationService.L("MainWindow_ToolUpdateProgressTitle", "正在更新工具");
+        ToolUpdateToast.Message = string.Format(LocalizationService.L("MainWindow_ToolUpdateProgressMessage", "「{0}」正在同步更新..."), toolName);
         ToolUpdateToast.Severity = Microsoft.UI.Xaml.Controls.InfoBarSeverity.Informational;
         ToolUpdateToast.IsOpen = true;
     }
 
     public void ShowToolUpdateFailedToast(string toolName, string error)
     {
-        ToolUpdateToast.Title = "工具更新失败";
-        ToolUpdateToast.Message = $"「{toolName}」更新失败：{error}";
+        ToolUpdateToast.Title = LocalizationService.L("MainWindow_ToolUpdateFailedTitle", "工具更新失败");
+        ToolUpdateToast.Message = string.Format(LocalizationService.L("MainWindow_ToolUpdateFailedMessage", "「{0}」更新失败：{1}"), toolName, error);
         ToolUpdateToast.Severity = Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error;
         ToolUpdateToast.IsOpen = true;
         StartToastAutoClose();
@@ -171,7 +172,42 @@ public sealed partial class MainWindow : Window
         }
 
         SplashVersionText.Text = UpdateService.CurrentVersion.ToString();
+        NavView.Loaded += NavView_Loaded;
+        LocalizationService.LanguageChanged += OnLanguageChanged;
         _ = InitializeAfterSplashAsync();
+    }
+
+    private void NavView_Loaded(object sender, RoutedEventArgs e)
+    {
+        NavView.Loaded -= NavView_Loaded;
+        ApplyLocalizedShellText();
+    }
+
+    private void OnLanguageChanged()
+    {
+        ApplyLocalizedShellText();
+        // 工具元数据/标签随语言切换（Tools_<lang>.json 覆盖），必须先失效再重建导航与页面
+        ToolMetadataService.InvalidateCache();
+        ToolCatalog.InvalidateTagsCache();
+        RefreshToolCategories();
+        if (NavFrame.Content is ILocalizablePage page)
+            page.ApplyLocalization();
+    }
+
+    /// <summary>刷新 shell 上由代码赋值、不随 Uid 自动更新的文本（窗口标题、按钮无障碍名、内建设置项）。</summary>
+    private void ApplyLocalizedShellText()
+    {
+        var title = LocalizationService.L("App_Title", "图吧工具箱CE");
+        Title = title;
+        AppTitleBar.Title = title;
+
+        AutomationProperties.SetName(AiQuickButton, LocalizationService.L("MainWindow_AiButton", "AI 助手"));
+        AutomationProperties.SetName(NewbieTutorialButton, LocalizationService.L("MainWindow_NewbieTutorialButton", "新手教程"));
+        AutomationProperties.SetName(DownloadQueueButton, LocalizationService.L("MainWindow_DownloadQueueButton", "下载队列"));
+
+        // NavigationView 内建「设置」项文本由框架按系统语言渲染，必须手动覆写为目标语言
+        if (NavView.SettingsItem is NavigationViewItem settingsItem)
+            settingsItem.Content = LocalizationService.L("MainWindow_NavSettings", "设置");
     }
 
     private async Task InitializeAfterSplashAsync()
@@ -375,6 +411,7 @@ public sealed partial class MainWindow : Window
         DownloadQueueService.QueueChanged -= OnDownloadQueueChanged;
         AppSettings.SettingChanged -= OnBackgroundSettingChanged;
         NavLayoutModeService.NavLayoutModeChanged -= OnNavLayoutModeChanged;
+        LocalizationService.LanguageChanged -= OnLanguageChanged;
         // AppSettings 落盘是去抖的（500ms 合并），退出前同步刷一次避免丢最后变更
         AppSettings.Flush();
 
@@ -617,7 +654,7 @@ public sealed partial class MainWindow : Window
         {
             NavView.MenuItems.Add(new NavigationViewItem
             {
-                Content = category.Replace("工具", ""),
+                Content = LocalizationService.GetCategoryDisplayName(category),
                 Tag = category,
                 Icon = new FontIcon { Glyph = GetCategoryGlyphStatic(category) }
             });
@@ -628,7 +665,7 @@ public sealed partial class MainWindow : Window
         {
             NavView.MenuItems.Add(new NavigationViewItem
             {
-                Content = otherCategory.Replace("工具", ""),
+                Content = LocalizationService.GetCategoryDisplayName(otherCategory),
                 Tag = otherCategory,
                 Icon = new FontIcon { Glyph = GetCategoryGlyphStatic(otherCategory) }
             });
@@ -757,7 +794,7 @@ public sealed partial class MainWindow : Window
         {
             var title = parameter is ToolContentPageParam p
                 ? p.Title
-                : (ActiveToolName ?? "内置工具");
+                : (ActiveToolName ?? LocalizationService.L("MainWindow_BuiltinToolFallback", "内置工具"));
             BuiltinToolWindow.Show(pageType, parameter, title);
             return;
         }

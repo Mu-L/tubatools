@@ -8,6 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="图吧工具箱CE"
     xmlns:controls="using:TubaWinUi3.Controls"
+    xmlns:l="using:WinUI3Localizer"
     mc:Ignorable="d">
 
     <Grid PointerPressed="RootGrid_PointerPressed">
@@ -59,12 +60,14 @@
                         FontSize="28"
                         FontWeight="Bold"
                         HorizontalAlignment="Center"
+                        l:Uids.Uid="MainWindow_SplashTitle"
                         Text="图吧工具箱CE" />
                     <TextBlock
                         FontSize="13"
                         HorizontalAlignment="Center"
                         Opacity="0.6"
                         x:Name="SplashStatusText"
+                        l:Uids.Uid="MainWindow_SplashStatus"
                         Text="正在初始化..." />
                 </StackPanel>
 
@@ -108,6 +111,7 @@
                         <AutoSuggestBox
                             x:Name="SearchBox"
                             PlaceholderText="搜索工具、设置..."
+                            l:Uids.Uid="MainWindow_SearchPlaceholder"
                             QueryIcon="Find"
                             VerticalAlignment="Center"
                             GotFocus="SearchBox_GotFocus"
@@ -216,7 +220,8 @@
                             BorderThickness="0"
                             Background="Transparent"
                             ToolTipService.ToolTip="AI 助手"
-                            AutomationProperties.Name="AI 助手">
+                            AutomationProperties.Name="AI 助手"
+                            l:Uids.Uid="MainWindow_AiButton">
                             <FontIcon FontSize="14" Glyph="&#xE99A;" />
                         </Button>
 
@@ -228,7 +233,8 @@
                             BorderThickness="0"
                             Background="Transparent"
                             ToolTipService.ToolTip="新手教程"
-                            AutomationProperties.Name="新手教程">
+                            AutomationProperties.Name="新手教程"
+                            l:Uids.Uid="MainWindow_NewbieTutorialButton">
                             <FontIcon FontSize="14" Glyph="&#xE7BE;" />
                         </Button>
 
@@ -287,32 +293,33 @@
                 <NavigationView.MenuItems>
                     <NavigationViewItem
                         Content="全部"
-                        Tag="all">
+                        Tag="all"
+                        l:Uids.Uid="MainWindow_NavAll">
                         <NavigationViewItem.Icon>
                             <FontIcon Glyph="&#xE80F;" FontWeight="Bold" />
                         </NavigationViewItem.Icon>
                     </NavigationViewItem>
-                    <NavigationViewItem Content="常用" Tag="favorites">
+                    <NavigationViewItem Content="常用" Tag="favorites" l:Uids.Uid="MainWindow_NavFavorites">
                         <NavigationViewItem.Icon>
                             <FontIcon Glyph="&#xE735;" FontWeight="Bold" />
                         </NavigationViewItem.Icon>
                     </NavigationViewItem>
-                    <NavigationViewItem Content="硬件信息" Tag="hardware">
+                    <NavigationViewItem Content="硬件信息" Tag="hardware" l:Uids.Uid="MainWindow_NavHardware">
                         <NavigationViewItem.Icon>
                             <FontIcon Glyph="&#xE977;" FontWeight="Bold" />
                         </NavigationViewItem.Icon>
                     </NavigationViewItem>
-                    <NavigationViewItem Content="内置" Tag="builtin">
+                    <NavigationViewItem Content="内置" Tag="builtin" l:Uids.Uid="MainWindow_NavBuiltin">
                         <NavigationViewItem.Icon>
                             <FontIcon Glyph="&#xE90F;" FontWeight="Bold" />
                         </NavigationViewItem.Icon>
                     </NavigationViewItem>
-                    <NavigationViewItem Content="性能测试" Tag="benchmark">
+                    <NavigationViewItem Content="性能测试" Tag="benchmark" l:Uids.Uid="MainWindow_NavBenchmark">
                         <NavigationViewItem.Icon>
                             <FontIcon Glyph="&#xE9D9;" FontWeight="Bold" />
                         </NavigationViewItem.Icon>
                     </NavigationViewItem>
-                    <NavigationViewItem x:Name="CommunityNavItem" Content="社区" Tag="community">
+                    <NavigationViewItem x:Name="CommunityNavItem" Content="社区" Tag="community" l:Uids.Uid="MainWindow_NavCommunity">
                         <NavigationViewItem.Icon>
                             <FontIcon Glyph="&#xE779;" FontWeight="Bold" />
                         </NavigationViewItem.Icon>

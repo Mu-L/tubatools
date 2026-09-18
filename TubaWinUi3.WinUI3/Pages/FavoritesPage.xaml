@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:l="using:WinUI3Localizer"
     xmlns:local="using:TubaWinUi3.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     NavigationCacheMode="Enabled"
@@ -20,19 +21,19 @@
                     <FontIcon Glyph="&#xE735;" />
                 </MenuFlyoutItem.Icon>
             </MenuFlyoutItem>
-            <MenuFlyoutItem Text="发送到桌面快捷方式" Click="FavMenu_SendToDesktop">
+            <MenuFlyoutItem x:Name="FavMenuSendToDesktop" Text="发送到桌面快捷方式" Click="FavMenu_SendToDesktop" l:Uids.Uid="Common_SendToDesktop">
                 <MenuFlyoutItem.Icon>
                     <FontIcon Glyph="&#xE8AD;" />
                 </MenuFlyoutItem.Icon>
             </MenuFlyoutItem>
-            <MenuFlyoutItem Text="以管理员身份运行" Click="FavMenu_RunAsAdmin" Icon="Admin" />
-            <MenuFlyoutItem Text="打开工具所在目录" Click="FavMenu_OpenDirectory" Icon="Folder" />
-            <MenuFlyoutItem x:Name="FavMenuOpenTutorial" Text="打开教程" Click="FavMenu_OpenTutorial" Visibility="Collapsed">
+            <MenuFlyoutItem x:Name="FavMenuRunAsAdmin" Text="以管理员身份运行" Click="FavMenu_RunAsAdmin" Icon="Admin" l:Uids.Uid="Common_RunAsAdmin" />
+            <MenuFlyoutItem x:Name="FavMenuOpenDirectory" Text="打开工具所在目录" Click="FavMenu_OpenDirectory" Icon="Folder" l:Uids.Uid="Common_OpenLocation" />
+            <MenuFlyoutItem x:Name="FavMenuOpenTutorial" Text="打开教程" Click="FavMenu_OpenTutorial" Visibility="Collapsed" l:Uids.Uid="Common_OpenTutorial">
                 <MenuFlyoutItem.Icon>
                     <FontIcon Glyph="&#xE8A1;" />
                 </MenuFlyoutItem.Icon>
             </MenuFlyoutItem>
-            <MenuFlyoutSubItem x:Name="FavArchSubmenu" Text="选择架构" Visibility="Collapsed">
+            <MenuFlyoutSubItem x:Name="FavArchSubmenu" Text="选择架构" Visibility="Collapsed" l:Uids.Uid="Common_SelectArch">
                 <MenuFlyoutSubItem.Icon>
                     <FontIcon Glyph="&#xE912;" />
                 </MenuFlyoutSubItem.Icon>
@@ -113,11 +114,13 @@
                 <TextBlock
                     FontSize="30"
                     FontWeight="Bold"
-                    Text="常用" />
+                    Text="常用"
+                    l:Uids.Uid="Favorites_Title" />
                 <TextBlock
                     x:Name="SubtitleText"
                     Opacity="1.0"
-                    Text="你收藏的工具会显示在这里,可拖拽调整顺序。" />
+                    Text="你收藏的工具会显示在这里,可拖拽调整顺序。"
+                    l:Uids.Uid="Favorites_Subtitle" />
             </StackPanel>
 
             <StackPanel
@@ -142,13 +145,15 @@
                         FontSize="18"
                         FontWeight="Bold"
                         VerticalAlignment="Center"
-                        Text="常用推荐" />
+                        Text="常用推荐"
+                        l:Uids.Uid="Favorites_FrequentTitle" />
                     <TextBlock
                         x:Name="FrequentSubtitle"
                         VerticalAlignment="Center"
                         FontSize="13"
                         Opacity="1.0"
-                        Text="基于使用频率智能排序" />
+                        Text="基于使用频率智能排序"
+                        l:Uids.Uid="Favorites_FrequentSubtitle" />
                 </StackPanel>
                 <ScrollViewer
                     HorizontalScrollBarVisibility="Hidden"
@@ -187,7 +192,8 @@
                         <TextBlock
                             FontSize="16"
                             FontWeight="Bold"
-                            Text="我的收藏" />
+                            Text="我的收藏"
+                            l:Uids.Uid="Favorites_MyFavorites" />
                         <TextBlock
                             x:Name="ToolCountText"
                             Opacity="1.0" />
@@ -201,7 +207,7 @@
                             Visibility="Collapsed">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon x:Name="EditOrderIcon" FontSize="12" Glyph="&#xE70F;" />
-                                <TextBlock x:Name="EditOrderButtonText" Text="编辑排序" />
+                                <TextBlock x:Name="EditOrderButtonText" Text="编辑排序" l:Uids.Uid="Favorites_EditOrderButtonText" />
                             </StackPanel>
                         </Button>
                         <Button
@@ -211,7 +217,7 @@
                             Visibility="Collapsed">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon FontSize="12" Glyph="&#xE74D;" />
-                                <TextBlock Text="清空全部" />
+                                <TextBlock Text="清空全部" l:Uids.Uid="Favorites_ClearAll" />
                             </StackPanel>
                         </Button>
                     </StackPanel>
@@ -280,7 +286,7 @@
 
                                             FontSize="12"
                                             Opacity="1.0"
-                                            Text="{Binding Category}"
+                                            Text="{Binding CategoryDisplay}"
                                             TextTrimming="CharacterEllipsis" />
                                     </StackPanel>
                                 </Grid>
@@ -324,7 +330,8 @@
                                         VerticalAlignment="Stretch"
                                         Padding="0"
                                         Click="SendToDesktopButton_Click"
-                                        ToolTipService.ToolTip="发送到桌面快捷方式">
+                                        ToolTipService.ToolTip="发送到桌面快捷方式"
+                                        l:Uids.Uid="Favorites_SendToDesktopButton">
                                         <FontIcon FontSize="12" Glyph="&#xE8AD;" />
                                     </Button>
                                     <Button
@@ -333,7 +340,8 @@
                                         VerticalAlignment="Stretch"
                                         Padding="0"
                                         Click="RunAsAdminButton_Click"
-                                        ToolTipService.ToolTip="以管理员身份运行">
+                                        ToolTipService.ToolTip="以管理员身份运行"
+                                        l:Uids.Uid="Favorites_RunAsAdminButton">
                                         <FontIcon FontSize="12" Glyph="&#xE7EF;" />
                                     </Button>
                                     <Button
@@ -355,7 +363,8 @@
                                         VerticalAlignment="Stretch"
                                         Padding="0"
                                         Click="RemoveFavoriteButton_Click"
-                                        ToolTipService.ToolTip="取消收藏">
+                                        ToolTipService.ToolTip="取消收藏"
+                                        l:Uids.Uid="Favorites_RemoveFavoriteButton">
                                         <FontIcon FontSize="12" Glyph="&#xE74D;" />
                                     </Button>
                                 </Grid>
@@ -385,6 +394,7 @@
                         <TextBlock
                             Opacity="1.0"
                             Text="按住任意卡片上下拖动即可调整顺序，完成后点击右上角“完成”。"
+                            l:Uids.Uid="Favorites_EditModeHint"
                             VerticalAlignment="Center" />
                     </StackPanel>
                 </Border>
@@ -405,16 +415,19 @@
                     HorizontalAlignment="Center"
                     FontSize="18"
                     Opacity="1.0"
-                    Text="还没有收藏的工具" />
+                    Text="还没有收藏的工具"
+                    l:Uids.Uid="Favorites_EmptyTitle" />
                 <TextBlock
                     HorizontalAlignment="Center"
                     Opacity="1.0"
-                    Text="在全部页面点击星标按钮即可收藏" />
+                    Text="在全部页面点击星标按钮即可收藏"
+                    l:Uids.Uid="Favorites_EmptyHint" />
             </StackPanel>
 
             <TeachingTip
                 x:Name="ToolDetailTip"
                 CloseButtonContent="关闭"
+                l:Uids.Uid="Favorites_ToolDetailTip"
                 PreferredPlacement="Right">
                 <StackPanel MaxWidth="420" Spacing="8">
                     <TextBlock x:Name="DetailDescriptionText" TextWrapping="Wrap" />

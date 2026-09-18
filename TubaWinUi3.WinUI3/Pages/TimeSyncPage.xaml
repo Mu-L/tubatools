@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:TubaWinUi3.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:l="using:WinUI3Localizer"
     xmlns:local="using:TubaWinUi3.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
@@ -114,6 +115,7 @@
             Grid.Row="0"
             Title="时间同步"
             Subtitle="切换系统 NTP 时间服务器 · 服务器测速 · 立即校时 · 时间服务修复"
+            l:Uids.Uid="TimeSync_PageHeader"
             Glyph="&#xE823;">
             <controls:ToolPageHeader.IconBackground>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
@@ -125,13 +127,13 @@
                 <Button x:Name="ProbeButton" Click="ProbeButton_Click" Padding="12,5" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                         <FontIcon x:Name="ProbeIcon" FontSize="12" Glyph="&#xE9D9;" />
-                        <TextBlock x:Name="ProbeText" FontSize="13" Text="服务器测速" />
+                        <TextBlock x:Name="ProbeText" FontSize="13" Text="服务器测速" l:Uids.Uid="TimeSync_ProbeButton" />
                     </StackPanel>
                 </Button>
                 <Button Click="HelpButton_Click" Padding="12,5" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                         <FontIcon FontSize="12" Glyph="&#xE897;" />
-                        <TextBlock FontSize="13" Text="说明" />
+                        <TextBlock FontSize="13" Text="说明" l:Uids.Uid="TimeSync_HelpButton" />
                     </StackPanel>
                 </Button>
             </controls:ToolPageHeader.Actions>
@@ -177,7 +179,7 @@
 
                         <StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <TextBlock x:Name="StatusTitle" FontSize="17" FontWeight="Bold" Text="正在读取系统时间配置…" />
+                                <TextBlock x:Name="StatusTitle" FontSize="17" FontWeight="Bold" Text="正在读取系统时间配置…" l:Uids.Uid="TimeSync_StatusLoading" />
                                 <ProgressRing x:Name="BusyRing" Width="15" Height="15" IsActive="False" Visibility="Collapsed" VerticalAlignment="Center" />
                             </StackPanel>
                             <TextBlock
@@ -185,10 +187,11 @@
                                 FontSize="12"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 TextWrapping="Wrap"
-                                Text="正在读取时间服务状态、时间源与上次同步时间。" />
+                                Text="正在读取时间服务状态、时间源与上次同步时间。"
+                                l:Uids.Uid="TimeSync_StatusLoadingDetail" />
 
                             <StackPanel x:Name="SourceRow" Orientation="Horizontal" Spacing="10" Visibility="Collapsed">
-                                <TextBlock FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Text="当前时间源" VerticalAlignment="Center" />
+                                <TextBlock FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Text="当前时间源" l:Uids.Uid="TimeSync_CurrentSourceLabel" VerticalAlignment="Center" />
                                 <TextBlock
                                     x:Name="SourceText"
                                     FontFamily="Consolas"
@@ -199,7 +202,7 @@
                                 <Button Click="CopySourceButton_Click" Padding="9,4" CornerRadius="7" VerticalAlignment="Center">
                                     <StackPanel Orientation="Horizontal" Spacing="5">
                                         <FontIcon FontSize="11" Glyph="&#xE8C8;" />
-                                        <TextBlock FontSize="12" Text="复制" />
+                                        <TextBlock FontSize="12" Text="复制" l:Uids.Uid="TimeSync_CopyButton" />
                                     </StackPanel>
                                 </Button>
                             </StackPanel>
@@ -215,7 +218,7 @@
                         <StackPanel Grid.Column="2" Spacing="2" HorizontalAlignment="Right" VerticalAlignment="Center">
                             <TextBlock x:Name="ClockText" FontFamily="Consolas" FontSize="26" FontWeight="Bold" Text="--:--:--" HorizontalAlignment="Right" />
                             <TextBlock x:Name="ClockDateText" FontSize="12" FontFamily="Consolas" Foreground="{ThemeResource TextFillColorSecondaryBrush}" HorizontalAlignment="Right" Text="----------" />
-                            <TextBlock x:Name="DriftText" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Right" Text="尚未测量与本机时间的偏差" TextWrapping="Wrap" MaxWidth="230" TextAlignment="Right" />
+                            <TextBlock x:Name="DriftText" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Right" Text="尚未测量与本机时间的偏差" l:Uids.Uid="TimeSync_DriftUnknown" TextWrapping="Wrap" MaxWidth="230" TextAlignment="Right" />
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -228,7 +231,7 @@
                     <Grid>
                         <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                             <Border Width="3" Height="15" CornerRadius="2" Background="#5B8DEF" VerticalAlignment="Center" />
-                            <TextBlock FontSize="15" FontWeight="SemiBold" Text="时间服务器" />
+                            <TextBlock FontSize="15" FontWeight="SemiBold" Text="时间服务器" l:Uids.Uid="TimeSync_ServersSectionTitle" />
                         </StackPanel>
                         <TextBlock
                             x:Name="PresetHint"
@@ -236,7 +239,8 @@
                             VerticalAlignment="Center"
                             FontSize="11"
                             Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                            Text="点卡片选中，可先测速再决定" />
+                            Text="点卡片选中，可先测速再决定"
+                            l:Uids.Uid="TimeSync_PresetHint" />
                     </Grid>
 
                     <ScrollViewer
@@ -264,11 +268,12 @@
                             FontFamily="Consolas"
                             FontSize="13"
                             PlaceholderText="自定义 NTP 地址，例如 ntp.aliyun.com 或 203.107.6.88（多个用空格/逗号分隔，不要带端口）"
+                            l:Uids.Uid="TimeSync_CustomHostPlaceholder"
                             TextChanged="CustomHostBox_TextChanged" />
                         <Button x:Name="CustomProbeButton" Grid.Column="1" Click="CustomProbeButton_Click" Padding="14,8" CornerRadius="8">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon FontSize="12" Glyph="&#xE9D9;" />
-                                <TextBlock FontSize="13" Text="测速" />
+                                <TextBlock FontSize="13" Text="测速" l:Uids.Uid="TimeSync_ProbeCustomButton" />
                             </StackPanel>
                         </Button>
                     </Grid>
@@ -295,19 +300,19 @@
                             CornerRadius="8">
                             <StackPanel Orientation="Horizontal" Spacing="7">
                                 <FontIcon x:Name="ApplyIcon" FontSize="13" Glyph="&#xE895;" />
-                                <TextBlock FontSize="13" FontWeight="SemiBold" Text="应用并立即同步" />
+                                <TextBlock FontSize="13" FontWeight="SemiBold" Text="应用并立即同步" l:Uids.Uid="TimeSync_ApplyButton" />
                             </StackPanel>
                         </Button>
                         <Button x:Name="ResyncButton" Grid.Column="1" Click="ResyncButton_Click" Padding="14,9" CornerRadius="8">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon x:Name="ResyncIcon" FontSize="12" Glyph="&#xE72C;" />
-                                <TextBlock FontSize="13" Text="立即校时" />
+                                <TextBlock FontSize="13" Text="立即校时" l:Uids.Uid="TimeSync_ResyncButton" />
                             </StackPanel>
                         </Button>
                         <Button x:Name="RestoreButton" Grid.Column="2" Click="RestoreButton_Click" Padding="14,9" CornerRadius="8">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon FontSize="12" Glyph="&#xE777;" />
-                                <TextBlock FontSize="13" Text="恢复系统默认" />
+                                <TextBlock FontSize="13" Text="恢复系统默认" l:Uids.Uid="TimeSync_RestoreButton" />
                             </StackPanel>
                         </Button>
                         <TextBlock
@@ -334,26 +339,26 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <TextBlock FontSize="15" FontWeight="SemiBold" Text="体检结果" />
+                                <TextBlock FontSize="15" FontWeight="SemiBold" Text="体检结果" l:Uids.Uid="TimeSync_HealthSectionTitle" />
                                 <TextBlock x:Name="IssueSummaryText" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" />
                             </StackPanel>
                             <Button x:Name="RepairButton" Grid.Column="1" Click="RepairButton_Click" Padding="14,7" CornerRadius="8" Visibility="Collapsed">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <FontIcon x:Name="RepairIcon" FontSize="12" Glyph="&#xE90F;" />
-                                    <TextBlock FontSize="13" Text="一键修复" />
+                                    <TextBlock FontSize="13" Text="一键修复" l:Uids.Uid="TimeSync_RepairButton" />
                                 </StackPanel>
                             </Button>
                         </Grid>
                         <ItemsControl x:Name="IssueList" ItemTemplate="{StaticResource IssueTemplate}" />
                         <StackPanel x:Name="AllGoodPanel" Orientation="Horizontal" Spacing="8" Visibility="Collapsed">
                             <FontIcon FontSize="14" Glyph="&#xE73E;" Foreground="{ThemeResource SystemFillColorSuccessBrush}" VerticalAlignment="Center" />
-                            <TextBlock FontSize="13" Text="时间服务、时间源与同步状态都正常。" VerticalAlignment="Center" />
+                            <TextBlock FontSize="13" Text="时间服务、时间源与同步状态都正常。" l:Uids.Uid="TimeSync_AllGood" VerticalAlignment="Center" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
 
                 <!-- ═════════ 高级设置 ═════════ -->
-                <Expander Header="高级设置（同步频率 / 时间种子 / 服务重置 / 诊断报告）" HorizontalAlignment="Stretch" IsExpanded="False">
+                <Expander Header="高级设置（同步频率 / 时间种子 / 服务重置 / 诊断报告）" l:Uids.Uid="TimeSync_AdvancedExpander" HorizontalAlignment="Stretch" IsExpanded="False">
                     <StackPanel Spacing="14" Padding="0,12,0,0">
 
                         <Grid ColumnSpacing="12">
@@ -362,15 +367,16 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <StackPanel Spacing="3">
-                                <TextBlock FontSize="13" FontWeight="SemiBold" Text="同步频率" />
+                                <TextBlock FontSize="13" FontWeight="SemiBold" Text="同步频率" l:Uids.Uid="TimeSync_IntervalTitle" />
                                 <TextBlock
                                     FontSize="11"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     TextWrapping="Wrap"
-                                    Text="默认交给系统自适应轮询（Windows 会根据本机时钟精度自动拉长/缩短间隔）。想固定间隔时选中具体频率，会写入 SpecialPollInterval 并给时间源加上 0x1 标志。" />
+                                    Text="默认交给系统自适应轮询（Windows 会根据本机时钟精度自动拉长/缩短间隔）。想固定间隔时选中具体频率，会写入 SpecialPollInterval 并给时间源加上 0x1 标志。"
+                                    l:Uids.Uid="TimeSync_IntervalDesc" />
                                 <ComboBox x:Name="IntervalCombo" MinWidth="220" Margin="0,4,0,0" SelectionChanged="IntervalCombo_SelectionChanged" />
                             </StackPanel>
-                            <Button x:Name="ApplyIntervalButton" Grid.Column="1" Click="ApplyIntervalButton_Click" Padding="14,8" CornerRadius="8" VerticalAlignment="Bottom" Content="应用频率" />
+                            <Button x:Name="ApplyIntervalButton" Grid.Column="1" Click="ApplyIntervalButton_Click" Padding="14,8" CornerRadius="8" VerticalAlignment="Bottom" Content="应用频率" l:Uids.Uid="TimeSync_ApplyIntervalButton" />
                         </Grid>
 
                         <Grid ColumnSpacing="12">
@@ -379,14 +385,15 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <StackPanel Spacing="3">
-                                <TextBlock FontSize="13" FontWeight="SemiBold" Text="SSL 时间种子" />
+                                <TextBlock FontSize="13" FontWeight="SemiBold" Text="SSL 时间种子" l:Uids.Uid="TimeSync_SslSeedTitle" />
                                 <TextBlock
                                     FontSize="11"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     TextWrapping="Wrap"
-                                    Text="系统会用 HTTPS 握手时间戳给时钟做兜底校正（UtilizeSslTimeData）。个别机器会因此出现时间莫名跳变，遇到这种情况可以关掉。" />
+                                    Text="系统会用 HTTPS 握手时间戳给时钟做兜底校正（UtilizeSslTimeData）。个别机器会因此出现时间莫名跳变，遇到这种情况可以关掉。"
+                                    l:Uids.Uid="TimeSync_SslSeedDesc" />
                             </StackPanel>
-                            <ToggleSwitch x:Name="SslSeedToggle" Grid.Column="1" MinWidth="0" Margin="0,0,0,0" OffContent="已关闭" OnContent="已启用" Toggled="SslSeedToggle_Toggled" VerticalAlignment="Center" />
+                            <ToggleSwitch x:Name="SslSeedToggle" Grid.Column="1" MinWidth="0" Margin="0,0,0,0" OffContent="已关闭" OnContent="已启用" l:Uids.Uid="TimeSync_SslSeedToggle" Toggled="SslSeedToggle_Toggled" VerticalAlignment="Center" />
                         </Grid>
 
                         <Grid ColumnSpacing="8">
@@ -400,25 +407,25 @@
                             <Button x:Name="ResetServiceButton" Click="ResetServiceButton_Click" Padding="14,8" CornerRadius="8">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <FontIcon FontSize="12" Glyph="&#xE777;" />
-                                    <TextBlock FontSize="13" Text="重置时间服务" />
+                                    <TextBlock FontSize="13" Text="重置时间服务" l:Uids.Uid="TimeSync_ResetServiceButton" />
                                 </StackPanel>
                             </Button>
                             <Button Grid.Column="1" Click="CopyReportButton_Click" Padding="14,8" CornerRadius="8">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <FontIcon FontSize="12" Glyph="&#xE8C8;" />
-                                    <TextBlock FontSize="13" Text="复制诊断报告" />
+                                    <TextBlock FontSize="13" Text="复制诊断报告" l:Uids.Uid="TimeSync_CopyReportButton" />
                                 </StackPanel>
                             </Button>
                             <Button Grid.Column="2" Click="OpenTimeSettingsButton_Click" Padding="14,8" CornerRadius="8">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <FontIcon FontSize="12" Glyph="&#xE713;" />
-                                    <TextBlock FontSize="13" Text="系统时间设置" />
+                                    <TextBlock FontSize="13" Text="系统时间设置" l:Uids.Uid="TimeSync_OpenTimeSettings" />
                                 </StackPanel>
                             </Button>
                             <Button x:Name="ElevateButton" Grid.Column="3" Click="ElevateButton_Click" Padding="14,8" CornerRadius="8" Visibility="Collapsed">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <FontIcon FontSize="12" Glyph="&#xE7EF;" />
-                                    <TextBlock FontSize="13" Text="以管理员身份重启" />
+                                    <TextBlock FontSize="13" Text="以管理员身份重启" l:Uids.Uid="TimeSync_ElevateButton" />
                                 </StackPanel>
                             </Button>
                         </Grid>
@@ -433,21 +440,21 @@
                     BorderThickness="1"
                     CornerRadius="12">
                     <StackPanel Spacing="6">
-                        <TextBlock FontSize="14" FontWeight="SemiBold" Text="时间不准，为什么网页和登录会出问题？" />
+                        <TextBlock FontSize="14" FontWeight="SemiBold" Text="时间不准，为什么网页和登录会出问题？" l:Uids.Uid="TimeSync_WhyTitle" />
                         <TextBlock
                             FontSize="12"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             TextWrapping="Wrap"
                             LineHeight="19">
-                            <Run Text="· 网站证书有生效/过期时间，系统时间偏得太多会被浏览器判定为无效证书（提示「不安全 / 连接不是私密连接」）；登录校验、验证码、购票抢票也会因为时间戳对不上而失败。" />
+                            <Run Text="· 网站证书有生效/过期时间，系统时间偏得太多会被浏览器判定为无效证书（提示「不安全 / 连接不是私密连接」）；登录校验、验证码、购票抢票也会因为时间戳对不上而失败。" l:Uids.Uid="TimeSync_Why1" />
                             <LineBreak />
-                            <Run Text="· Windows 默认时间源是 time.windows.com，国内线路偶发超时或响应很慢——网络明明正常，但就是「有些网站怪怪的」，常见原因就是它。换成国内时间源即可。" />
+                            <Run Text="· Windows 默认时间源是 time.windows.com，国内线路偶发超时或响应很慢——网络明明正常，但就是「有些网站怪怪的」，常见原因就是它。换成国内时间源即可。" l:Uids.Uid="TimeSync_Why2" />
                             <LineBreak />
-                            <Run Text="· 本工具直接调用系统自带的 w32tm（Windows 时间服务官方命令行），不装任何驱动、不驻留后台；切换时间源本质是写入 NTP 服务器列表并重启时间服务，随时可以「恢复系统默认」。" />
+                            <Run Text="· 本工具直接调用系统自带的 w32tm（Windows 时间服务官方命令行），不装任何驱动、不驻留后台；切换时间源本质是写入 NTP 服务器列表并重启时间服务，随时可以「恢复系统默认」。" l:Uids.Uid="TimeSync_Why3" />
                             <LineBreak />
-                            <Run Text="· 修改时间源、启停时间服务需要管理员权限：未打包版启动时会自动申请，你也可以用上面的「以管理员身份重启」按钮手动提权。" />
+                            <Run Text="· 修改时间源、启停时间服务需要管理员权限：未打包版启动时会自动申请，你也可以用上面的「以管理员身份重启」按钮手动提权。" l:Uids.Uid="TimeSync_Why4" />
                             <LineBreak />
-                            <Run Text="· 官方参考：Microsoft Learn《Windows Time service tools and settings》——w32tm /config /manualpeerlist:服务器地址 /syncfromflags:manual /update、w32tm /resync /rediscover、w32tm /query /status 与 /query /source。" />
+                            <Run Text="· 官方参考：Microsoft Learn《Windows Time service tools and settings》——w32tm /config /manualpeerlist:服务器地址 /syncfromflags:manual /update、w32tm /resync /rediscover、w32tm /query /status 与 /query /source。" l:Uids.Uid="TimeSync_Why5" />
                         </TextBlock>
                     </StackPanel>
                 </Border>

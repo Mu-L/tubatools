@@ -1,3 +1,5 @@
+using TubaWinUi3.Services;
+
 namespace TubaWinUi3.Models;
 
 public sealed class SearchResult
@@ -15,12 +17,12 @@ public sealed class SearchResult
 
     public string KindText => Kind switch
     {
-        SearchItemKind.ExternalTool => "工具",
-        SearchItemKind.BuiltinTool => "内置",
-        SearchItemKind.Setting => "设置",
-        SearchItemKind.CustomTool => "自定义",
-        SearchItemKind.QuickAction => "快捷",
-        SearchItemKind.CommunityTool => "社区",
+        SearchItemKind.ExternalTool => LocalizationService.L("Search_KindTool", "工具"),
+        SearchItemKind.BuiltinTool => LocalizationService.L("Search_KindBuiltin", "内置"),
+        SearchItemKind.Setting => LocalizationService.L("Search_KindSetting", "设置"),
+        SearchItemKind.CustomTool => LocalizationService.L("Search_KindCustom", "自定义"),
+        SearchItemKind.QuickAction => LocalizationService.L("Search_KindQuick", "快捷"),
+        SearchItemKind.CommunityTool => LocalizationService.L("Search_KindCommunity", "社区"),
         _ => ""
     };
 

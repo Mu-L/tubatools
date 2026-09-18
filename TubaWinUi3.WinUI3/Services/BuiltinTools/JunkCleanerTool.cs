@@ -1,4 +1,4 @@
-using FluentCleaner.Models;
+﻿using FluentCleaner.Models;
 using FluentCleaner.Services;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -16,8 +16,8 @@ namespace TubaWinUi3.Services;
 public sealed class JunkCleanerTool : IBuiltinTool
 {
     public string Id => "junk-cleaner";
-    public string Name => "垃圾清理";
-    public string Description => "基于 Winapp2 规则库扫描并清理应用缓存、临时文件与注册表残留（引擎来自 FluentCleaner）。";
+    public string Name => LocalizationService.L("Builtin_junk-cleaner_Name", "垃圾清理");
+    public string Description => LocalizationService.L("Builtin_junk-cleaner_Desc", "基于 Winapp2 规则库扫描并清理应用缓存、临时文件与注册表残留（引擎来自 FluentCleaner）。");
     public string Glyph => "\uE74D";
     public string Category => "系统工具";
     public BuiltinToolKind Kind => BuiltinToolKind.ProgressTask;

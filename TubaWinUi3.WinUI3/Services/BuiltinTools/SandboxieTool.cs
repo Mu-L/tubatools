@@ -1,4 +1,4 @@
-using TubaWinUi3.Pages;
+﻿using TubaWinUi3.Pages;
 
 namespace TubaWinUi3.Services;
 
@@ -9,8 +9,8 @@ namespace TubaWinUi3.Services;
 public sealed class SandboxieTool : IBuiltinTool
 {
     public string Id => "sandboxie";
-    public string Name => "恶意软件沙盒";
-    public string Description => "Sandboxie-Plus 沙盒环境，安全运行和分析可疑程序 / 恶意软件，删除沙盒即可还原系统";
+    public string Name => LocalizationService.L("Builtin_sandboxie_Name", "恶意软件沙盒");
+    public string Description => LocalizationService.L("Builtin_sandboxie_Desc", "Sandboxie-Plus 沙盒环境，安全运行和分析可疑程序 / 恶意软件，删除沙盒即可还原系统");
     public string Glyph => "\uEA18";
     public string Category => "系统工具";
     public BuiltinToolKind Kind => BuiltinToolKind.ProgressTask;

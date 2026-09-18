@@ -1,4 +1,4 @@
-using Microsoft.UI.Dispatching;
+﻿using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -109,7 +109,7 @@ public sealed class TimeSyncIssueItem
 /// 看状态 → 挑一台连得上的 NTP 服务器（可先测速）→ 应用并校时，必要时一键修复时间服务。
 /// 依赖 Windows 自带 w32tm / 时间服务，不装驱动、不驻留后台。
 /// </summary>
-public sealed partial class TimeSyncPage : Page
+public sealed partial class TimeSyncPage : Page, ILocalizablePage
 {
     // 品牌调色板（与其它内置工具页一致）
     public static readonly Color AccentColor = Color.FromArgb(255, 91, 141, 239);
@@ -202,10 +202,10 @@ public sealed partial class TimeSyncPage : Page
             var card = new TimeSyncServerCard
             {
                 Id = preset.Id,
-                Name = preset.Name,
-                Summary = preset.Summary,
+                Name = LocalizationService.L($"TimeSync_Preset_{preset.Id}_Name", preset.Name),
+                Summary = LocalizationService.L($"TimeSync_Preset_{preset.Id}_Summary", preset.Summary),
                 HostText = string.Join(" · ", preset.Hosts),
-                Tooltip = preset.Note,
+                Tooltip = LocalizationService.L($"TimeSync_Preset_{preset.Id}_Note", preset.Note),
                 Hosts = preset.Hosts,
             };
             _cards.Add(card);
@@ -214,10 +214,10 @@ public sealed partial class TimeSyncPage : Page
         _cards.Add(new TimeSyncServerCard
         {
             Id = CustomCardId,
-            Name = "自定义",
-            Summary = "填自己的 NTP 服务器地址",
-            HostText = "手动输入",
-            Tooltip = "填入任意 NTP 服务器（域名或 IP），测速正常即可应用。",
+            Name = LocalizationService.L("TimeSync_CustomCardName", "自定义"),
+            Summary = LocalizationService.L("TimeSync_CustomCardSummary", "填自己的 NTP 服务器地址"),
+            HostText = LocalizationService.L("TimeSync_CustomCardHost", "手动输入"),
+            Tooltip = LocalizationService.L("TimeSync_CustomCardTooltip", "填入任意 NTP 服务器（域名或 IP），测速正常即可应用。"),
             IsCustom = true,
         });
 
@@ -249,19 +249,19 @@ public sealed partial class TimeSyncPage : Page
     {
         if (_selectedCard is null)
         {
-            SelectedHint.Text = "先选一台服务器";
+            SelectedHint.Text = LocalizationService.L("TimeSync_SelectServerFirst", "先选一台服务器");
             return;
         }
 
         var hosts = SelectedHosts();
         if (hosts.Count == 0)
         {
-            SelectedHint.Text = "填写自定义地址后再应用";
+            SelectedHint.Text = LocalizationService.L("TimeSync_EnterCustomAddress", "填写自定义地址后再应用");
             return;
         }
 
         var interval = SelectedIntervalSeconds();
-        SelectedHint.Text = $"将写入：{TimeSyncCatalog.BuildPeerList(hosts, interval > 0)}";
+        SelectedHint.Text = string.Format(LocalizationService.L("TimeSync_WillWrite", "将写入：{0}"), TimeSyncCatalog.BuildPeerList(hosts, interval > 0));
     }
 
     private List<string> SelectedHosts()
@@ -293,7 +293,7 @@ public sealed partial class TimeSyncPage : Page
         }
         catch (Exception ex)
         {
-            StatusTitle.Text = "读取系统时间配置失败";
+            StatusTitle.Text = LocalizationService.L("TimeSync_ReadFailedTitle", "读取系统时间配置失败");
             StatusDetail.Text = ex.Message;
         }
     }
@@ -350,36 +350,36 @@ public sealed partial class TimeSyncPage : Page
         {
             StatusIcon.Glyph = "\uEA39";
             StatusIcon.Foreground = CriticalBrush;
-            StatusTitle.Text = "找不到 Windows 时间服务";
-            StatusDetail.Text = "系统里没有 w32time 服务，时间同步处于完全不可用状态。可用「高级设置 → 重置时间服务」重新注册。";
+            StatusTitle.Text = LocalizationService.L("TimeSync_ServiceMissingTitle", "找不到 Windows 时间服务");
+            StatusDetail.Text = LocalizationService.L("TimeSync_ServiceMissingDetail", "系统里没有 w32time 服务，时间同步处于完全不可用状态。可用「高级设置 → 重置时间服务」重新注册。");
         }
         else if (!service.Running)
         {
             StatusIcon.Glyph = "\uE7BA";
             StatusIcon.Foreground = CautionBrush;
-            StatusTitle.Text = "Windows 时间服务没有运行";
-            StatusDetail.Text = "服务停止时系统不会校时，也读不到时间源。点「一键修复」即可启动它。";
+            StatusTitle.Text = LocalizationService.L("TimeSync_ServiceStoppedTitle", "Windows 时间服务没有运行");
+            StatusDetail.Text = LocalizationService.L("TimeSync_ServiceStoppedDetail", "服务停止时系统不会校时，也读不到时间源。点「一键修复」即可启动它。");
         }
         else if (snapshot.CurrentSource.Length == 0)
         {
-            StatusTitle.Text = "时间服务运行中，但还没同步过时间源";
-            StatusDetail.Text = "选一台服务器点「应用并立即同步」，或先「服务器测速」看看哪台连得上。";
+            StatusTitle.Text = LocalizationService.L("TimeSync_NeverSyncedTitle", "时间服务运行中，但还没同步过时间源");
+            StatusDetail.Text = LocalizationService.L("TimeSync_NeverSyncedDetail", "选一台服务器点「应用并立即同步」，或先「服务器测速」看看哪台连得上。");
             ShowSourceRow(snapshot);
         }
         else if (snapshot.SourceIsLocalClock)
         {
             StatusIcon.Glyph = "\uE7BA";
             StatusIcon.Foreground = CautionBrush;
-            StatusTitle.Text = "正在使用本机硬件时钟";
-            StatusDetail.Text = "没有任何网络时间源在起作用，本机时钟误差会持续累积。选一台 NTP 服务器应用即可。";
+            StatusTitle.Text = LocalizationService.L("TimeSync_LocalClockTitle", "正在使用本机硬件时钟");
+            StatusDetail.Text = LocalizationService.L("TimeSync_LocalClockDetail", "没有任何网络时间源在起作用，本机时钟误差会持续累积。选一台 NTP 服务器应用即可。");
             ShowSourceRow(snapshot);
         }
         else
         {
             StatusIcon.Glyph = "\uE73E";
             StatusIcon.Foreground = SuccessBrush;
-            StatusTitle.Text = "时间同步已生效";
-            StatusDetail.Text = "系统正在按下面的时间源校时；如需换源，重新选一台应用即可。";
+            StatusTitle.Text = LocalizationService.L("TimeSync_WorkingTitle", "时间同步已生效");
+            StatusDetail.Text = LocalizationService.L("TimeSync_WorkingDetail", "系统正在按下面的时间源校时；如需换源，重新选一台应用即可。");
             ShowSourceRow(snapshot);
         }
 
@@ -387,15 +387,17 @@ public sealed partial class TimeSyncPage : Page
         if (last is not null)
         {
             var age = DateTimeOffset.Now - last.Value;
-            var ageText = age.TotalMinutes < 2 ? "刚刚"
-                : age.TotalHours < 1 ? $"{(int)age.TotalMinutes} 分钟前"
-                : age.TotalDays < 1 ? $"{(int)age.TotalHours} 小时前"
-                : $"{(int)age.TotalDays} 天前";
-            LastSyncText.Text = $"上次成功同步：{last.Value:yyyy-MM-dd HH:mm:ss}（{ageText}）　·　同步模式：{snapshot.NtpClient.SyncTypeText}";
+            var ageText = age.TotalMinutes < 2 ? LocalizationService.L("TimeSync_JustNow", "刚刚")
+                : age.TotalHours < 1 ? string.Format(LocalizationService.L("TimeSync_MinutesAgo", "{0} 分钟前"), (int)age.TotalMinutes)
+                : age.TotalDays < 1 ? string.Format(LocalizationService.L("TimeSync_HoursAgo", "{0} 小时前"), (int)age.TotalHours)
+                : string.Format(LocalizationService.L("TimeSync_DaysAgo", "{0} 天前"), (int)age.TotalDays);
+            LastSyncText.Text = string.Format(
+                LocalizationService.L("TimeSync_LastSyncFormat", "上次成功同步：{0}（{1}）　·　同步模式：{2}"),
+                last.Value.ToString("yyyy-MM-dd HH:mm:ss"), ageText, snapshot.NtpClient.SyncTypeText);
         }
         else
         {
-            LastSyncText.Text = $"同步模式：{snapshot.NtpClient.SyncTypeText}　·　没有同步成功的记录";
+            LastSyncText.Text = string.Format(LocalizationService.L("TimeSync_SyncModeNoRecord", "同步模式：{0}　·　没有同步成功的记录"), snapshot.NtpClient.SyncTypeText);
         }
 
         LastSyncText.Visibility = Visibility.Visible;
@@ -403,8 +405,8 @@ public sealed partial class TimeSyncPage : Page
         if (!snapshot.IsAdmin)
         {
             ProblemBar.Severity = InfoBarSeverity.Error;
-            ProblemBar.Title = "当前未以管理员身份运行";
-            ProblemBar.Message = "切换时间源、启停时间服务都需要管理员权限。可在「高级设置 → 以管理员身份重启」重新提权后再操作。";
+            ProblemBar.Title = LocalizationService.L("TimeSync_NotAdminTitle", "当前未以管理员身份运行");
+            ProblemBar.Message = LocalizationService.L("TimeSync_NotAdminMessage", "切换时间源、启停时间服务都需要管理员权限。可在「高级设置 → 以管理员身份重启」重新提权后再操作。");
             ProblemBar.IsOpen = true;
         }
 
@@ -421,12 +423,14 @@ public sealed partial class TimeSyncPage : Page
     {
         if (_driftProbe is { Ok: true } probe)
         {
-            DriftText.Text = $"实测与 {probe.Host} 相差 {TimeSyncService.FormatOffset(probe.OffsetMs)}（延迟 {probe.RoundTripMs:F0} ms）";
+            DriftText.Text = string.Format(
+                LocalizationService.L("TimeSync_DriftMeasured", "实测与 {0} 相差 {1}（延迟 {2:F0} ms）"),
+                probe.Host, TimeSyncService.FormatOffset(probe.OffsetMs), probe.RoundTripMs);
             DriftText.Foreground = Math.Abs(probe.OffsetMs) > 100 ? CautionBrush : SuccessBrush;
         }
         else
         {
-            DriftText.Text = "点右上角「服务器测速」可实测本机时间偏差";
+            DriftText.Text = LocalizationService.L("TimeSync_DriftHint", "点右上角「服务器测速」可实测本机时间偏差");
             DriftText.Foreground = NeutralBrush;
         }
     }
@@ -438,11 +442,13 @@ public sealed partial class TimeSyncPage : Page
         var issues = TimeSyncService.Evaluate(_snapshot, _driftProbe);
         IssueList.ItemsSource = issues.Select(TimeSyncIssueItem.From).ToList();
 
-        var fixable = issues.Where(i => !i.Title.StartsWith("当前未以管理员", StringComparison.Ordinal)).ToList();
+        var fixable = issues.Where(i => !i.Title.StartsWith(LocalizationService.L("TimeSync_IssueNotAdminPrefix", "当前未以管理员"), StringComparison.Ordinal)).ToList();
         AllGoodPanel.Visibility = issues.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         IssueSummaryText.Text = issues.Count == 0
-            ? "全部正常"
-            : fixable.Count > 0 ? $"{issues.Count} 项待处理（可一键修复）" : $"{issues.Count} 项待处理";
+            ? LocalizationService.L("TimeSync_AllNormal", "全部正常")
+            : fixable.Count > 0
+                ? string.Format(LocalizationService.L("TimeSync_IssuesFixable", "{0} 项待处理（可一键修复）"), issues.Count)
+                : string.Format(LocalizationService.L("TimeSync_IssuesPending", "{0} 项待处理"), issues.Count);
         RepairButton.Visibility = fixable.Count > 0 && _snapshot.IsAdmin ? Visibility.Visible : Visibility.Collapsed;
 
         if (issues.Count == 0)
@@ -465,9 +471,9 @@ public sealed partial class TimeSyncPage : Page
 
         if (IntervalCombo.Items.Count == 0)
         {
-            foreach (var option in TimeSyncCatalog.IntervalOptions) IntervalCombo.Items.Add(option.Label);
+            foreach (var option in TimeSyncCatalog.IntervalOptions)
+                IntervalCombo.Items.Add(LocalizationService.L($"TimeSync_Interval_{option.Seconds}", option.Label));
         }
-
         var stored = _settings.SyncIntervalSeconds;
         var index = TimeSyncCatalog.IntervalOptions.ToList().FindIndex(o => o.Seconds == stored);
         IntervalCombo.SelectedIndex = index < 0 ? 0 : index;
@@ -483,8 +489,8 @@ public sealed partial class TimeSyncPage : Page
     {
         if (_probes.Count > 0) return;
         PresetHint.Text = snapshot.NtpClient.Peers.Length > 0
-            ? $"当前配置：{snapshot.NtpClient.Peers}"
-            : "点卡片选中，可先测速再决定";
+            ? string.Format(LocalizationService.L("TimeSync_CurrentConfig", "当前配置：{0}"), snapshot.NtpClient.Peers)
+            : LocalizationService.L("TimeSync_PresetHint", "点卡片选中，可先测速再决定");
     }
 
     // ══════════════════ 测速 ══════════════════
@@ -498,7 +504,7 @@ public sealed partial class TimeSyncPage : Page
         _probing = true;
 
         var timeout = TimeSpan.FromSeconds(2.5);
-        PresetHint.Text = "正在测试各服务器的可用性与延迟…";
+        PresetHint.Text = LocalizationService.L("TimeSync_ProbingAll", "正在测试各服务器的可用性与延迟…");
         SetProbeBusy(true);
 
         try
@@ -520,7 +526,7 @@ public sealed partial class TimeSyncPage : Page
                 foreach (var host in card.Hosts) targets.Add((card, host));
             }
 
-            foreach (var card in _cards) card.SetStatus("测试中…", NeutralColor);
+            foreach (var card in _cards) card.SetStatus(LocalizationService.L("TimeSync_Testing", "测试中…"), NeutralColor);
 
             // 先并发拿回全部结果，再一次性落到卡片上：避免边写边读探测结果集合
             var outcomes = await Task.WhenAll(targets.Select(async target =>
@@ -536,8 +542,8 @@ public sealed partial class TimeSyncPage : Page
             _driftProbe = ok.Count > 0 ? ok[0].Result : null;
 
             PresetHint.Text = ok.Count == 0
-                ? "所有服务器都没响应：可能是当前网络屏蔽了 UDP 123（换网络或检查防火墙）"
-                : $"测速完成：{ok.Count} 台可用，最快 {ok[0].Host}（{ok[0].Result.RoundTripMs:F0} ms）";
+                ? LocalizationService.L("TimeSync_AllServersUnreachable", "所有服务器都没响应：可能是当前网络屏蔽了 UDP 123（换网络或检查防火墙）")
+                : string.Format(LocalizationService.L("TimeSync_ProbeDoneBest", "测速完成：{0} 台可用，最快 {1}（{2:F0} ms）"), ok.Count, ok[0].Host, ok[0].Result.RoundTripMs);
 
             RenderDrift();
             RenderIssues();
@@ -554,15 +560,15 @@ public sealed partial class TimeSyncPage : Page
         var available = outcomes.Count(o => o.Result.Ok);
         if (available == 0)
         {
-            var error = outcomes.FirstOrDefault().Result?.Error ?? "没有响应";
-            card.SetStatus($"不可用（{error}）", CriticalColor);
+            var error = outcomes.FirstOrDefault().Result?.Error ?? LocalizationService.L("TimeSync_NoResponse", "没有响应");
+            card.SetStatus(string.Format(LocalizationService.L("TimeSync_UnavailableWithError", "不可用（{0}）"), error), CriticalColor);
             return;
         }
 
         var best = outcomes.Where(o => o.Result.Ok).OrderBy(o => o.Result.RoundTripMs).First().Result;
         var text = outcomes.Count > 1
-            ? $"延迟 {best.RoundTripMs:F0} ms · {available}/{outcomes.Count} 台可用"
-            : $"延迟 {best.RoundTripMs:F0} ms · {TimeSyncService.FormatOffset(best.OffsetMs)}";
+            ? string.Format(LocalizationService.L("TimeSync_LatencyAvailable", "延迟 {0:F0} ms · {1}/{2} 台可用"), best.RoundTripMs, available, outcomes.Count)
+            : string.Format(LocalizationService.L("TimeSync_LatencyOffset", "延迟 {0:F0} ms · {1}"), best.RoundTripMs, TimeSyncService.FormatOffset(best.OffsetMs));
         card.SetStatus(text, best.RoundTripMs < 400 ? SuccessColor : CautionColor);
     }
 
@@ -577,9 +583,11 @@ public sealed partial class TimeSyncPage : Page
     {
         ProbeButton.IsEnabled = !busy && !_busy;
         CustomProbeButton.IsEnabled = !busy && !_busy;
-        ProbeText.Text = busy ? "测速中…" : "服务器测速";
+        ProbeText.Text = busy
+            ? LocalizationService.L("TimeSync_Probing", "测速中…")
+            : LocalizationService.L("TimeSync_ProbeButton", "服务器测速");
         ProbeIcon.Glyph = busy ? "\uE895" : "\uE9D9";
-        if (!busy) foreach (var card in _cards.Where(c => c.StatusText == "测试中…")) card.ClearStatus();
+        if (!busy) foreach (var card in _cards.Where(c => c.StatusText == LocalizationService.L("TimeSync_Testing", "测试中…"))) card.ClearStatus();
     }
 
     // ══════════════════ 操作 ══════════════════
@@ -592,7 +600,9 @@ public sealed partial class TimeSyncPage : Page
             ?? _cards.FirstOrDefault(c => !c.IsCustom && c.Id == _settings.PresetId);
         if (card is null)
         {
-            await ShowMessageAsync("先选一台时间服务器", "点一张卡片选中它（想用自己的地址就选「自定义」并填写），然后再点「应用并立即同步」。");
+            await ShowMessageAsync(
+                LocalizationService.L("TimeSync_PickServerTitle", "先选一台时间服务器"),
+                LocalizationService.L("TimeSync_PickServerMessage", "点一张卡片选中它（想用自己的地址就选「自定义」并填写），然后再点「应用并立即同步」。"));
             return;
         }
 
@@ -600,11 +610,11 @@ public sealed partial class TimeSyncPage : Page
         var error = TimeSyncCatalog.ValidateHosts(hosts);
         if (error is not null)
         {
-            await ShowMessageAsync("地址不合法", error);
+            await ShowMessageAsync(LocalizationService.L("TimeSync_InvalidAddressTitle", "地址不合法"), error);
             return;
         }
 
-        SetBusy(true, "正在写入时间源、重启时间服务并校时…");
+        SetBusy(true, LocalizationService.L("TimeSync_BusyApplying", "正在写入时间源、重启时间服务并校时…"));
         try
         {
             var result = await TimeSyncService.ApplyServersAsync(hosts, SelectedIntervalSeconds());
@@ -628,7 +638,7 @@ public sealed partial class TimeSyncPage : Page
     private async void ResyncButton_Click(object sender, RoutedEventArgs e)
     {
         if (_busy) return;
-        SetBusy(true, "正在向时间源校时…");
+        SetBusy(true, LocalizationService.L("TimeSync_BusyResync", "正在向时间源校时…"));
         try
         {
             var result = await TimeSyncService.ResyncAsync();
@@ -645,14 +655,16 @@ public sealed partial class TimeSyncPage : Page
     {
         if (_busy || _snapshot is null) return;
 
-        var target = _snapshot.DomainJoined ? "域时间层次（NT5DS）" : "time.windows.com（系统出厂配置）";
-        var confirmed = await ConfirmAsync("恢复系统默认时间源",
-            $"会把时间源改回 {target}，然后重启时间服务并立即校时。\n" +
-            "同步频率不会被改动（想改可在「高级设置 → 同步频率」里调整）。",
-            "恢复默认");
+        var target = _snapshot.DomainJoined
+            ? LocalizationService.L("TimeSync_TargetDomain", "域时间层次（NT5DS）")
+            : LocalizationService.L("TimeSync_TargetDefault", "time.windows.com（系统出厂配置）");
+        var confirmed = await ConfirmAsync(
+            LocalizationService.L("TimeSync_RestoreConfirmTitle", "恢复系统默认时间源"),
+            string.Format(LocalizationService.L("TimeSync_RestoreConfirmMessage", "会把时间源改回 {0}，然后重启时间服务并立即校时。\n同步频率不会被改动（想改可在「高级设置 → 同步频率」里调整）。"), target),
+            LocalizationService.L("TimeSync_RestoreConfirmPrimary", "恢复默认"));
         if (!confirmed) return;
 
-        SetBusy(true, "正在恢复系统默认时间源…");
+        SetBusy(true, LocalizationService.L("TimeSync_BusyRestoring", "正在恢复系统默认时间源…"));
         try
         {
             var result = await TimeSyncService.RestoreDefaultAsync(_snapshot.DomainJoined);
@@ -680,16 +692,19 @@ public sealed partial class TimeSyncPage : Page
         var hosts = SelectedHosts();
         var plan = new List<string>
         {
-            "把 Windows 时间服务设为「自动（延迟启动）」并启动",
-            "确保 NTP 客户端处于启用状态",
+            LocalizationService.L("TimeSync_RepairStepEnableService", "把 Windows 时间服务设为「自动（延迟启动）」并启动"),
+            LocalizationService.L("TimeSync_RepairStepEnsureClient", "确保 NTP 客户端处于启用状态"),
         };
-        if (hosts.Count > 0) plan.Add($"应用当前选择的时间源（{string.Join(" ", hosts)}）并立即校时");
-        else plan.Add("重启时间服务并立即校时（保留现有时间源配置）");
+        if (hosts.Count > 0) plan.Add(string.Format(LocalizationService.L("TimeSync_RepairStepApplyHosts", "应用当前选择的时间源（{0}）并立即校时"), string.Join(" ", hosts)));
+        else plan.Add(LocalizationService.L("TimeSync_RepairStepRestartOnly", "重启时间服务并立即校时（保留现有时间源配置）"));
 
-        var confirmed = await ConfirmAsync("一键修复时间同步", string.Join("\n", plan.Select((p, i) => $"{i + 1}. {p}")), "开始修复");
+        var confirmed = await ConfirmAsync(
+            LocalizationService.L("TimeSync_RepairConfirmTitle", "一键修复时间同步"),
+            string.Join("\n", plan.Select((p, i) => $"{i + 1}. {p}")),
+            LocalizationService.L("TimeSync_RepairConfirmPrimary", "开始修复"));
         if (!confirmed) return;
 
-        SetBusy(true, "正在修复时间服务…");
+        SetBusy(true, LocalizationService.L("TimeSync_BusyRepairing", "正在修复时间服务…"));
         try
         {
             var result = await TimeSyncService.RepairAsync(hosts.Count > 0 ? hosts : null, SelectedIntervalSeconds());
@@ -707,7 +722,7 @@ public sealed partial class TimeSyncPage : Page
         if (_busy || IntervalCombo.SelectedIndex < 0) return;
 
         var seconds = TimeSyncCatalog.IntervalOptions[IntervalCombo.SelectedIndex].Seconds;
-        SetBusy(true, "正在应用同步频率…");
+        SetBusy(true, LocalizationService.L("TimeSync_BusyApplyingInterval", "正在应用同步频率…"));
         try
         {
             var result = await TimeSyncService.SetSyncIntervalAsync(seconds);
@@ -738,7 +753,9 @@ public sealed partial class TimeSyncPage : Page
         if (_rendering || _busy || _snapshot is null) return;
         if (SslSeedToggle.IsOn == _snapshot.SslTimeSeedEnabled) return;
 
-        SetBusy(true, SslSeedToggle.IsOn ? "正在启用 SSL 时间种子…" : "正在关闭 SSL 时间种子…");
+        SetBusy(true, SslSeedToggle.IsOn
+            ? LocalizationService.L("TimeSync_BusySslEnable", "正在启用 SSL 时间种子…")
+            : LocalizationService.L("TimeSync_BusySslDisable", "正在关闭 SSL 时间种子…"));
         try
         {
             var result = await TimeSyncService.SetSslTimeSeedAsync(SslSeedToggle.IsOn);
@@ -761,13 +778,13 @@ public sealed partial class TimeSyncPage : Page
     {
         if (_busy) return;
 
-        var confirmed = await ConfirmAsync("重置 Windows 时间服务",
-            "会注销并重新注册 Windows 时间服务（w32tm /unregister + /register），服务的全部自定义配置会被清空，时间源回到系统默认。\n" +
-            "适用于时间服务配置损坏、怎么改都不生效的情况。重置后需要的话再点一次「应用并立即同步」写入你想要的服务器。",
-            "重置服务");
+        var confirmed = await ConfirmAsync(
+            LocalizationService.L("TimeSync_ResetConfirmTitle", "重置 Windows 时间服务"),
+            LocalizationService.L("TimeSync_ResetConfirmMessage", "会注销并重新注册 Windows 时间服务（w32tm /unregister + /register），服务的全部自定义配置会被清空，时间源回到系统默认。\n适用于时间服务配置损坏、怎么改都不生效的情况。重置后需要的话再点一次「应用并立即同步」写入你想要的服务器。"),
+            LocalizationService.L("TimeSync_ResetConfirmPrimary", "重置服务"));
         if (!confirmed) return;
 
-        SetBusy(true, "正在重新注册时间服务…");
+        SetBusy(true, LocalizationService.L("TimeSync_BusyReregister", "正在重新注册时间服务…"));
         try
         {
             var result = await TimeSyncService.ResetTimeServiceAsync();
@@ -785,7 +802,7 @@ public sealed partial class TimeSyncPage : Page
     private async void CopyReportButton_Click(object sender, RoutedEventArgs e)
     {
         if (_busy) return;
-        SetBusy(true, "正在收集诊断信息…");
+        SetBusy(true, LocalizationService.L("TimeSync_BusyCollecting", "正在收集诊断信息…"));
         try
         {
             var snapshot = await TimeSyncService.GetSnapshotAsync(includeConfiguration: true);
@@ -797,13 +814,14 @@ public sealed partial class TimeSyncPage : Page
             package.SetText(report);
             Clipboard.SetContent(package);
 
-            ShowResult(TimeSyncActionResult.Success("诊断报告已复制到剪贴板",
-                "内容包含时间服务状态、当前时间源、NTP 配置与服务器实测结果，可直接粘贴给他人排查。"));
+            ShowResult(TimeSyncActionResult.Success(
+                LocalizationService.L("TimeSync_ReportCopiedTitle", "诊断报告已复制到剪贴板"),
+                LocalizationService.L("TimeSync_ReportCopiedDetail", "内容包含时间服务状态、当前时间源、NTP 配置与服务器实测结果，可直接粘贴给他人排查。")));
             Render();
         }
         catch (Exception ex)
         {
-            ShowResult(TimeSyncActionResult.Failure("复制诊断报告失败", ex.Message));
+            ShowResult(TimeSyncActionResult.Failure(LocalizationService.L("TimeSync_CopyReportFailed", "复制诊断报告失败"), ex.Message));
         }
         finally
         {
@@ -823,7 +841,7 @@ public sealed partial class TimeSyncPage : Page
         }
         catch (Exception ex)
         {
-            _ = ShowMessageAsync("打不开系统时间设置", ex.Message);
+            _ = ShowMessageAsync(LocalizationService.L("TimeSync_OpenTimeSettingsFailed", "打不开系统时间设置"), ex.Message);
         }
     }
 
@@ -831,13 +849,23 @@ public sealed partial class TimeSyncPage : Page
     {
         if (TimeSyncService.TryRestartElevated())
         {
-            await ShowMessageAsync("已请求管理员权限",
-                "工具箱会以管理员身份重新启动，稍后回到「时间同步」页面即可继续切换时间源。");
+            await ShowMessageAsync(
+                LocalizationService.L("TimeSync_ElevateRequestedTitle", "已请求管理员权限"),
+                LocalizationService.L("TimeSync_ElevateRequestedMessage", "工具箱会以管理员身份重新启动，稍后回到「时间同步」页面即可继续切换时间源。"));
             return;
         }
 
-        await ShowMessageAsync("无法自动提权",
-            "请关闭工具箱，右键「图吧工具箱」图标选择「以管理员身份运行」；MSIX（微软商店）版本受系统限制无法自行提权。");
+        await ShowMessageAsync(
+            LocalizationService.L("TimeSync_ElevateFailedTitle", "无法自动提权"),
+            LocalizationService.L("TimeSync_ElevateFailedMessage", "请关闭工具箱，右键「图吧工具箱」图标选择「以管理员身份运行」；MSIX（微软商店）版本受系统限制无法自行提权。"));
+    }
+
+    /// <summary>语言切换后重绘卡片与状态区（Uid 控件由 WinUI3Localizer 自动更新）。</summary>
+    public void ApplyLocalization()
+    {
+        _cards.Clear();
+        BuildCards();
+        if (_snapshot is not null) Render();
     }
 
     private async void CopySourceButton_Click(object sender, RoutedEventArgs e)
@@ -846,12 +874,16 @@ public sealed partial class TimeSyncPage : Page
         var package = new DataPackage();
         package.SetText(SourceText.Text);
         Clipboard.SetContent(package);
-        await ShowMessageAsync("已复制", $"当前时间源：{SourceText.Text}");
+        await ShowMessageAsync(
+            LocalizationService.L("TimeSync_CopiedTitle", "已复制"),
+            string.Format(LocalizationService.L("TimeSync_CopiedSource", "当前时间源：{0}"), SourceText.Text));
     }
 
     private async void HelpButton_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = CreateDialog("时间同步怎么用", "知道了");
+        var dialog = CreateDialog(
+            LocalizationService.L("TimeSync_HelpTitle", "时间同步怎么用"),
+            LocalizationService.L("Common_GotIt", "知道了"));
         dialog.Content = new ScrollViewer
         {
             MaxHeight = 420,
@@ -860,7 +892,7 @@ public sealed partial class TimeSyncPage : Page
                 TextWrapping = TextWrapping.Wrap,
                 LineHeight = 21,
                 FontSize = 13,
-                Text = """
+                Text = LocalizationService.L("TimeSync_HelpBody", """
                 为什么需要它
                 · 网页证书、账号登录、验证码、购票抢票都依赖准确的系统时间；系统时间偏得多了，网络明明是通的也会出错。
                 · Windows 默认时间源是 time.windows.com，国内线路偶尔超时或响应很慢——这就是「有些网站怪怪的」的常见原因。
@@ -880,7 +912,7 @@ public sealed partial class TimeSyncPage : Page
                 权限说明
                 · 修改时间源和启停时间服务需要管理员权限；未打包版启动时自动申请，也可以用「以管理员身份重启」。
                 · 全程调用系统自带的 w32tm 命令（Microsoft Learn 官方文档《Windows Time service tools and settings》），不装驱动、不常驻后台。
-                """
+                """)
             }
         };
         await dialog.ShowAsync();
@@ -920,8 +952,12 @@ public sealed partial class TimeSyncPage : Page
 
     private Button DetailsButton(TimeSyncActionResult result)
     {
-        var button = new Button { Content = "查看详情" };
-        button.Click += async (_, _) => await ShowMessageAsync(result.Ok ? "操作详情" : $"失败详情：{result.Message}", result.Detail);
+        var button = new Button { Content = LocalizationService.L("TimeSync_ViewDetails", "查看详情") };
+        button.Click += async (_, _) => await ShowMessageAsync(
+            result.Ok
+                ? LocalizationService.L("TimeSync_ActionDetails", "操作详情")
+                : string.Format(LocalizationService.L("TimeSync_FailureDetails", "失败详情：{0}"), result.Message),
+            result.Detail);
         return button;
     }
 
@@ -944,7 +980,7 @@ public sealed partial class TimeSyncPage : Page
 
     private async Task ShowMessageAsync(string title, string message)
     {
-        var dialog = CreateDialog(title, "知道了");
+        var dialog = CreateDialog(title, LocalizationService.L("Common_GotIt", "知道了"));
         dialog.Content = new ScrollViewer
         {
             MaxHeight = 360,
@@ -955,7 +991,7 @@ public sealed partial class TimeSyncPage : Page
 
     private async Task<bool> ConfirmAsync(string title, string message, string primaryText)
     {
-        var dialog = CreateDialog(title, "取消");
+        var dialog = CreateDialog(title, LocalizationService.L("Common_Cancel", "取消"));
         dialog.PrimaryButtonText = primaryText;
         dialog.DefaultButton = ContentDialogButton.Primary;
         dialog.Content = new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap, LineHeight = 20, FontSize = 13 };

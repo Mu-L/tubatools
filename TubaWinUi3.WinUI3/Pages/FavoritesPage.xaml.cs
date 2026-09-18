@@ -11,7 +11,7 @@ using TubaWinUi3.Services;
 
 namespace TubaWinUi3.Pages;
 
-public sealed partial class FavoritesPage : Page
+public sealed partial class FavoritesPage : Page, ILocalizablePage
 {
     private readonly ObservableCollection<ToolItem> _tools = [];
     private readonly List<ToolItem> _frequentTools = [];
@@ -98,8 +98,8 @@ public sealed partial class FavoritesPage : Page
 
         FrequentSection.Visibility = Visibility.Visible;
         FrequentSubtitle.Text = _frequentTools.Count >= 12
-            ? $"基于使用频率智能排序 · 前 {_frequentTools.Count} 个"
-            : $"基于使用频率智能排序 · {_frequentTools.Count} 个";
+            ? string.Format(LocalizationService.L("Favorites_FrequentSubtitleTop", "基于使用频率智能排序 · 前 {0} 个"), _frequentTools.Count)
+            : string.Format(LocalizationService.L("Favorites_FrequentSubtitleCount", "基于使用频率智能排序 · {0} 个"), _frequentTools.Count);
 
         _ = ToolIconService.LoadIconsAsync(_frequentTools.ToList(), DispatcherQueue);
     }
@@ -202,7 +202,7 @@ public sealed partial class FavoritesPage : Page
         var favPaths = FavoritesService.GetFavorites();
         if (favPaths.Count == 0)
         {
-            ToolCountText.Text = "暂无收藏";
+            ToolCountText.Text = LocalizationService.L("Favorites_NoFavorites", "暂无收藏");
             ClearAllButton.Visibility = Visibility.Collapsed;
             EmptyState.Visibility = Visibility.Visible;
             ToolsGrid.Visibility = Visibility.Collapsed;
@@ -226,7 +226,7 @@ public sealed partial class FavoritesPage : Page
         }
         catch
         {
-            ToolCountText.Text = "加载失败";
+            ToolCountText.Text = LocalizationService.L("Favorites_LoadFailed", "加载失败");
             return;
         }
 
@@ -235,7 +235,7 @@ public sealed partial class FavoritesPage : Page
             _tools.Add(tool);
         }
 
-        ToolCountText.Text = $"已收藏 {_tools.Count} 个工具";
+        ToolCountText.Text = string.Format(LocalizationService.L("Favorites_FavoriteCount", "已收藏 {0} 个工具"), _tools.Count);
         var hasTools = _tools.Count > 0;
         ClearAllButton.Visibility = hasTools ? Visibility.Visible : Visibility.Collapsed;
         EditOrderButton.Visibility = hasTools ? Visibility.Visible : Visibility.Collapsed;
@@ -262,7 +262,7 @@ public sealed partial class FavoritesPage : Page
     {
         _isEditing = true;
         EditOrderIcon.Glyph = "\uE73E"; // CheckMark:完成
-        EditOrderButtonText.Text = "完成";
+        EditOrderButtonText.Text = LocalizationService.L("Common_Done", "完成");
         ClearAllButton.Visibility = Visibility.Collapsed;
         ToolsGrid.Visibility = Visibility.Collapsed;
         FrequentSection.Visibility = Visibility.Collapsed;
@@ -279,7 +279,7 @@ public sealed partial class FavoritesPage : Page
         _isEditing = false;
         FinishDrag(); // 拖动到一半退出时归位
         EditOrderIcon.Glyph = "\uE70F"; // Edit:编辑排序
-        EditOrderButtonText.Text = "编辑排序";
+        EditOrderButtonText.Text = LocalizationService.L("Favorites_EditOrderButtonText", "编辑排序");
         EditModePanel.Visibility = Visibility.Collapsed;
         ClearAllButton.Visibility = _tools.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         ToolsGrid.Visibility = _tools.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -383,7 +383,7 @@ public sealed partial class FavoritesPage : Page
         });
         textStack.Children.Add(new TextBlock
         {
-            Text = tool.Category,
+            Text = tool.CategoryDisplay,
             FontSize = 12,
             Opacity = 0.7,
             TextTrimming = TextTrimming.CharacterEllipsis
@@ -497,7 +497,9 @@ public sealed partial class FavoritesPage : Page
         {
             FavoritesService.RemoveFavorite(tool.Path);
             _tools.Remove(tool);
-            ToolCountText.Text = _tools.Count > 0 ? $"已收藏 {_tools.Count} 个工具" : "暂无收藏";
+            ToolCountText.Text = _tools.Count > 0
+                ? string.Format(LocalizationService.L("Favorites_FavoriteCount", "已收藏 {0} 个工具"), _tools.Count)
+                : LocalizationService.L("Favorites_NoFavorites", "暂无收藏");
             ClearAllButton.Visibility = _tools.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
             EditOrderButton.Visibility = _tools.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
             EmptyState.Visibility = _tools.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -512,11 +514,14 @@ public sealed partial class FavoritesPage : Page
             try
             {
                 WindowsSearchIndexService.CreateDesktopShortcut(tool);
-                ShowStatus("已创建", $"已将「{tool.Name}」快捷方式发送到桌面", InfoBarSeverity.Success);
+                ShowStatus(
+                    LocalizationService.L("Common_Created", "已创建"),
+                    string.Format(LocalizationService.L("Common_DesktopShortcutCreated", "已将「{0}」快捷方式发送到桌面"), tool.Name),
+                    InfoBarSeverity.Success);
             }
             catch (Exception ex)
             {
-                ShowStatus("创建失败", ex.Message, InfoBarSeverity.Error);
+                ShowStatus(LocalizationService.L("Common_CreateFailed", "创建失败"), ex.Message, InfoBarSeverity.Error);
             }
         }
     }
@@ -538,7 +543,9 @@ public sealed partial class FavoritesPage : Page
     {
         var item = flyout.Items.OfType<MenuFlyoutItem>().FirstOrDefault(i => i.Name == "FavMenuToggleFavorite");
         if (item is null) return;
-        item.Text = tool.IsFavorite ? "取消收藏" : "收藏";
+        item.Text = tool.IsFavorite
+            ? LocalizationService.L("Common_Unfavorite", "取消收藏")
+            : LocalizationService.L("Common_Favorite", "收藏");
         if (item.Icon is FontIcon icon)
             icon.Glyph = tool.IsFavorite ? "\uE735" : "\uE734";
     }
@@ -552,7 +559,9 @@ public sealed partial class FavoritesPage : Page
             if (!tool.IsFavorite)
             {
                 _tools.Remove(tool);
-                ToolCountText.Text = _tools.Count > 0 ? $"已收藏 {_tools.Count} 个工具" : "暂无收藏";
+                ToolCountText.Text = _tools.Count > 0
+                    ? string.Format(LocalizationService.L("Favorites_FavoriteCount", "已收藏 {0} 个工具"), _tools.Count)
+                    : LocalizationService.L("Favorites_NoFavorites", "暂无收藏");
                 ClearAllButton.Visibility = _tools.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
                 EmptyState.Visibility = _tools.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
                 ToolsGrid.Visibility = _tools.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -563,16 +572,17 @@ public sealed partial class FavoritesPage : Page
     private static void UpdateTutorialVisibility(MenuFlyout flyout, ToolItem tool)
     {
         var tutorialItem = flyout.Items.OfType<MenuFlyoutItem>()
-            .FirstOrDefault(i => i.Text.Contains("教程"));
+            .FirstOrDefault(i => i.Name == "FavMenuOpenTutorial");
         if (tutorialItem is not null)
             tutorialItem.Visibility = tool.HasTutorial ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private static void UpdateBuiltinLinkFlyoutItems(MenuFlyout flyout, ToolItem tool)
     {
+        // 按 x:Name 定位菜单项（不能按 Text 匹配：文本随界面语言变化）
         var isBuiltin = tool.IsBuiltinLink;
         var sendToDesktop = flyout.Items.OfType<MenuFlyoutItem>()
-            .FirstOrDefault(i => i.Text.Contains("桌面快捷方式"));
+            .FirstOrDefault(i => i.Name == "FavMenuSendToDesktop");
         // 内置工具只要有注册 Id 也能发桌面快捷方式（--open-builtin 启动），
         // 仅缺注册信息的旧链接才隐藏
         if (sendToDesktop is not null)
@@ -581,12 +591,12 @@ public sealed partial class FavoritesPage : Page
                 : Visibility.Visible;
 
         var runAsAdmin = flyout.Items.OfType<MenuFlyoutItem>()
-            .FirstOrDefault(i => i.Text.Contains("管理员"));
+            .FirstOrDefault(i => i.Name == "FavMenuRunAsAdmin");
         if (runAsAdmin is not null)
             runAsAdmin.Visibility = isBuiltin ? Visibility.Collapsed : Visibility.Visible;
 
         var openDir = flyout.Items.OfType<MenuFlyoutItem>()
-            .FirstOrDefault(i => i.Text.Contains("所在目录"));
+            .FirstOrDefault(i => i.Name == "FavMenuOpenDirectory");
         if (openDir is not null)
             openDir.Visibility = isBuiltin ? Visibility.Collapsed : Visibility.Visible;
     }
@@ -598,11 +608,14 @@ public sealed partial class FavoritesPage : Page
             try
             {
                 WindowsSearchIndexService.CreateDesktopShortcut(tool);
-                ShowStatus("已创建", $"已将「{tool.Name}」快捷方式发送到桌面", InfoBarSeverity.Success);
+                ShowStatus(
+                    LocalizationService.L("Common_Created", "已创建"),
+                    string.Format(LocalizationService.L("Common_DesktopShortcutCreated", "已将「{0}」快捷方式发送到桌面"), tool.Name),
+                    InfoBarSeverity.Success);
             }
             catch (Exception ex)
             {
-                ShowStatus("创建失败", ex.Message, InfoBarSeverity.Error);
+                ShowStatus(LocalizationService.L("Common_CreateFailed", "创建失败"), ex.Message, InfoBarSeverity.Error);
             }
         }
     }
@@ -622,7 +635,7 @@ public sealed partial class FavoritesPage : Page
     private void FavMenu_OpenTutorial(object sender, RoutedEventArgs e)
     {
         if (sender is MenuFlyoutItem { DataContext: ToolItem tool } && tool.HasTutorial)
-            BrowserPage.Open(tool.TutorialUrl!, $"{tool.Name} - 使用教程");
+            BrowserPage.Open(tool.TutorialUrl!, string.Format(LocalizationService.L("HomePage_TutorialWindowTitle", "{0} - 使用教程"), tool.Name));
     }
 
     private static void OpenToolDirectory(ToolItem tool)
@@ -652,10 +665,9 @@ public sealed partial class FavoritesPage : Page
         submenu.Visibility = Visibility.Visible;
         foreach (var opt in tool.ArchOptions)
         {
-            var label = string.IsNullOrEmpty(opt.Arch) ? "默认" : opt.Arch;
             var item = new ToggleMenuFlyoutItem
             {
-                Text = label,
+                Text = opt.DisplayText,
                 IsChecked = opt == tool.SelectedArch,
                 DataContext = opt
             };
@@ -672,10 +684,10 @@ public sealed partial class FavoritesPage : Page
     {
         var dialog = new ContentDialog
         {
-            Title = "清空全部收藏",
-            Content = "确定要取消所有工具的收藏吗？此操作不可撤销。",
-            PrimaryButtonText = "清空",
-            CloseButtonText = "取消",
+            Title = LocalizationService.L("Favorites_ClearAllDialogTitle", "清空全部收藏"),
+            Content = LocalizationService.L("Favorites_ClearAllDialogMessage", "确定要取消所有工具的收藏吗？此操作不可撤销。"),
+            PrimaryButtonText = LocalizationService.L("Favorites_ClearAllDialogPrimary", "清空"),
+            CloseButtonText = LocalizationService.L("Common_Cancel", "取消"),
             DefaultButton = ContentDialogButton.Close,
             XamlRoot = XamlRoot,
             RequestedTheme = ThemeService.CurrentElementTheme
@@ -696,11 +708,13 @@ public sealed partial class FavoritesPage : Page
         if (tool.IsBuiltinLink)
         {
             ToolDetailTip.Title = tool.Name;
-            ToolDetailTip.Subtitle = tool.Category;
+            ToolDetailTip.Subtitle = tool.CategoryDisplay;
             DetailDescriptionText.Text = string.IsNullOrWhiteSpace(tool.Description)
-                ? "暂无介绍。"
+                ? LocalizationService.L("Common_NoDescription", "暂无介绍。")
                 : tool.Description;
-            DetailPublisherText.Text = $"类型：{tool.BuiltinKindText ?? "内置"}";
+            DetailPublisherText.Text = string.Format(
+                LocalizationService.L("HomePage_DetailType", "类型：{0}"),
+                tool.BuiltinKindText ?? LocalizationService.L("Common_Builtin", "内置"));
             DetailVersionText.Text = "";
             DetailPathText.Text = "";
             ToolDetailTip.IsOpen = true;
@@ -708,12 +722,12 @@ public sealed partial class FavoritesPage : Page
         }
 
         ToolDetailTip.Title = tool.Name;
-        ToolDetailTip.Subtitle = tool.Category;
+        ToolDetailTip.Subtitle = tool.CategoryDisplay;
         DetailDescriptionText.Text = string.IsNullOrWhiteSpace(tool.Description)
-            ? "暂无介绍。"
+            ? LocalizationService.L("Common_NoDescription", "暂无介绍。")
             : tool.Description;
-        DetailPublisherText.Text = $"发布者：{ValueOrUnknown(tool.Publisher)}";
-        DetailVersionText.Text = $"版本：{ValueOrUnknown(tool.Version)}";
+        DetailPublisherText.Text = string.Format(LocalizationService.L("HomePage_DetailPublisher", "发布者：{0}"), ValueOrUnknown(tool.Publisher));
+        DetailVersionText.Text = string.Format(LocalizationService.L("HomePage_DetailVersion", "版本：{0}"), ValueOrUnknown(tool.Version));
         DetailPathText.Text = tool.Path;
         ToolDetailTip.IsOpen = true;
     }
@@ -730,14 +744,17 @@ public sealed partial class FavoritesPage : Page
         {
             Pages.BrowserPage.Open(tool.RemoteUrl, tool.Name);
             LaunchHistoryService.RecordLaunch(tool.Path);
-            ShowStatus("已打开", tool.Name, InfoBarSeverity.Success);
+            ShowStatus(LocalizationService.L("Common_Opened", "已打开"), tool.Name, InfoBarSeverity.Success);
             return;
         }
 
         var exePath = tool.EffectivePath;
         if (!File.Exists(exePath))
         {
-            ShowStatus("启动失败", $"找不到文件：{exePath}", InfoBarSeverity.Error);
+            ShowStatus(
+                LocalizationService.L("Common_LaunchFailed", "启动失败"),
+                string.Format(LocalizationService.L("HomePage_LaunchFileMissing", "找不到文件：{0}"), exePath),
+                InfoBarSeverity.Error);
             return;
         }
 
@@ -746,11 +763,16 @@ public sealed partial class FavoritesPage : Page
             ToolProcessLauncher.Launch(exePath, tool.EffectiveWorkingDir, runAsAdmin);
 
             LaunchHistoryService.RecordLaunch(tool.Path);
-            ShowStatus(runAsAdmin ? "已以管理员身份启动" : "已启动", tool.Name, InfoBarSeverity.Success);
+            ShowStatus(
+                runAsAdmin
+                    ? LocalizationService.L("Common_LaunchedAsAdmin", "已以管理员身份启动")
+                    : LocalizationService.L("Common_Launched", "已启动"),
+                tool.Name,
+                InfoBarSeverity.Success);
         }
         catch (Exception ex)
         {
-            ShowStatus("启动失败", ex.Message, InfoBarSeverity.Error);
+            ShowStatus(LocalizationService.L("Common_LaunchFailed", "启动失败"), ex.Message, InfoBarSeverity.Error);
         }
     }
 
@@ -759,7 +781,10 @@ public sealed partial class FavoritesPage : Page
         var builtinTool = BuiltinToolRegistry.GetById(tool.BuiltinToolId!);
         if (builtinTool is null)
         {
-            ShowStatus("启动失败", "找不到对应的内置工具", InfoBarSeverity.Error);
+            ShowStatus(
+                LocalizationService.L("Common_LaunchFailed", "启动失败"),
+                LocalizationService.L("HomePage_BuiltinNotFound", "找不到对应的内置工具"),
+                InfoBarSeverity.Error);
             return;
         }
 
@@ -774,11 +799,11 @@ public sealed partial class FavoritesPage : Page
             MainWindow.ActiveToolName = builtinTool.Name;
             await builtinTool.ExecuteAsync(context);
             LaunchHistoryService.RecordLaunch(tool.Path);
-            ShowStatus("已启动", tool.Name, InfoBarSeverity.Success);
+            ShowStatus(LocalizationService.L("Common_Launched", "已启动"), tool.Name, InfoBarSeverity.Success);
         }
         catch (Exception ex)
         {
-            ShowStatus("启动失败", ex.Message, InfoBarSeverity.Error);
+            ShowStatus(LocalizationService.L("Common_LaunchFailed", "启动失败"), ex.Message, InfoBarSeverity.Error);
         }
         finally
         {
@@ -807,6 +832,15 @@ public sealed partial class FavoritesPage : Page
 
     private static string ValueOrUnknown(string? value)
     {
-        return string.IsNullOrWhiteSpace(value) ? "未知" : value;
+        return string.IsNullOrWhiteSpace(value) ? LocalizationService.L("Common_Unknown", "未知") : value;
+    }
+
+    /// <summary>语言切换后刷新自绘文本（打了 Uid 的控件由 WinUI3Localizer 自动更新）。</summary>
+    public void ApplyLocalization()
+    {
+        foreach (var tool in _tools)
+            tool.RefreshLocalizedTexts();
+        _ = LoadToolsAsync();
+        _ = LoadFrequentToolsAsync();
     }
 }

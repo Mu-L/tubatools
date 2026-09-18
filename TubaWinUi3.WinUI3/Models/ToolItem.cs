@@ -30,7 +30,12 @@ public sealed class ToolItem : INotifyPropertyChanged
 
     public string? BuiltinKindText { get; init; }
 
-    public string CategoriesDisplay => _categories.Count <= 1 ? "" : string.Join(" · ", _categories.Where(c => c != Category));
+    /// <summary>卡片上的分类显示名（本地化；Category 本身是物理分类名/数据键，不可翻译）。</summary>
+    public string CategoryDisplay => LocalizationService.GetCategoryDisplayName(Category);
+
+    public string CategoriesDisplay => _categories.Count <= 1
+        ? ""
+        : string.Join(" · ", _categories.Where(c => c != Category).Select(LocalizationService.GetCategoryDisplayName));
 
     public IReadOnlyList<string> OtherCategories => _categories.Where(c => !c.Equals(Category, StringComparison.OrdinalIgnoreCase)).ToList();
 
@@ -177,16 +182,26 @@ public sealed class ToolItem : INotifyPropertyChanged
     {
         get
         {
-            if (IsBuiltinLink) return "打开";
+            if (IsBuiltinLink) return LocalizationService.L("Common_Open", "打开");
             if (!string.IsNullOrWhiteSpace(DownloadUrl) && !File.Exists(EffectivePath))
-                return "下载";
+                return LocalizationService.L("Common_Download", "下载");
             if (!string.IsNullOrWhiteSpace(WingetId))
             {
-                if (IsWingetInstalling) return "安装中...";
-                return IsWingetInstalled ? "打开" : "下载";
+                if (IsWingetInstalling) return LocalizationService.L("Common_Installing", "安装中...");
+                return IsWingetInstalled
+                    ? LocalizationService.L("Common_Open", "打开")
+                    : LocalizationService.L("Common_Download", "下载");
             }
-            return "打开";
+            return LocalizationService.L("Common_Open", "打开");
         }
+    }
+
+    /// <summary>语言切换后刷新派生显示文本的绑定（分类显示名、启动按钮文本）。</summary>
+    public void RefreshLocalizedTexts()
+    {
+        OnPropertyChanged(nameof(CategoryDisplay));
+        OnPropertyChanged(nameof(CategoriesDisplay));
+        OnPropertyChanged(nameof(LaunchButtonText));
     }
 
     public void SetCategories(IReadOnlyList<string> categories)
@@ -258,7 +273,7 @@ public sealed class ArchOption : IEquatable<ArchOption>
     public required string Path { get; init; }
     public required string Arch { get; init; }
 
-    public string DisplayText => string.IsNullOrEmpty(Arch) ? "默认" : Arch;
+    public string DisplayText => string.IsNullOrEmpty(Arch) ? LocalizationService.L("Common_Default", "默认") : Arch;
 
     public override string ToString() => DisplayText;
 

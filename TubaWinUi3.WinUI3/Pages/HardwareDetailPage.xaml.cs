@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text;
 using LiveChartsCore;
@@ -16,7 +16,7 @@ using Windows.ApplicationModel.DataTransfer;
 
 namespace TubaWinUi3.Pages;
 
-public sealed partial class HardwareDetailPage : Page
+public sealed partial class HardwareDetailPage : Page, ILocalizablePage
 {
     private bool _dataLoaded;
     private DispatcherTimer? _monitorTimer;
@@ -221,6 +221,12 @@ public sealed partial class HardwareDetailPage : Page
         _ = LoadDetailAsync(forceRefresh: true);
     }
 
+    /// <summary>语言切换后按当前语言重建参数卡片（标题等 Uid 控件自动更新）。</summary>
+    public void ApplyLocalization()
+    {
+        if (_lastDetailData is not null)
+            ApplyData(_lastDetailData);
+    }
     private void BackButton_Click(object sender, RoutedEventArgs e)
     {
         if (Frame.CanGoBack)
@@ -234,21 +240,21 @@ public sealed partial class HardwareDetailPage : Page
         var data = _lastDetailData;
         if (data == null)
         {
-            ShowStatusBar("导出失败", "暂无硬件数据", InfoBarSeverity.Warning);
+            ShowStatusBar(LocalizationService.L("HwDetail_ExportFailed", "导出失败"), LocalizationService.L("HwDetail_NoData", "暂无硬件数据"), InfoBarSeverity.Warning);
             return;
         }
 
         try
         {
-            var filePath = Path.Combine(Path.GetTempPath(), $"硬件信息_{DateTime.Now:yyyyMMdd_HHmmss}.html");
+            var filePath = Path.Combine(Path.GetTempPath(), $"{LocalizationService.L("HwDetail_ExportFilePrefix", "硬件信息")}_{DateTime.Now:yyyyMMdd_HHmmss}.html");
             var html = BuildHtml(data);
             await File.WriteAllTextAsync(filePath, html);
-            ShowStatusBar("导出成功", filePath, InfoBarSeverity.Success);
+            ShowStatusBar(LocalizationService.L("HwDetail_ExportOk", "导出成功"), filePath, InfoBarSeverity.Success);
             Process.Start(new ProcessStartInfo(filePath) { UseShellExecute = true });
         }
         catch (Exception ex)
         {
-            ShowStatusBar("导出失败", ex.Message, InfoBarSeverity.Error);
+            ShowStatusBar(LocalizationService.L("HwDetail_ExportFailed", "导出失败"), ex.Message, InfoBarSeverity.Error);
         }
     }
 
@@ -256,11 +262,11 @@ public sealed partial class HardwareDetailPage : Page
     {
         var sb = new StringBuilder();
         sb.AppendLine("<!DOCTYPE html>");
-        sb.AppendLine("<html lang=\"zh-CN\">");
+        sb.AppendLine($"<html lang=\"{LocalizationService.CurrentLanguage}\">");
         sb.AppendLine("<head>");
         sb.AppendLine("<meta charset=\"UTF-8\">");
         sb.AppendLine("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">");
-        sb.AppendLine("<title>硬件详细信息</title>");
+        sb.AppendLine($"<title>{LocalizationService.L("HwDetail_HtmlTitle", "硬件详细信息")}</title>");
         sb.AppendLine("<style>");
         sb.AppendLine("*{margin:0;padding:0;box-sizing:border-box}");
         sb.AppendLine("body{font-family:-apple-system,\"Microsoft YaHei\",\"Segoe UI\",sans-serif;background:#f5f5f5;color:#1a1a1a;padding:24px}");
@@ -281,8 +287,8 @@ public sealed partial class HardwareDetailPage : Page
         sb.AppendLine("</head>");
         sb.AppendLine("<body>");
         sb.AppendLine("<div class=\"container\">");
-        sb.AppendLine("<h1>硬件详细信息</h1>");
-        sb.AppendLine($"<div class=\"sub\">图吧工具箱CE · 导出时间 {DateTime.Now:yyyy-MM-dd HH:mm:ss}</div>");
+        sb.AppendLine($"<h1>{LocalizationService.L("HwDetail_HtmlTitle", "硬件详细信息")}</h1>");
+        sb.AppendLine($"<div class=\"sub\">{string.Format(LocalizationService.L("HwDetail_HtmlSubtitle", "{0} · 导出时间 {1}"), LocalizationService.L("App_Title", "图吧工具箱CE"), DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"))}</div>");
         sb.AppendLine("<div class=\"grid\">");
 
         AppendSection(sb, "处理器", BuildCpuItems(data.Cpu));
@@ -297,7 +303,7 @@ public sealed partial class HardwareDetailPage : Page
         AppendSection(sb, "网卡", BuildNetworkItems(data.NetworkAdapters));
 
         sb.AppendLine("</div>");
-        sb.AppendLine("<div class=\"footer\">由图吧工具箱CE 自动生成</div>");
+        sb.AppendLine($"<div class=\"footer\">{string.Format(LocalizationService.L("HwDetail_HtmlFooter", "由{0} 自动生成"), LocalizationService.L("App_Title", "图吧工具箱CE"))}</div>");
         sb.AppendLine("</div>");
         sb.AppendLine("</body>");
         sb.AppendLine("</html>");
@@ -344,7 +350,7 @@ public sealed partial class HardwareDetailPage : Page
         catch (Exception ex)
         {
             if (_pageAlive)
-                ShowStatusBar("硬件信息读取失败", ex.Message, InfoBarSeverity.Error);
+                ShowStatusBar(LocalizationService.L("Hw_LoadFailed", "硬件信息读取失败"), ex.Message, InfoBarSeverity.Error);
         }
         finally
         {
@@ -493,7 +499,7 @@ public sealed partial class HardwareDetailPage : Page
         var panel = (StackPanel)card.Child;
         panel.Children.Add(new TextBlock
         {
-            Text = section.Title,
+            Text = section.DisplayTitle,
             Style = (Style)Resources["SectionTitleStyle"]
         });
 
@@ -552,12 +558,12 @@ public sealed partial class HardwareDetailPage : Page
         items.Add(Item("总容量", mem.TotalCapacity));
         if (!string.IsNullOrWhiteSpace(mem.MemoryType)) items.Add(Item("类型", mem.MemoryType));
         if (!string.IsNullOrWhiteSpace(mem.ChannelMode)) items.Add(Item("通道模式", mem.ChannelMode));
-        items.Add(Item("插槽", $"{mem.UsedSlots}/{mem.TotalSlots} 已使用"));
+        items.Add(Item("插槽", string.Format(LocalizationService.L("HwDetail_SlotsUsed", "{0}/{1} 已使用"), mem.UsedSlots, mem.TotalSlots)));
         foreach (var mod in mem.Modules)
         {
             var isSlot = mod.Capacity == "空";
             var label = isSlot ? $"  └ {mod.Designation}" : $"  ├ {mod.Designation}";
-            var value = isSlot ? "空" : JoinValues(mod.Capacity, mod.Speed, mod.Manufacturer, mod.PartNumber);
+            var value = isSlot ? LocalizationService.L("HwDetail_EmptySlot", "空") : JoinValues(mod.Capacity, mod.Speed, mod.Manufacturer, mod.PartNumber);
             items.Add(Item(label, value));
         }
         return items;
@@ -611,7 +617,7 @@ public sealed partial class HardwareDetailPage : Page
             foreach (var part in disk.Partitions)
             {
                 var partLabel = $"  ├ {part.Name}";
-                var partValue = JoinValues(part.DriveLetter, part.FileSystem, part.Size, part.FreeSpace != null ? $"可用 {part.FreeSpace}" : null);
+                var partValue = JoinValues(part.DriveLetter, part.FileSystem, part.Size, part.FreeSpace != null ? string.Format(LocalizationService.L("HwDetail_FreeSpace", "可用 {0}"), part.FreeSpace) : null);
                 items.Add(Item(partLabel, partValue));
             }
         }
@@ -624,7 +630,7 @@ public sealed partial class HardwareDetailPage : Page
         foreach (var disp in displays)
         {
             if (items.Count > 0) items.Add(Item("", ""));
-            var nameLabel = disp.IsPrimary ? "主显示器" : "显示器";
+            var nameLabel = disp.IsPrimary ? LocalizationService.L("Hw_Field_PrimaryDisplay", "主显示器") : LocalizationService.L("Hw_Label_Display", "显示器");
             items.Add(Item(nameLabel, disp.Name));
             if (!string.IsNullOrWhiteSpace(disp.Resolution)) items.Add(Item("分辨率", disp.Resolution));
             if (!string.IsNullOrWhiteSpace(disp.RefreshRate)) items.Add(Item("刷新率", disp.RefreshRate));
@@ -668,7 +674,7 @@ public sealed partial class HardwareDetailPage : Page
         return new HardwareInfoItem
         {
             Label = label,
-            Value = string.IsNullOrWhiteSpace(value) ? "未知" : value
+            Value = string.IsNullOrWhiteSpace(value) ? LocalizationService.L("Hw_Unknown", "未知") : value
         };
     }
 
@@ -681,7 +687,7 @@ public sealed partial class HardwareDetailPage : Page
     {
         if (sender is not FrameworkElement fe) return;
         if (fe.DataContext is not HardwareInfoItem item) return;
-        if (item.Value == "未知" && string.IsNullOrWhiteSpace(item.Label)) return;
+        if (item.Value == LocalizationService.L("Hw_Unknown", "未知") && string.IsNullOrWhiteSpace(item.Label)) return;
         CopyToClipboard(item.Value);
     }
 
@@ -697,7 +703,7 @@ public sealed partial class HardwareDetailPage : Page
 
     private void ShowCopyToast(string text)
     {
-        StatusBar.Title = "已复制";
+        StatusBar.Title = LocalizationService.L("Hw_Copied", "已复制");
         StatusBar.Message = text.Length > 80 ? text[..80] + "…" : text;
         StatusBar.Severity = InfoBarSeverity.Success;
         StatusBar.IsOpen = true;
@@ -740,6 +746,9 @@ public sealed partial class HardwareDetailPage : Page
     private sealed class DetailSection
     {
         public string Title { get; }
+
+        /// <summary>显示用标题（Title 是数据键，显示层按当前语言翻译）。</summary>
+        public string DisplayTitle => LocalizationService.TranslateHardwareLabel(Title);
         public List<HardwareInfoItem> Items { get; }
         public int Weight { get; }
 
@@ -754,11 +763,11 @@ public sealed partial class HardwareDetailPage : Page
     private static void AppendSection(StringBuilder sb, string title, List<HardwareInfoItem> items)
     {
         if (items.Count == 0) return;
-        sb.AppendLine($"<div class=\"card\"><div class=\"card-title\">{HtmlEscape(title)}</div>");
+        sb.AppendLine($"<div class=\"card\"><div class=\"card-title\">{HtmlEscape(LocalizationService.TranslateHardwareLabel(title))}</div>");
         foreach (var item in items)
         {
-            if (string.IsNullOrEmpty(item.Label) && item.Value == "未知") continue;
-            sb.AppendLine($"<div class=\"row\"><span class=\"row-label\">{HtmlEscape(item.Label)}</span><span class=\"row-sep\"></span><span class=\"row-value\">{HtmlEscape(item.Value)}</span></div>");
+            if (string.IsNullOrEmpty(item.Label) && item.Value == LocalizationService.L("Hw_Unknown", "未知")) continue;
+            sb.AppendLine($"<div class=\"row\"><span class=\"row-label\">{HtmlEscape(LocalizationService.TranslateHardwareLabel(item.Label))}</span><span class=\"row-sep\"></span><span class=\"row-value\">{HtmlEscape(item.Value)}</span></div>");
         }
         sb.AppendLine("</div>");
     }

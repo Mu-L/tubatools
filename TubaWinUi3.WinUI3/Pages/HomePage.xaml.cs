@@ -15,7 +15,7 @@ using Windows.ApplicationModel.DataTransfer;
 
 namespace TubaWinUi3.Pages;
 
-public sealed partial class HomePage : Page
+public sealed partial class HomePage : Page, ILocalizablePage
 {
     private readonly BulkObservableCollection<ToolItem> _tools = new();
     private string? _category;
@@ -220,10 +220,16 @@ public sealed partial class HomePage : Page
         {
             _ = LoadToolsAsync();
         }
-        else if (_highlightToolPath is not null)
+        else
         {
-            StartHighlight(_highlightToolPath);
-            _highlightToolPath = null;
+            // 缓存命中不重载数据时，卡片文本仍可能过期（切换界面语言后回来）——
+            // 绑定值不变不会自动重求值，需主动通知（分类显示名、启动按钮文案）。
+            RefreshToolCardTexts();
+            if (_highlightToolPath is not null)
+            {
+                StartHighlight(_highlightToolPath);
+                _highlightToolPath = null;
+            }
         }
 
         if (_category is null)
@@ -244,6 +250,22 @@ public sealed partial class HomePage : Page
         base.OnNavigatedFrom(e);
         ExitEditMode(); // 离开页面时退出编辑排序并兜底落盘
         UnsubscribeStaticEvents();
+    }
+
+    /// <summary>语言切换后刷新自绘文本（打了 Uid 的控件由 WinUI3Localizer 自动更新）。</summary>
+    public void ApplyLocalization()
+    {
+        UpdateTitle();
+        RefreshToolCardTexts();
+        _ = LoadToolsAsync();
+        if (_category is null && _tagsPopulated)
+            ApplyTagBarLayout();
+    }
+
+    private void RefreshToolCardTexts()
+    {
+        foreach (var tool in _tools)
+            tool.RefreshLocalizedTexts();
     }
 
     private async Task PopulateTagBarAsync()
@@ -285,7 +307,7 @@ public sealed partial class HomePage : Page
 
         // 重建（选中态按 _selectedTag 重新应用）
         TagBarCommandBar.PrimaryCommands.Clear();
-        TagBarCommandBar.PrimaryCommands.Add(CreateTagToggleButton("全部", null as string, _selectedTag is null));
+        TagBarCommandBar.PrimaryCommands.Add(CreateTagToggleButton(LocalizationService.L("Common_All", "全部"), null as string, _selectedTag is null));
         foreach (var tag in _allTags)
             TagBarCommandBar.PrimaryCommands.Add(CreateTagToggleButton(tag, tag, tag == _selectedTag));
 
@@ -348,19 +370,21 @@ public sealed partial class HomePage : Page
     private void UpdateTitle()
     {
         var query = _searchQuery;
-        var title = _category?.Replace("工具", "") ?? "全部";
+        var title = _category is null
+            ? LocalizationService.L("Common_All", "全部")
+            : LocalizationService.GetCategoryDisplayName(_category);
         if (query.Length > 0)
-            title = $"搜索：{query}";
+            title = string.Format(LocalizationService.L("HomePage_TitleSearch", "搜索：{0}"), query);
         else if (_selectedTag is not null)
-            title = $"标签：{_selectedTag}";
+            title = string.Format(LocalizationService.L("HomePage_TitleTag", "标签：{0}"), _selectedTag);
         CategoryTitle.Text = title;
         CategorySubtitle.Text = query.Length > 0
-            ? "显示所有分类中匹配的工具。"
+            ? LocalizationService.L("HomePage_SubtitleSearch", "显示所有分类中匹配的工具。")
             : _selectedTag is not null
-                ? $"显示带有「{_selectedTag}」标签的工具。"
+                ? string.Format(LocalizationService.L("HomePage_SubtitleTag", "显示带有「{0}」标签的工具。"), _selectedTag)
                 : _category is null
-                    ? "从左侧选择分类，点击卡片看详情，点击打开运行工具。"
-                    : $"正在浏览\u201C{_category.Replace("工具", "")}\u201D分类。";
+                    ? LocalizationService.L("HomePage_SubtitleAll", "从左侧选择分类，点击卡片看详情，点击打开运行工具。")
+                    : string.Format(LocalizationService.L("HomePage_SubtitleCategory", "正在浏览“{0}”分类。"), LocalizationService.GetCategoryDisplayName(_category));
     }
 
     private async Task LoadToolsAsync()
@@ -402,17 +426,19 @@ public sealed partial class HomePage : Page
 
             UpdateDragReorderState();
 
-            ToolCountText.Text = _tools.Count > 0 ? $"{_tools.Count} 个工具" : "";
+            ToolCountText.Text = _tools.Count > 0
+                ? string.Format(LocalizationService.L("HomePage_ToolCount", "{0} 个工具"), _tools.Count)
+                : "";
             ToolCountText.Visibility = _tools.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
             EmptyState.Visibility = _tools.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
             UpdateGridVisibility(_tools.Count > 0);
             EmptyStateText.Text = query.Length > 0
-                ? $"未找到与\u201C{query}\u201D相关的工具。"
+                ? string.Format(LocalizationService.L("HomePage_EmptySearch", "未找到与“{0}”相关的工具。"), query)
                 : _selectedTag is not null
-                    ? $"未找到带有「{_selectedTag}」标签的工具。"
+                    ? string.Format(LocalizationService.L("HomePage_EmptyTag", "未找到带有「{0}」标签的工具。"), _selectedTag)
                     : _category is not null
-                        ? "此分类下没有可用工具。"
-                        : "没有找到任何工具，请检查 Tools 目录。";
+                        ? LocalizationService.L("HomePage_EmptyCategory", "此分类下没有可用工具。")
+                        : LocalizationService.L("HomePage_EmptyAll", "没有找到任何工具，请检查 Tools 目录。");
 
             DownloadToolsButton.Visibility = _tools.Count == 0
                 && string.IsNullOrEmpty(query)
@@ -503,7 +529,7 @@ public sealed partial class HomePage : Page
         if (_tools.Count == 0) return;
         _isEditing = true;
         EditOrderIcon.Glyph = "\uE73E"; // CheckMark:完成
-        EditOrderButtonText.Text = "完成";
+        EditOrderButtonText.Text = LocalizationService.L("Common_Done", "完成");
         EditOrderButton.Visibility = Visibility.Visible;
 
         // 隐藏网格与标签栏，切到专用排序列表
@@ -524,7 +550,7 @@ public sealed partial class HomePage : Page
         _isEditing = false;
         FinishDrag(); // 拖动到一半退出时归位
         EditOrderIcon.Glyph = "\uE70F"; // Edit:编辑排序
-        EditOrderButtonText.Text = "编辑排序";
+        EditOrderButtonText.Text = LocalizationService.L("HomePage_EditOrderButtonText", "编辑排序");
         EditModeScroll.Visibility = Visibility.Collapsed;
 
         // 纯分类视图下兜底落盘（拖拽过程已实时保存）
@@ -621,7 +647,7 @@ public sealed partial class HomePage : Page
         });
         textStack.Children.Add(new TextBlock
         {
-            Text = string.IsNullOrWhiteSpace(tool.Description) ? tool.Category : tool.Description,
+            Text = string.IsNullOrWhiteSpace(tool.Description) ? tool.CategoryDisplay : tool.Description,
             FontSize = 12,
             Opacity = 0.7,
             TextTrimming = TextTrimming.CharacterEllipsis
@@ -799,11 +825,14 @@ public sealed partial class HomePage : Page
             try
             {
                 WindowsSearchIndexService.CreateDesktopShortcut(tool);
-                ShowStatus("已创建", $"已将「{tool.Name}」快捷方式发送到桌面", InfoBarSeverity.Success);
+                ShowStatus(
+                    LocalizationService.L("Common_Created", "已创建"),
+                    string.Format(LocalizationService.L("Common_DesktopShortcutCreated", "已将「{0}」快捷方式发送到桌面"), tool.Name),
+                    InfoBarSeverity.Success);
             }
             catch (Exception ex)
             {
-                ShowStatus("创建失败", ex.Message, InfoBarSeverity.Error);
+                ShowStatus(LocalizationService.L("Common_CreateFailed", "创建失败"), ex.Message, InfoBarSeverity.Error);
             }
         }
     }
@@ -823,7 +852,7 @@ public sealed partial class HomePage : Page
     private void CompactMenu_OpenTutorial(object sender, RoutedEventArgs e)
     {
         if (sender is MenuFlyoutItem { DataContext: ToolItem tool } && tool.HasTutorial)
-            BrowserPage.Open(tool.TutorialUrl!, $"{tool.Name} - 使用教程");
+            BrowserPage.Open(tool.TutorialUrl!, string.Format(LocalizationService.L("HomePage_TutorialWindowTitle", "{0} - 使用教程"), tool.Name));
     }
 
     private void NormalItem_RightTapped(object sender, RightTappedRoutedEventArgs e)
@@ -845,11 +874,14 @@ public sealed partial class HomePage : Page
             try
             {
                 WindowsSearchIndexService.CreateDesktopShortcut(tool);
-                ShowStatus("已创建", $"已将「{tool.Name}」快捷方式发送到桌面", InfoBarSeverity.Success);
+                ShowStatus(
+                    LocalizationService.L("Common_Created", "已创建"),
+                    string.Format(LocalizationService.L("Common_DesktopShortcutCreated", "已将「{0}」快捷方式发送到桌面"), tool.Name),
+                    InfoBarSeverity.Success);
             }
             catch (Exception ex)
             {
-                ShowStatus("创建失败", ex.Message, InfoBarSeverity.Error);
+                ShowStatus(LocalizationService.L("Common_CreateFailed", "创建失败"), ex.Message, InfoBarSeverity.Error);
             }
         }
     }
@@ -869,7 +901,7 @@ public sealed partial class HomePage : Page
     private void NormalMenu_OpenTutorial(object sender, RoutedEventArgs e)
     {
         if (sender is MenuFlyoutItem { DataContext: ToolItem tool } && tool.HasTutorial)
-            BrowserPage.Open(tool.TutorialUrl!, $"{tool.Name} - 使用教程");
+            BrowserPage.Open(tool.TutorialUrl!, string.Format(LocalizationService.L("HomePage_TutorialWindowTitle", "{0} - 使用教程"), tool.Name));
     }
 
     private void NormalMenu_DeleteTool(object sender, RoutedEventArgs e)
@@ -903,10 +935,9 @@ public sealed partial class HomePage : Page
         submenu.Visibility = Visibility.Visible;
         foreach (var opt in tool.ArchOptions)
         {
-            var label = string.IsNullOrEmpty(opt.Arch) ? "默认" : opt.Arch;
             var item = new ToggleMenuFlyoutItem
             {
-                Text = label,
+                Text = opt.DisplayText,
                 IsChecked = opt == tool.SelectedArch,
                 DataContext = opt
             };
@@ -921,9 +952,10 @@ public sealed partial class HomePage : Page
 
     private static void UpdateBuiltinLinkFlyoutItems(MenuFlyout flyout, ToolItem tool, string prefix)
     {
+        // 按 x:Name 定位菜单项（不能按 Text 匹配：文本随界面语言变化）
         var isBuiltin = tool.IsBuiltinLink;
         var sendToDesktop = flyout.Items.OfType<MenuFlyoutItem>()
-            .FirstOrDefault(i => i.Text.Contains("桌面快捷方式"));
+            .FirstOrDefault(i => i.Name == prefix + "SendToDesktop");
         // 内置工具只要有注册 Id 也能发桌面快捷方式（--open-builtin 启动），
         // 仅缺注册信息的旧链接才隐藏
         if (sendToDesktop is not null)
@@ -932,22 +964,22 @@ public sealed partial class HomePage : Page
                 : Visibility.Visible;
 
         var runAsAdmin = flyout.Items.OfType<MenuFlyoutItem>()
-            .FirstOrDefault(i => i.Text.Contains("管理员"));
+            .FirstOrDefault(i => i.Name == prefix + "RunAsAdmin");
         if (runAsAdmin is not null)
             runAsAdmin.Visibility = isBuiltin ? Visibility.Collapsed : Visibility.Visible;
 
         var openDir = flyout.Items.OfType<MenuFlyoutItem>()
-            .FirstOrDefault(i => i.Text.Contains("所在目录"));
+            .FirstOrDefault(i => i.Name == prefix + "OpenDirectory");
         if (openDir is not null)
             openDir.Visibility = isBuiltin ? Visibility.Collapsed : Visibility.Visible;
 
         var tutorialItem = flyout.Items.OfType<MenuFlyoutItem>()
-            .FirstOrDefault(i => i.Text.Contains("教程"));
+            .FirstOrDefault(i => i.Name == prefix + "OpenTutorial");
         if (tutorialItem is not null)
             tutorialItem.Visibility = tool.HasTutorial ? Visibility.Visible : Visibility.Collapsed;
 
         var deleteItem = flyout.Items.OfType<MenuFlyoutItem>()
-            .FirstOrDefault(i => i.Text.Contains("删除工具"));
+            .FirstOrDefault(i => i.Name == prefix + "DeleteTool");
         if (deleteItem is not null)
             deleteItem.Visibility = isBuiltin ? Visibility.Collapsed : Visibility.Visible;
     }
@@ -956,7 +988,7 @@ public sealed partial class HomePage : Page
     {
         var dialog = new ContentDialog
         {
-            Title = $"删除「{tool.Name}」",
+            Title = string.Format(LocalizationService.L("HomePage_DeleteDialogTitle", "删除「{0}」"), tool.Name),
             Content = new StackPanel
             {
                 Spacing = 8,
@@ -964,13 +996,13 @@ public sealed partial class HomePage : Page
                 {
                     new TextBlock
                     {
-                        Text = "确定要删除此工具吗？此操作不可撤销！",
+                        Text = LocalizationService.L("HomePage_DeleteDialogConfirm", "确定要删除此工具吗？此操作不可撤销！"),
                         TextWrapping = TextWrapping.Wrap,
                         FontWeight = Microsoft.UI.Text.FontWeights.Bold
                     },
                     new TextBlock
                     {
-                        Text = "将会删除工具所在目录及所有相关文件：",
+                        Text = LocalizationService.L("HomePage_DeleteDialogDetail", "将会删除工具所在目录及所有相关文件："),
                         TextWrapping = TextWrapping.Wrap,
                         Opacity = 0.72
                     },
@@ -984,8 +1016,8 @@ public sealed partial class HomePage : Page
                     }
                 }
             },
-            PrimaryButtonText = "删除",
-            CloseButtonText = "取消",
+            PrimaryButtonText = LocalizationService.L("Common_Delete", "删除"),
+            CloseButtonText = LocalizationService.L("Common_Cancel", "取消"),
             DefaultButton = ContentDialogButton.Close,
             XamlRoot = XamlRoot,
             RequestedTheme = ThemeService.CurrentElementTheme
@@ -1023,16 +1055,21 @@ public sealed partial class HomePage : Page
                 mainWindow.RefreshToolCategories();
 
             _tools.Remove(tool);
-            ToolCountText.Text = _tools.Count > 0 ? $"{_tools.Count} 个工具" : "";
+            ToolCountText.Text = _tools.Count > 0
+                ? string.Format(LocalizationService.L("HomePage_ToolCount", "{0} 个工具"), _tools.Count)
+                : "";
             ToolCountText.Visibility = _tools.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
             EmptyState.Visibility = _tools.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
             UpdateGridVisibility(_tools.Count > 0);
 
-            ShowStatus("已删除", $"「{tool.Name}」已删除", InfoBarSeverity.Success);
+            ShowStatus(
+                LocalizationService.L("Common_Deleted", "已删除"),
+                string.Format(LocalizationService.L("Common_DeletedMessage", "「{0}」已删除"), tool.Name),
+                InfoBarSeverity.Success);
         }
         catch (Exception ex)
         {
-            ShowStatus("删除失败", ex.Message, InfoBarSeverity.Error);
+            ShowStatus(LocalizationService.L("Common_DeleteFailed", "删除失败"), ex.Message, InfoBarSeverity.Error);
         }
     }
 
@@ -1098,7 +1135,9 @@ public sealed partial class HomePage : Page
     {
         var item = flyout.Items.OfType<MenuFlyoutItem>().FirstOrDefault(i => i.Name == menuItemName);
         if (item is null) return;
-        item.Text = tool.IsFavorite ? "取消收藏" : "收藏";
+        item.Text = tool.IsFavorite
+            ? LocalizationService.L("Common_Unfavorite", "取消收藏")
+            : LocalizationService.L("Common_Favorite", "收藏");
         if (item.Icon is FontIcon icon)
             icon.Glyph = tool.IsFavorite ? "\uE735" : "\uE734";
     }
@@ -1152,11 +1191,14 @@ public sealed partial class HomePage : Page
             try
             {
                 WindowsSearchIndexService.CreateDesktopShortcut(tool);
-                ShowStatus("已创建", $"已将「{tool.Name}」快捷方式发送到桌面", InfoBarSeverity.Success);
+                ShowStatus(
+                    LocalizationService.L("Common_Created", "已创建"),
+                    string.Format(LocalizationService.L("Common_DesktopShortcutCreated", "已将「{0}」快捷方式发送到桌面"), tool.Name),
+                    InfoBarSeverity.Success);
             }
             catch (Exception ex)
             {
-                ShowStatus("创建失败", ex.Message, InfoBarSeverity.Error);
+                ShowStatus(LocalizationService.L("Common_CreateFailed", "创建失败"), ex.Message, InfoBarSeverity.Error);
             }
         }
     }
@@ -1209,11 +1251,13 @@ public sealed partial class HomePage : Page
         if (tool.IsBuiltinLink)
         {
             ToolDetailTip.Title = tool.Name;
-            ToolDetailTip.Subtitle = tool.Category;
+            ToolDetailTip.Subtitle = tool.CategoryDisplay;
             DetailDescriptionText.Text = string.IsNullOrWhiteSpace(tool.Description)
-                ? "暂无介绍。"
+                ? LocalizationService.L("Common_NoDescription", "暂无介绍。")
                 : tool.Description;
-            DetailPublisherText.Text = $"类型：{tool.BuiltinKindText ?? "内置"}";
+            DetailPublisherText.Text = string.Format(
+                LocalizationService.L("HomePage_DetailType", "类型：{0}"),
+                tool.BuiltinKindText ?? LocalizationService.L("Common_Builtin", "内置"));
             DetailVersionText.Text = "";
             DetailPathText.Text = "";
             ToolDetailTip.IsOpen = true;
@@ -1221,12 +1265,12 @@ public sealed partial class HomePage : Page
         }
 
         ToolDetailTip.Title = tool.Name;
-        ToolDetailTip.Subtitle = tool.Category;
+        ToolDetailTip.Subtitle = tool.CategoryDisplay;
         DetailDescriptionText.Text = string.IsNullOrWhiteSpace(tool.Description)
-            ? "暂无介绍。"
+            ? LocalizationService.L("Common_NoDescription", "暂无介绍。")
             : tool.Description;
-        DetailPublisherText.Text = $"发布者：{ValueOrUnknown(tool.Publisher)}";
-        DetailVersionText.Text = $"版本：{ValueOrUnknown(tool.Version)}";
+        DetailPublisherText.Text = string.Format(LocalizationService.L("HomePage_DetailPublisher", "发布者：{0}"), ValueOrUnknown(tool.Publisher));
+        DetailVersionText.Text = string.Format(LocalizationService.L("HomePage_DetailVersion", "版本：{0}"), ValueOrUnknown(tool.Version));
         DetailPathText.Text = tool.Path;
         ToolDetailTip.IsOpen = true;
     }
@@ -1243,7 +1287,7 @@ public sealed partial class HomePage : Page
         {
             Pages.BrowserPage.Open(tool.RemoteUrl, tool.Name);
             LaunchHistoryService.RecordLaunch(tool.Path);
-            ShowStatus("已打开", tool.Name, InfoBarSeverity.Success);
+            ShowStatus(LocalizationService.L("Common_Opened", "已打开"), tool.Name, InfoBarSeverity.Success);
             return;
         }
 
@@ -1262,7 +1306,10 @@ public sealed partial class HomePage : Page
         var exePath = tool.EffectivePath;
         if (!File.Exists(exePath))
         {
-            ShowStatus("启动失败", $"找不到文件：{exePath}", InfoBarSeverity.Error);
+            ShowStatus(
+                LocalizationService.L("Common_LaunchFailed", "启动失败"),
+                string.Format(LocalizationService.L("HomePage_LaunchFileMissing", "找不到文件：{0}"), exePath),
+                InfoBarSeverity.Error);
             return;
         }
 
@@ -1274,9 +1321,9 @@ public sealed partial class HomePage : Page
             var command = ext.Equals(".ps1", StringComparison.OrdinalIgnoreCase)
                 ? $"powershell -ExecutionPolicy Bypass -Command \"& '{exePath}'\""
                 : $"cmd.exe /c \"{exePath}\"";
-            ScriptRunnerWindow.ShowAndRun(command, tool.EffectiveWorkingDir, $"安装 {tool.Name}");
+            ScriptRunnerWindow.ShowAndRun(command, tool.EffectiveWorkingDir, string.Format(LocalizationService.L("HomePage_InstallScriptTitle", "安装 {0}"), tool.Name));
             LaunchHistoryService.RecordLaunch(tool.Path);
-            ShowStatus("已启动", tool.Name, InfoBarSeverity.Success);
+            ShowStatus(LocalizationService.L("Common_Launched", "已启动"), tool.Name, InfoBarSeverity.Success);
             return;
         }
 
@@ -1285,11 +1332,16 @@ public sealed partial class HomePage : Page
             ToolProcessLauncher.Launch(exePath, tool.EffectiveWorkingDir, runAsAdmin);
 
             LaunchHistoryService.RecordLaunch(tool.Path);
-            ShowStatus(runAsAdmin ? "已以管理员身份启动" : "已启动", tool.Name, InfoBarSeverity.Success);
+            ShowStatus(
+                runAsAdmin
+                    ? LocalizationService.L("Common_LaunchedAsAdmin", "已以管理员身份启动")
+                    : LocalizationService.L("Common_Launched", "已启动"),
+                tool.Name,
+                InfoBarSeverity.Success);
         }
         catch (Exception ex)
         {
-            ShowStatus("启动失败", ex.Message, InfoBarSeverity.Error);
+            ShowStatus(LocalizationService.L("Common_LaunchFailed", "启动失败"), ex.Message, InfoBarSeverity.Error);
         }
     }
 
@@ -1298,7 +1350,10 @@ public sealed partial class HomePage : Page
         var builtinTool = BuiltinToolRegistry.GetById(tool.BuiltinToolId!);
         if (builtinTool is null)
         {
-            ShowStatus("启动失败", "找不到对应的内置工具", InfoBarSeverity.Error);
+            ShowStatus(
+                LocalizationService.L("Common_LaunchFailed", "启动失败"),
+                LocalizationService.L("HomePage_BuiltinNotFound", "找不到对应的内置工具"),
+                InfoBarSeverity.Error);
             return;
         }
 
@@ -1313,11 +1368,11 @@ public sealed partial class HomePage : Page
             MainWindow.ActiveToolName = builtinTool.Name;
             await builtinTool.ExecuteAsync(context);
             LaunchHistoryService.RecordLaunch(tool.Path);
-            ShowStatus("已启动", tool.Name, InfoBarSeverity.Success);
+            ShowStatus(LocalizationService.L("Common_Launched", "已启动"), tool.Name, InfoBarSeverity.Success);
         }
         catch (Exception ex)
         {
-            ShowStatus("启动失败", ex.Message, InfoBarSeverity.Error);
+            ShowStatus(LocalizationService.L("Common_LaunchFailed", "启动失败"), ex.Message, InfoBarSeverity.Error);
         }
         finally
         {
@@ -1340,7 +1395,10 @@ public sealed partial class HomePage : Page
             }
 
             tool.IsWingetInstalling = true;
-            ShowStatus("正在安装", $"正在通过 winget 安装「{tool.Name}」...", InfoBarSeverity.Informational);
+            ShowStatus(
+                LocalizationService.L("Common_InstallingTitle", "正在安装"),
+                string.Format(LocalizationService.L("HomePage_WingetInstallingMessage", "正在通过 winget 安装「{0}」..."), tool.Name),
+                InfoBarSeverity.Informational);
 
             var progress = new Progress<WingetInstallProgress>(p =>
             {
@@ -1357,11 +1415,14 @@ public sealed partial class HomePage : Page
             if (result.Success)
             {
                 tool.IsWingetInstalled = true;
-                ShowStatus("安装完成", $"「{tool.Name}」安装成功，点击打开即可使用。", InfoBarSeverity.Success);
+                ShowStatus(
+                    LocalizationService.L("Common_InstallDone", "安装完成"),
+                    string.Format(LocalizationService.L("HomePage_WingetInstalledMessage", "「{0}」安装成功，点击打开即可使用。"), tool.Name),
+                    InfoBarSeverity.Success);
             }
             else
             {
-                ShowStatus("安装失败", result.Message, InfoBarSeverity.Error);
+                ShowStatus(LocalizationService.L("Common_InstallFailed", "安装失败"), result.Message, InfoBarSeverity.Error);
             }
             return;
         }
@@ -1377,11 +1438,11 @@ public sealed partial class HomePage : Page
             try
             {
                 ToolProcessLauncher.Launch(exePath, Path.GetDirectoryName(exePath));
-                ShowStatus("已启动", tool.Name, InfoBarSeverity.Success);
+                ShowStatus(LocalizationService.L("Common_Launched", "已启动"), tool.Name, InfoBarSeverity.Success);
             }
             catch (Exception ex)
             {
-                ShowStatus("启动失败", ex.Message, InfoBarSeverity.Error);
+                ShowStatus(LocalizationService.L("Common_LaunchFailed", "启动失败"), ex.Message, InfoBarSeverity.Error);
             }
             return;
         }
@@ -1395,11 +1456,11 @@ public sealed partial class HomePage : Page
                 UseShellExecute = false,
                 CreateNoWindow = true
             });
-            ShowStatus("已启动", tool.Name, InfoBarSeverity.Success);
+            ShowStatus(LocalizationService.L("Common_Launched", "已启动"), tool.Name, InfoBarSeverity.Success);
         }
         catch (Exception ex)
         {
-            ShowStatus("启动失败", ex.Message, InfoBarSeverity.Error);
+            ShowStatus(LocalizationService.L("Common_LaunchFailed", "启动失败"), ex.Message, InfoBarSeverity.Error);
         }
     }
 
@@ -1439,7 +1500,7 @@ public sealed partial class HomePage : Page
 
     private static string ValueOrUnknown(string? value)
     {
-        return string.IsNullOrWhiteSpace(value) ? "未知" : value;
+        return string.IsNullOrWhiteSpace(value) ? LocalizationService.L("Common_Unknown", "未知") : value;
     }
 
     #region 拖放导入工具（Win32 API 绕过 UIPI）
@@ -1497,7 +1558,7 @@ public sealed partial class HomePage : Page
         {
             // 兜底：弹窗链路任何异常都不能静默（旧版开独立窗口不依赖页面状态，
             // 弹窗必须挂主窗口 XamlRoot 才能保证任何页面状态下都能弹出）
-            ShowStatus("导入失败", ex.Message, InfoBarSeverity.Error);
+            ShowStatus(LocalizationService.L("Common_ImportFailed", "导入失败"), ex.Message, InfoBarSeverity.Error);
         }
     }
 
@@ -1508,7 +1569,10 @@ public sealed partial class HomePage : Page
         var xamlRoot = App.MainWindow?.Content?.XamlRoot ?? XamlRoot;
         if (xamlRoot is null)
         {
-            ShowStatus("导入失败", "无法获取窗口，请重试", InfoBarSeverity.Error);
+            ShowStatus(
+                LocalizationService.L("Common_ImportFailed", "导入失败"),
+                LocalizationService.L("HomePage_ImportNoWindow", "无法获取窗口，请重试"),
+                InfoBarSeverity.Error);
             return;
         }
 
@@ -1523,13 +1587,15 @@ public sealed partial class HomePage : Page
         }
         catch (Exception ex)
         {
-            ShowStatus("无法读取文件", ex.Message, InfoBarSeverity.Error);
+            ShowStatus(LocalizationService.L("HomePage_ImportUnreadable", "无法读取文件"), ex.Message, InfoBarSeverity.Error);
             return;
         }
 
         if (executables.Count == 0)
         {
-            await ShowMessageAsync("未找到可导入工具", "压缩包里需要至少包含一个 .exe 文件。");
+            await ShowMessageAsync(
+                LocalizationService.L("HomePage_ImportNoExeTitle", "未找到可导入工具"),
+                LocalizationService.L("HomePage_ImportNoExeMessage", "压缩包里需要至少包含一个 .exe 文件。"));
             return;
         }
 
@@ -1561,7 +1627,10 @@ public sealed partial class HomePage : Page
                 mainWindow.RefreshToolCategories();
 
             await LoadToolsAsync();
-            ShowStatus("导入成功", $"已导入 {Path.GetFileName(result.ToolDirectory)}", InfoBarSeverity.Success);
+            ShowStatus(
+                LocalizationService.L("Common_ImportSuccess", "导入成功"),
+                string.Format(LocalizationService.L("HomePage_ImportSuccessMessage", "已导入 {0}"), Path.GetFileName(result.ToolDirectory)),
+                InfoBarSeverity.Success);
         }
         catch (Exception ex)
         {
@@ -1572,7 +1641,7 @@ public sealed partial class HomePage : Page
                 if (App.MainWindow is MainWindow mainWindow)
                     mainWindow.RefreshToolCategories();
             }
-            ShowStatus("导入失败", ex.Message, InfoBarSeverity.Error);
+            ShowStatus(LocalizationService.L("Common_ImportFailed", "导入失败"), ex.Message, InfoBarSeverity.Error);
         }
     }
 
@@ -1583,7 +1652,7 @@ public sealed partial class HomePage : Page
             XamlRoot = App.MainWindow?.Content?.XamlRoot ?? XamlRoot,
             Title = title,
             Content = new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap },
-            CloseButtonText = "确定",
+            CloseButtonText = LocalizationService.L("Common_Confirm", "确定"),
             RequestedTheme = ThemeService.CurrentElementTheme
         };
         await dialog.ShowAsync();

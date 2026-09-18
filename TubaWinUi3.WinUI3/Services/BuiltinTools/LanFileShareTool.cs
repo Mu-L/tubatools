@@ -9,8 +9,8 @@ namespace TubaWinUi3.Services;
 public sealed class LanFileShareTool : IBuiltinTool
 {
     public string Id => "lan-file-share";
-    public string Name => "局域网文件分享";
-    public string Description => "在局域网内创建HTTP文件分享服务，其他设备可通过浏览器访问和下载文件，支持拖拽上传。";
+    public string Name => LocalizationService.L("Builtin_lan-file-share_Name", "局域网文件分享");
+    public string Description => LocalizationService.L("Builtin_lan-file-share_Desc", "在局域网内创建HTTP文件分享服务，其他设备可通过浏览器访问和下载文件，支持拖拽上传。");
     public string Glyph => "\uE8F1";
     public string Category => "网络工具";
     public BuiltinToolKind Kind => BuiltinToolKind.Dialog;

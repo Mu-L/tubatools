@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -70,19 +70,19 @@ public sealed class PartitionVm
     public required string InterfaceType { get; init; }
     public required string Model { get; init; }
     public required bool IsSsd { get; init; }
-    public string OptimizeText => IsSsd ? "优化/TRIM" : "整理碎片";
+    public string OptimizeText => IsSsd ? LocalizationService.L("DiskHealth_OptimizeTrim", "优化/TRIM") : LocalizationService.L("DiskHealth_Defragment", "整理碎片");
     public string OptimizeGlyph => IsSsd ? "\uE8D9" : "\uE90F";
-    public string FlyoutTitle => $"{DriveLetter} — {(IsSsd ? "TRIM 优化确认" : "碎片整理确认")}";
+    public string FlyoutTitle => string.Format(LocalizationService.L("DiskHealth_FlyoutTitle", "{0} — {1}"), DriveLetter, IsSsd ? LocalizationService.L("DiskHealth_TrimConfirm", "TRIM 优化确认") : LocalizationService.L("DiskHealth_DefragConfirm", "碎片整理确认"));
     public string FlyoutDesc => IsSsd
-        ? $"将对 {DriveLetter} 执行固态硬盘 TRIM 优化，通常几秒内完成，可立即恢复磁盘写入性能。"
-        : $"将在后台以低优先级启动碎片整理，可能需要数十分钟到数小时，期间可继续正常使用电脑。";
+        ? string.Format(LocalizationService.L("DiskHealth_FlyoutDescTrim", "将对 {0} 执行固态硬盘 TRIM 优化，通常几秒内完成，可立即恢复磁盘写入性能。"), DriveLetter)
+        : LocalizationService.L("DiskHealth_FlyoutDescDefrag", "将在后台以低优先级启动碎片整理，可能需要数十分钟到数小时，期间可继续正常使用电脑。");
 }
 
 /// <summary>
 /// 磁盘健康仪表盘：品牌紫渐变面板 + 环形图（健康度/温度/分区占用）+ 分段容量条形图 + 读写对比条，
 /// 分区优化按钮带 Flyout 二次确认。逻辑见 DiskHealthService / DiskSmartReader。
 /// </summary>
-public sealed partial class DiskHealthPage : Page
+public sealed partial class DiskHealthPage : Page, ILocalizablePage
 {
     // 品牌调色板（与主题无关，两套主题下一致）
     private static readonly Color BrandViolet = Color.FromArgb(255, 124, 108, 240);
@@ -129,6 +129,12 @@ public sealed partial class DiskHealthPage : Page
         _cts = null;
     }
 
+    /// <summary>语言切换后按当前语言重渲染（卡片文本由代码生成；表头等 Uid 控件自动更新）。</summary>
+    public void ApplyLocalization()
+    {
+        if (_lastResponse is not null)
+            Render(_lastResponse);
+    }
     private static SolidColorBrush Brush(Color color) => new(color);
 
     // ───────────────────────────── 加载 / 渲染 ─────────────────────────────
@@ -180,7 +186,7 @@ public sealed partial class DiskHealthPage : Page
 
         if (response.Disks.Count == 0)
         {
-            ErrorText.Text = "未检测到可用的物理硬盘";
+            ErrorText.Text = LocalizationService.L("DiskHealth_NoDisk", "未检测到可用的物理硬盘");
             LoadingPanel.Visibility = Visibility.Collapsed;
             ErrorPanel.Visibility = Visibility.Visible;
             ContentPanel.Visibility = Visibility.Collapsed;
@@ -219,7 +225,7 @@ public sealed partial class DiskHealthPage : Page
         if (hasError)
             tags.Add(new DiskTagVm
             {
-                Text = "读取失败",
+                Text = LocalizationService.L("DiskHealth_ReadFailed", "读取失败"),
                 Glyph = "\uEA39",
                 Background = Brush(Color.FromArgb(0x1E, CriticalRed.R, CriticalRed.G, CriticalRed.B)),
                 Foreground = Brush(CriticalRed),
@@ -262,22 +268,22 @@ public sealed partial class DiskHealthPage : Page
             TempText = temp is { } t2 ? $"{t2}°C" : "--",
             TempRingBrush = Brush(tempBrush),
             Partitions = partitions,
-            PowerOnHoursText = disk.PowerOnHours is { } h ? $"{FormatCount(h)} 小时" : "--",
+            PowerOnHoursText = disk.PowerOnHours is { } h ? string.Format(LocalizationService.L("DiskHealth_Hours", "{0} 小时"), FormatCount(h)) : "--",
             PowerOnCountText = disk.PowerOnCount is { } c ? FormatCount(c) : "--",
-            DataReadText = disk.DataReadBytes is null ? "读 --" : $"读 {FormatBytes(disk.DataReadBytes.Value)}",
-            DataWrittenText = disk.DataWrittenBytes is null ? "写 --" : $"写 {FormatBytes(disk.DataWrittenBytes.Value)}",
+            DataReadText = disk.DataReadBytes is null ? LocalizationService.L("DiskHealth_ReadEmpty", "读 --") : string.Format(LocalizationService.L("DiskHealth_ReadValue", "读 {0}"), FormatBytes(disk.DataReadBytes.Value)),
+            DataWrittenText = disk.DataWrittenBytes is null ? LocalizationService.L("DiskHealth_WriteEmpty", "写 --") : string.Format(LocalizationService.L("DiskHealth_WriteValue", "写 {0}"), FormatBytes(disk.DataWrittenBytes.Value)),
             DataReadGb = readGb,
             DataWriteGb = writeGb,
             ReadWriteMax = Math.Max(Math.Max(readGb, writeGb), 0.1),
             ReadBarBrush = Brush(BrandBlue),
             WriteBarBrush = Brush(BrandViolet),
-            OperationalText = hasError ? "读取失败"
+            OperationalText = hasError ? LocalizationService.L("DiskHealth_ReadFailed", "读取失败")
                 : disk.OperationalStatus switch
                 {
-                    "OK" => "正常",
-                    "Degraded" => "降级",
-                    "Failure" => "故障",
-                    _ => "未知",
+                    "OK" => LocalizationService.L("DiskHealth_StatusOk", "正常"),
+                    "Degraded" => LocalizationService.L("DiskHealth_StatusDegraded", "降级"),
+                    "Failure" => LocalizationService.L("DiskHealth_StatusFailure", "故障"),
+                    _ => LocalizationService.L("DiskHealth_StatusUnknown", "未知"),
                 },
             OperationalBrush = Brush(hasError ? CriticalRed : disk.HealthStatus switch
             {
@@ -286,7 +292,7 @@ public sealed partial class DiskHealthPage : Page
                 "unhealthy" => CriticalRed,
                 _ => NeutralGray,
             }),
-            ErrorDetail = hasError ? TruncateError(disk.Error ?? "未知错误") : "",
+            ErrorDetail = hasError ? TruncateError(disk.Error ?? LocalizationService.L("DiskHealth_UnknownError", "未知错误")) : "",
         };
     }
 
@@ -301,10 +307,10 @@ public sealed partial class DiskHealthPage : Page
     {
         var (text, color, glyph) = healthStatus switch
         {
-            "healthy" => ("健康", SuccessGreen, "\uE73E"),
-            "warning" => ("警告", CautionAmber, "\uE7BA"),
-            "unhealthy" => ("异常", CriticalRed, "\uEA39"),
-            _ => ("未知", NeutralGray, "\uE946"),
+            "healthy" => (LocalizationService.L("DiskHealth_HealthHealthy", "健康"), SuccessGreen, "\uE73E"),
+            "warning" => (LocalizationService.L("DiskHealth_HealthWarning", "警告"), CautionAmber, "\uE7BA"),
+            "unhealthy" => (LocalizationService.L("DiskHealth_HealthCritical", "异常"), CriticalRed, "\uEA39"),
+            _ => (LocalizationService.L("DiskHealth_HealthUnknown", "未知"), NeutralGray, "\uE946"),
         };
         return new DiskTagVm
         {
@@ -322,7 +328,7 @@ public sealed partial class DiskHealthPage : Page
         var mediaText = disk.IsNvme ? "NVMe"
             : media.Contains("hdd") ? "HDD"
             : media.Contains("ssd") || media.Contains("solid state") ? "SSD"
-            : "固件硬盘";
+            : LocalizationService.L("DiskHealth_FirmwareDisk", "固件硬盘");
         var mediaColor = disk.IsNvme || media.Contains("ssd") || media.Contains("solid state")
             ? BrandViolet : CautionAmber;
         tags.Add(new DiskTagVm
@@ -338,13 +344,13 @@ public sealed partial class DiskHealthPage : Page
         if (disk.IsBootDisk)
             tags.Add(new DiskTagVm
             {
-                Text = "系统盘",
+                Text = LocalizationService.L("DiskHealth_SystemDisk", "系统盘"),
                 Glyph = "\uE734",
                 Background = Brush(Color.FromArgb(0x1E, CautionAmber.R, CautionAmber.G, CautionAmber.B)),
                 Foreground = Brush(CautionAmber),
             });
         if (!disk.HasSmart && !disk.HasError)
-            tags.Add(GrayTag("SMART 不可读"));
+            tags.Add(GrayTag(LocalizationService.L("DiskHealth_SmartUnreadable", "SMART 不可读")));
         return tags;
     }
 
@@ -385,8 +391,8 @@ public sealed partial class DiskHealthPage : Page
         var pct = totalCap > 0 ? totalUsed * 100.0 / totalCap : 0.0;
         OverviewRing.Value = pct;
         OverviewPctText.Text = $"{pct:0}%";
-        OverviewUsedText.Text = $"已用 {FormatGb(totalUsed)}";
-        OverviewTotalText.Text = $"共 {FormatGb(totalCap)}";
+        OverviewUsedText.Text = string.Format(LocalizationService.L("DiskHealth_Used", "已用 {0}"), FormatGb(totalUsed));
+        OverviewTotalText.Text = string.Format(LocalizationService.L("DiskHealth_Total", "共 {0}"), FormatGb(totalCap));
 
         OverviewDiskList.Children.Clear();
         var cursor = 0;
@@ -461,7 +467,7 @@ public sealed partial class DiskHealthPage : Page
         });
         summary.Children.Add(new TextBlock
         {
-            Text = $"已用 {FormatGb(disk.TotalUsageGb)} / {FormatGb(disk.TotalCapacityGb)}",
+            Text = string.Format(LocalizationService.L("DiskHealth_UsedOf", "已用 {0} / {1}"), FormatGb(disk.TotalUsageGb), FormatGb(disk.TotalCapacityGb)),
             FontSize = 12,
             Opacity = 0.65,
             TextAlignment = TextAlignment.Right,
@@ -493,7 +499,7 @@ public sealed partial class DiskHealthPage : Page
         try
         {
             var result = await DiskHealthService.OptimizeAsync(vm.DriveLetter, vm.Index, vm.InterfaceType, vm.Model);
-            var done = result.Operation == "retrim" ? "TRIM 优化完成" : "碎片整理完成";
+            var done = result.Operation == "retrim" ? LocalizationService.L("DiskHealth_TrimDone", "TRIM 优化完成") : LocalizationService.L("DiskHealth_DefragDone", "碎片整理完成");
             SuccessBar.Severity = result.Background ? InfoBarSeverity.Informational : InfoBarSeverity.Success;
             SuccessBar.Title = $"{vm.DriveLetter}：{done}";
             SuccessBar.Message = result.Message;
@@ -501,7 +507,7 @@ public sealed partial class DiskHealthPage : Page
         }
         catch (Exception ex)
         {
-            ErrorBar.Title = $"{vm.DriveLetter}：磁盘优化失败";
+            ErrorBar.Title = string.Format(LocalizationService.L("DiskHealth_OptimizeFailed", "{0}：磁盘优化失败"), vm.DriveLetter);
             ErrorBar.Message = ex.Message;
             ErrorBar.IsOpen = true;
         }
