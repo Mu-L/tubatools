@@ -8,6 +8,7 @@ using TubaWinUi3.Pages;
 using TubaWinUi3.Services;
 using TubaWinUi3.Services.ActiveIntercept;
 using TubaWinUi3.Services.Agent;
+using TubaWinUi3.Services.Ai;
 using TubaWinUi3.Models;
 namespace TubaWinUi3;
 
@@ -21,21 +22,23 @@ public partial class App : Application
     {
         Environment.SetEnvironmentVariable("MICROSOFT_WINDOWSAPPRUNTIME_BASE_DIRECTORY", AppContext.BaseDirectory);
 
-        // WebView2 用户数据目录固定到 %LocalAppData%\TubaWinUi3\WebView2。该环境变量优先级
-        // 高于 CreateWithOptionsAsync 的 userDataFolder 参数，能兜住三方库内部不传环境直接
-        // 初始化 WebView2 的情况（如 FieldCure ChatPanel）——否则装在 Program Files 等受保护
-        // 目录时，默认目录（exe 旁 *.exe.WebView2）创建失败会弹「无法读取和写入其数据目录」。
-        Environment.SetEnvironmentVariable("WEBVIEW2_USER_DATA_FOLDER",
-            Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "TubaWinUi3", "WebView2"));
-
+        // 切勿设置 WEBVIEW2_USER_DATA_FOLDER：它优先级高于一切，会覆盖进程内所有 WebView2 环境
+        // 的用户数据目录（包括 CreateWithOptionsAsync 显式传入的 userDataFolder 和第三方组件自建的
+        // 默认环境），把工具箱自己那套与 FieldCure ChatPanel 那套挤进同一目录；而一个 UDF 同时只能
+        // 有一个会话，后创建的环境会静默失败（返回 null 环境，不抛异常），表现为 AI 面板收不到消息、
+        // 消息区空白。工具箱自己的 WebView2 统一经 WebView2EnvironmentService.GetAsync() 指定可写
+        // 目录（%LocalAppData%\TubaWinUi3\WebView2），各套环境各用各的目录才互不干扰。
         InitializeComponent();
 
         // LiveCharts/SkiaSharp 不再于启动时初始化：首个图表页面首次访问时才配置（ChartInitializer）。
         // LiveCharts.Configure 在 App() 中已移除，启动不再加载 SkiaSharp 原生库。
 
         AppSettings.Load();
+
+        // AI 助手：接上 FieldCure 组件库的诊断回调。组件内部的失败（WebView2 环境创建失败、
+        // 渲染被就绪守卫拦下、脚本异常等）默认完全静默，只会表现为"字没了、什么都没发生"；
+        // 接上后统一落盘 <DataDir>\AiAssistant\diag.log，正式版也能抓到真身。
+        AiDiagnosticsLog.Initialize();
 
         // 界面语言必须在任何打了 Uid 的控件创建前就绪（MainWindow 在 OnLaunched 里创建）。
         LocalizationService.Initialize();

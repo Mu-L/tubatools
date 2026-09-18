@@ -635,6 +635,7 @@ public sealed partial class AiAgentPage : UserControl
         Chat.ClearConversation();
         await Task.Delay(200); // 让 ClearConversation 的渲染器复位先完成
         var messages = AiAssistantService.LoadConversation(meta.Id);
+        var restoredCount = 0;
         foreach (var m in messages)
         {
             if (m.Role is not ("user" or "assistant") || string.IsNullOrWhiteSpace(m.Content)) continue;
@@ -642,8 +643,17 @@ public sealed partial class AiAgentPage : UserControl
                 m.Role == "user" ? ChatRole.User : ChatRole.Assistant,
                 m.Content,
                 thinkingContent: m.ReasoningContent);
+            restoredCount++;
+        }
+        if (restoredCount == 0)
+        {
+            // 防静默：这类存档点开必然是空白（老版本只存了系统提示词），日志里留下痕迹
+            AiDiagnosticsLog.Write("WARN ", $"[Host] 会话 {meta.Id}「{meta.Title}」没有可还原内容：存档 {messages.Count} 条，回填 0 条");
         }
         await WhenChatReadyAsync();
+        // 防静默：面板未就绪时 RenderRestoredMessagesAsync 会静默 return（消息区全空），这行是唯一线索
+        AiDiagnosticsLog.Write("INFO ",
+            $"[Host] 打开会话 {meta.Id}：存档 {messages.Count} 条 → 回填 {restoredCount} 条，面板就绪={Chat.IsInitialized}");
         await Chat.RenderRestoredMessagesAsync();
         Chat.FocusInput();
         BotPulse("comet", 2400); // 历史会话加载完成：彗星回归（"从存档回来"）

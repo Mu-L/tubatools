@@ -81,7 +81,7 @@ public class AiAssistantConversationStoreTests : IDisposable
     {
         AiAssistantService.SaveConversation("a", "第一条", [AiChatMessage.User("hi")]);
         Thread.Sleep(10); // CreatedAt 精度到秒，间隔写入保证排序稳定
-        AiAssistantService.SaveConversation("b", "第二条", []);
+        AiAssistantService.SaveConversation("b", "第二条", [AiChatMessage.User("hi"), AiChatMessage.Assistant("yo")]);
 
         var list = AiAssistantService.ListConversations();
 
@@ -90,5 +90,45 @@ public class AiAssistantConversationStoreTests : IDisposable
         Assert.Equal("a", list[1].Id);
         Assert.Equal(1, list[1].MessageCount);
         Assert.Equal("第二条", list[0].Title);
+    }
+
+    /// <summary>无对话内容的会话不落盘（面板静默死亡期间会产生大量这类空壳，点开必然空白）。</summary>
+    [Fact]
+    public void SaveConversation_WithoutConversationContent_IsSkipped()
+    {
+        AiAssistantService.SaveConversation("empty", "空会话", []);
+        AiAssistantService.SaveConversation("sysonly", "只有系统提示词", [AiChatMessage.System("你是图吧助手")]);
+
+        Assert.Empty(Directory.GetFiles(_dir));
+        Assert.Empty(AiAssistantService.ListConversations());
+    }
+
+    /// <summary>老版本遗留的空壳存档（只有系统提示词）不再出现在历史列表里。</summary>
+    [Fact]
+    public void ListConversations_HidesLegacyShellArchives()
+    {
+        File.WriteAllText(Path.Combine(_dir, "legacy-shell.meta.json"),
+            """{"Id":"legacy-shell","Title":"旧空壳","CreatedAt":"2026-09-17T10:02:00","MessageCount":1}""");
+        File.WriteAllText(Path.Combine(_dir, "legacy-shell.messages.json"),
+            """[{"Role":"system","Content":"你是图吧助手"}]""");
+        AiAssistantService.SaveConversation("real", "真会话", [AiChatMessage.User("你好"), AiChatMessage.Assistant("在")]);
+
+        var list = AiAssistantService.ListConversations();
+
+        Assert.Single(list);
+        Assert.Equal("real", list[0].Id);
+    }
+
+    [Theory]
+    [InlineData("system", "你是一个助手", false)]
+    [InlineData("tool", "执行结果", false)]
+    [InlineData("user", "你好", true)]
+    [InlineData("assistant", "在", true)]
+    [InlineData("user", "   ", false)]
+    [InlineData("assistant", "", false)]
+    public void HasRestorableContent_JudgesByRoleAndContent(string role, string content, bool expected)
+    {
+        var messages = new List<AiChatMessage> { new() { Role = role, Content = content } };
+        Assert.Equal(expected, AiAssistantService.HasRestorableContent(messages));
     }
 }

@@ -193,6 +193,7 @@ public sealed partial class AiQuickAskFlyout : UserControl
         Chat.ClearConversation();
         await Task.Delay(200); // 让 ClearConversation 的渲染器复位先完成
         var messages = AiAssistantService.LoadConversation(meta.Id);
+        var restoredCount = 0;
         foreach (var m in messages)
         {
             if (m.Role is not ("user" or "assistant") || string.IsNullOrWhiteSpace(m.Content)) continue;
@@ -200,8 +201,14 @@ public sealed partial class AiQuickAskFlyout : UserControl
                 m.Role == "user" ? ChatRole.User : ChatRole.Assistant,
                 m.Content,
                 thinkingContent: m.ReasoningContent);
+            restoredCount++;
         }
+        if (restoredCount == 0)
+            AiDiagnosticsLog.Write("WARN ", $"[Host/快捷问询] 会话 {meta.Id}「{meta.Title}」没有可还原内容：存档 {messages.Count} 条，回填 0 条");
         await WhenChatReadyAsync();
+        // 防静默：面板未就绪时 RenderRestoredMessagesAsync 会静默 return，这行是唯一线索
+        AiDiagnosticsLog.Write("INFO ",
+            $"[Host/快捷问询] 打开会话 {meta.Id}：存档 {messages.Count} 条 → 回填 {restoredCount} 条，面板就绪={Chat.IsInitialized}");
         await Chat.RenderRestoredMessagesAsync();
         Chat.FocusInput();
     }

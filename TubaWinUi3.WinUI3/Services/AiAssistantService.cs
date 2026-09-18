@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.UI.Xaml;
 using TubaWinUi3.Models;
+using TubaWinUi3.Services.Ai;
 
 namespace TubaWinUi3.Services;
 
@@ -634,6 +635,14 @@ public sealed partial class AiAssistantService
     {
         try
         {
+            // 无对话内容（只剩系统提示词、或空列表）的会话不落盘：面板静默死亡期间会产生大量
+            // 这种空壳存档——它们点开必然空白，只会在历史列表里堆积。
+            if (!HasRestorableContent(messages))
+            {
+                AiDiagnosticsLog.Write("WARN ", $"[Host] 跳过无内容的会话存档 {id}（{messages.Count} 条，无可还原的 user/assistant 消息）");
+                return;
+            }
+
             Directory.CreateDirectory(HistoryDir);
             var meta = new ConversationMeta
             {
@@ -689,7 +698,8 @@ public sealed partial class AiAssistantService
                 {
                     var json = File.ReadAllText(file);
                     var meta = JsonSerializer.Deserialize<ConversationMeta>(json, JsonOpts);
-                    if (meta is not null) result.Add(meta);
+                    // 老版本留下的空壳存档（只有系统提示词）不进历史列表：点开必然空白
+                    if (meta is not null && HasRestorableContent(LoadConversation(meta.Id))) result.Add(meta);
                 }
                 catch { }
             }
@@ -709,6 +719,13 @@ public sealed partial class AiAssistantService
         }
         catch { return []; }
     }
+
+    /// <summary>
+    /// 存档是否含可还原的对话内容：至少一条有正文的 user/assistant 消息。
+    /// 系统提示词、工具轮次（内部协议，界面不还原）都不算——判断口径与界面回填循环一致。
+    /// </summary>
+    public static bool HasRestorableContent(IReadOnlyList<AiChatMessage> messages)
+        => messages.Any(m => (m.Role is "user" or "assistant") && !string.IsNullOrWhiteSpace(m.Content));
 
     /// <summary>删除会话：清除全部 4 个关联文件（meta / messages / display / memory），缺文件容忍。</summary>
     public static void DeleteConversation(string id)
