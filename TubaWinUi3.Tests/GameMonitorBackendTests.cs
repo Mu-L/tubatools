@@ -77,6 +77,28 @@ public class GameMonitorBackendTests
         Assert.False(GameMonitorService.IsForegroundFullScreenCore(window, monitor, work, out _, out _));
     }
 
+    // ================= 进程排除名单 =================
+
+    [Theory]
+    [InlineData("LockApp")]        // 合盖 / Win+L 锁屏：无边框全屏，最容易被当成游戏
+    [InlineData("LogonUI")]        // 登录界面
+    [InlineData("Windows.UI.Logon")]
+    [InlineData("explorer")]
+    [InlineData("msedge")]
+    [InlineData("TubaWinUi3")]
+    public void ProcessFilter_ExcludesSystemShellSurfaces(string process)
+    {
+        Assert.True(GameProcessFilter.IsExcluded(process));
+    }
+
+    [Theory]
+    [InlineData("LockApp.exe")] // 名单匹配的是进程名（不带扩展名），带扩展名不命中 —— 由调用方保证
+    [InlineData("notagame")]
+    public void ProcessFilter_UnknownProcessIsNotExcluded(string process)
+    {
+        Assert.False(GameProcessFilter.IsExcluded(process));
+    }
+
     // ================= 共享 FpsTracker / present 判据（两端同源） =================
 
     [Fact]

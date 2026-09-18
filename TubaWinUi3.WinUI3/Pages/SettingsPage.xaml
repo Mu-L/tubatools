@@ -1227,7 +1227,7 @@
                                     </Grid>
                                 </Border>
 
-                                <Border x:Name="SettingsTempCleanCard" Style="{StaticResource SettingsCardStyle}">
+                                <Border x:Name="SettingsStorageUsageCard" Style="{StaticResource SettingsCardStyle}">
                                     <Grid ColumnSpacing="16">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto" />
@@ -1235,16 +1235,16 @@
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
                                         <Border Style="{StaticResource IconBorderStyle}">
-                                            <FontIcon FontSize="18" Glyph="&#xE74D;" />
+                                            <FontIcon FontSize="18" Glyph="&#xEDA2;" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="删除临时文件" />
-                                            <TextBlock x:Name="TempCleanStatusText" Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="清理本软件在系统临时目录中产生的残留文件（更新包、安装包暂存、转换中间产物、崩溃日志等）。" />
+                                            <TextBlock FontWeight="Bold" Text="图吧工具箱存储占用" />
+                                            <TextBlock x:Name="StorageUsageStatusText" Opacity="1.0" FontSize="13" TextWrapping="Wrap" Text="统计程序目录、缓存与各内置工具产生的文件（下载组件、日志、临时残留等），可逐项选择清理。" />
                                         </StackPanel>
-                                        <Button x:Name="TempCleanButton" Grid.Column="2" VerticalAlignment="Center" Padding="14,6" Click="TempCleanButton_Click">
+                                        <Button x:Name="StorageUsageButton" Grid.Column="2" VerticalAlignment="Center" Padding="14,6" Click="StorageUsageButton_Click">
                                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                                <FontIcon FontSize="12" Glyph="&#xE74D;" />
-                                                <TextBlock Text="立即清理" />
+                                                <FontIcon FontSize="12" Glyph="&#xEDA2;" />
+                                                <TextBlock Text="查看占用" />
                                             </StackPanel>
                                         </Button>
                                     </Grid>

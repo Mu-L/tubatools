@@ -51,6 +51,24 @@ public static class TempCleanupService
         return false;
     }
 
+    /// <summary>列出 %TEMP% 下所有由本软件创建的残留条目（目录与文件）。</summary>
+    public static IReadOnlyList<string> EnumerateAppTempEntries()
+    {
+        var tempRoot = Path.GetTempPath();
+        if (!Directory.Exists(tempRoot)) return [];
+
+        var entries = new List<string>();
+        try
+        {
+            foreach (var entry in Directory.EnumerateFileSystemEntries(tempRoot))
+            {
+                if (IsAppTempEntry(Path.GetFileName(entry))) entries.Add(entry);
+            }
+        }
+        catch { }
+        return entries;
+    }
+
     /// <summary>扫描并删除 %TEMP% 下所有本软件创建的临时条目。</summary>
     public static CleanupResult CleanTempFiles(CancellationToken cancellationToken = default)
     {
@@ -58,21 +76,15 @@ public static class TempCleanupService
         var skipped = 0;
         long freed = 0;
 
-        var tempRoot = Path.GetTempPath();
-        if (!Directory.Exists(tempRoot)) return new CleanupResult(0, 0, 0);
-
-        foreach (var entry in Directory.EnumerateFileSystemEntries(tempRoot))
+        foreach (var entry in EnumerateAppTempEntries())
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            var name = Path.GetFileName(entry);
-            if (!IsAppTempEntry(name)) continue;
 
             try
             {
                 if (Directory.Exists(entry))
                 {
-                    freed += GetDirectorySize(entry);
+                    freed += MeasureDirectory(entry);
                     if (TryDeleteDirectory(entry)) deleted++;
                     else skipped++;
                 }
@@ -101,7 +113,8 @@ public static class TempCleanupService
         return $"{size} B";
     }
 
-    private static long GetDirectorySize(string dir)
+    /// <summary>递归统计目录字节数（存储占用弹窗复用）。</summary>
+    internal static long MeasureDirectory(string dir)
     {
         long size = 0;
         try
@@ -115,7 +128,7 @@ public static class TempCleanupService
         return size;
     }
 
-    private static bool TryDeleteDirectory(string dir)
+    internal static bool TryDeleteDirectory(string dir)
     {
         // 只读文件会导致 Directory.Delete 抛异常，先递归清除属性（复用下载器的实现）
         for (var i = 0; i < DeleteAttempts && Directory.Exists(dir); i++)
@@ -134,7 +147,7 @@ public static class TempCleanupService
         return !Directory.Exists(dir);
     }
 
-    private static bool TryDeleteFile(string file)
+    internal static bool TryDeleteFile(string file)
     {
         for (var i = 0; i < DeleteAttempts && File.Exists(file); i++)
         {

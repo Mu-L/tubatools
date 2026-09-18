@@ -12,12 +12,15 @@ public static class WebView2EnvironmentService
     // TEMP-DIAG: 临时诊断日志路径（打包环境捕获真实异常用，诊断完删除）。
     private static readonly string DiagLog = @"C:\Users\luolan\AppData\Local\TubaWinUi3\wv2-diag.log";
 
+    /// <summary>共享的 WebView2 用户数据目录（缓存所在位置）。</summary>
+    public static string UserDataFolder { get; } = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "TubaWinUi3", "WebView2");
+
     private static readonly Lazy<Task<CoreWebView2Environment>> _environment = new(
         () => CoreWebView2Environment.CreateWithOptionsAsync(
             browserExecutableFolder: null,
-            userDataFolder: Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "TubaWinUi3", "WebView2"),
+            userDataFolder: UserDataFolder,
             options: new CoreWebView2EnvironmentOptions()).AsTask());
 
     /// <summary>获取共享环境（所有 WebView2 实例共用同一用户数据目录与浏览器进程）。</summary>
