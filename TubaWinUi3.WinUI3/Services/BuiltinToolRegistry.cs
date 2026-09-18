@@ -58,7 +58,6 @@ public static class BuiltinToolRegistry
         Register(new QuickDeviceCheckTool());
         Register(new NetworkOptimizeTool());
         Register(new EnergyStarTool());
-        Register(new RatingSystemTool());
         Register(new VolumeShaderTool());
         Register(new StressTestTool());
         Register(new TrafficMonitorTool());

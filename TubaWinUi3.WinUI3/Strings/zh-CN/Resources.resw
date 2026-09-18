@@ -2278,12 +2278,6 @@
   <data name="Builtin_quick-device-check_Name" xml:space="preserve">
     <value>快速验机</value>
   </data>
-  <data name="Builtin_rating-system_Desc" xml:space="preserve">
-    <value>为你的笔记本或台式机硬件打分，查看社区排行榜对比评价。</value>
-  </data>
-  <data name="Builtin_rating-system_Name" xml:space="preserve">
-    <value>硬件评分</value>
-  </data>
   <data name="Builtin_rogue-cleaner_Desc" xml:space="preserve">
     <value>扫描和清理流氓右键菜单、自启动、计划任务、服务、浏览器插件和文件关联残留，含恢复中心</value>
   </data>

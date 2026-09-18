@@ -166,7 +166,6 @@ Favorites / Run as Administrator / Desktop shortcuts / Auto update / Light & dar
 ### Hardware Tools
 - **Benchmark** — Full CPU / GPU / memory / disk / browser tests, computes gaming & office scores, exports PDF reports
 - **Benchmark Ranking** — Upload reports to the community, view global leaderboards, compare with same-hardware users
-- **Hardware Rating** — Rate your laptop or desktop hardware and compare on the community leaderboard
 - **New PC Setup Wizard** — One-stop check: appearance, hardware info, disk power-on hours, dead pixels, peripherals, camera, audio
 - **Disk Health** — SMART health monitoring: temperature / power-on / lifespan / read-write, SSD TRIM and HDD defrag
 - **Battery Analyzer** — Analyzes battery drain trends and per-app power ranking

@@ -2262,12 +2262,6 @@ Permissions
   <data name="Builtin_quick-device-check_Name" xml:space="preserve">
     <value>Quick Device Check</value>
   </data>
-  <data name="Builtin_rating-system_Desc" xml:space="preserve">
-    <value>Score your laptop or desktop hardware and compare with community leaderboards.</value>
-  </data>
-  <data name="Builtin_rating-system_Name" xml:space="preserve">
-    <value>Hardware Rating</value>
-  </data>
   <data name="Builtin_rogue-cleaner_Desc" xml:space="preserve">
     <value>Scan and clean rogue context menus, startup entries, scheduled tasks, services, browser plugins, and file-association leftovers, with a restore center</value>
   </data>

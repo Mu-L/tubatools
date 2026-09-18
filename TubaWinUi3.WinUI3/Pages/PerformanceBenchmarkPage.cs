@@ -1543,7 +1543,7 @@ public sealed partial class PerformanceBenchmarkPage : Page
 			Spacing = 4,
 			Children =
 			{
-				new TextBlock { Text = "测试已经跑完了，你可以上传你的跑分或者给你的电脑打分。", TextWrapping = TextWrapping.Wrap },
+				new TextBlock { Text = "测试已经跑完了，你可以上传你的跑分。", TextWrapping = TextWrapping.Wrap },
 				chkDontShow
 			}
 		};
@@ -1552,7 +1552,6 @@ public sealed partial class PerformanceBenchmarkPage : Page
 			Title = "测试完成",
 			Content = content,
 			PrimaryButtonText = "上传跑分",
-			SecondaryButtonText = "评价电脑",
 			CloseButtonText = "取消",
 			XamlRoot = XamlRoot,
 			RequestedTheme = ThemeService.CurrentElementTheme
@@ -1563,14 +1562,6 @@ public sealed partial class PerformanceBenchmarkPage : Page
 		if (result == ContentDialogResult.Primary)
 			// 延迟到下一帧再打开上传流程，确保"测试完成"对话框已完全关闭
 			DispatcherQueue.TryEnqueue(() => OnUploadClick(this, null!));
-		else if (result == ContentDialogResult.Secondary)
-		{
-			var tool = new RatingSystemTool();
-			var ctx = new BuiltinToolContext { XamlRoot = XamlRoot };
-			MainWindow.ActiveToolName = tool.Name;
-			try { await tool.ExecuteAsync(ctx); }
-			finally { MainWindow.ActiveToolName = null; }
-		}
 	}
 
 	private void OnStopClick(object sender, RoutedEventArgs e)

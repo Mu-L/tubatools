@@ -1624,13 +1624,6 @@
       ]
     },
     {
-      "match": "硬件评分",
-      "builtin": "rating-system",
-      "categories": [
-        "综合检测"
-      ]
-    },
-    {
       "match": "跑分排行",
       "builtin": "benchmark-cloud",
       "categories": [
