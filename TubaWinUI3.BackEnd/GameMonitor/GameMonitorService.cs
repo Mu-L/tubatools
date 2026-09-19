@@ -291,6 +291,10 @@ internal static class GameProcessFilter
         // 锁屏 / 登录界面（合盖或 Win+L 后 LockApp 会变成无边框全屏前台窗口，
         // 命中全屏判据 → 被误判成游戏并自动开始录制，2026-09-18 实测踩坑）
         "LockApp", "LogonUI", "Windows.UI.Logon", "CredentialUIBroker",
+        // 系统 AI / 截屏辅助覆盖层（Click to Do 的 ClickToDo.exe 是无边框满屏浮层，
+        // 命中全屏判据 → 被误判成游戏并自动开始录制，2026-09-19 实测踩坑；
+        // 截图工具家族的取景浮层同理）
+        "ClickToDo", "SnippingTool", "ScreenSketch", "ScreenClippingHost",
         // 浏览器（全屏视频/网页游戏会误报，宁可不算）
         "msedge", "chrome", "firefox", "iexplore", "opera", "brave", "vivaldi", "360se",
         "360chrome", "QQBrowser", "SogouExplorer", "baidunetdisk",

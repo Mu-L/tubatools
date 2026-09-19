@@ -55,6 +55,7 @@ dotnet test --filter "FullyQualifiedName~ToolCatalogTests"        # one class / 
 - `AgentSession`/`AgentRuntime` 仍是**独立的旧引擎**（AiQuickAskFlyout 及测试使用），页面不再直接依赖；技能触发经 `AgentToolContext.SkillTriggerActive` 静态桥接（web_search 拦截）。
 - 历史/记忆/技能沿用 `AiAssistantService` 的 messages.json / display.json / skills.json / memory.md；skills 默认全开、按会话存档。
 - **包缺陷**：FieldCure 0.21.0 的 `.pri` 声明了缺失的 `AssistStudio.Controls/icon.png`，csproj 中 `FixFieldCureMissingPriPayload` 目标在构建期补位（升级包版本时若仍报 MSB3030 需检查该目标）。
+- **包缺陷（销毁竞态，Issue #194）**：关闭 / 切走 AI 面板时 `ChatPanel.Dispose()` 先取消流式请求、再关闭 WebView2，组件内部在途的收尾渲染（`OnMessageSent` 的取消/收尾分支等）随后撞上已关闭的 WebView2，抛 `InvalidOperationException`（"CoreWebView2 is not present"）。组件库 0.21.0 / 0.22.0 渲染层均无判空，且异常从 `async void` 事件里抛出，宿主拦不住。`Services/Ai/ChatPanelCrashFilter.IsTeardownRace` 同时校验报错文本 + `FieldCure.AssistStudio` 调用栈来源（认错会吞掉真 bug），`App.OnWinUIUnhandledException` 命中后只记日志（`agent-debug.log` + `%TEMP%\app_crash.log`）不弹错误窗口（回归测试 `ChatPanelCrashFilterTests`）。
 - **顶栏 bot 吉祥物（唯一实例）**：`Assets/BotAvatar/`（bloub 引擎，github.com/jeremy-prt/bloub，MIT；esbuild IIFE 打包 + `botavatar.html`），顶栏右侧操作组最前（模型选择器旁）**44×44 单实例**（`BotAvatar`），原生 XAML 区域 → 透明必然生效。
   - **只放顶栏的原因**：曾尝试聊天区大号（72×72）悬浮在输入框上方（`UpdateBotAnchor`/`FindInputAnchor` 动态锚定），但该区域叠在 ChatPanel 消息区 WebView2 之上，透明 WebView2 无法穿透另一 WebView2（平台硬限制）→ 背景灰块无解，用户要求透明 → 改为顶栏唯一实例。
   - 初始化：`InitBotAvatarAsync` → `InitBotWebViewAsync(BotAvatar)` 单实例；导航成功才置 `_botAvatarReady` + 启动视线轮询 + `SendColorsTo` 补发主题色；`Unload` 时 Navigate about:blank。

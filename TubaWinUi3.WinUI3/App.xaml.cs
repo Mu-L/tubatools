@@ -683,9 +683,24 @@ public partial class App : Application
             catch { }
         }
         catch { }
+        e.Handled = true;
+
+        // AI 助手面板（FieldCure ChatPanel）的销毁竞态：面板已从界面移除、本轮回复作废，
+        // 异常来自第三方组件对已关闭 WebView2 的收尾渲染（async void 事件里抛出，宿主拦不住），
+        // 记日志留痕即可，不该再弹错误窗口打断用户（Issue #194，详见 ChatPanelCrashFilter）。
+        if (ChatPanelCrashFilter.IsTeardownRace(e.Exception))
+        {
+            try
+            {
+                TubaWinUi3.Services.Agent.AgentDebugLog.Error(
+                    "[App] AI 面板销毁竞态异常（已忽略，不影响使用）", e.Exception);
+            }
+            catch { }
+            return;
+        }
+
         _pendingException = e.Exception ?? new Exception(e.Message);
         NavigateToErrorPage();
-        e.Handled = true;
     }
 
     public static Exception? ConsumePendingException()

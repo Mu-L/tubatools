@@ -81,6 +81,7 @@ public class GameMonitorBackendTests
 
     [Theory]
     [InlineData("LockApp")]        // 合盖 / Win+L 锁屏：无边框全屏，最容易被当成游戏
+    [InlineData("ClickToDo")]      // Win11 Click to Do：无边框满屏 AI 浮层，2026-09-19 实测中招
     [InlineData("LogonUI")]        // 登录界面
     [InlineData("Windows.UI.Logon")]
     [InlineData("explorer")]
