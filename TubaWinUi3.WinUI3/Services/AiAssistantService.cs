@@ -653,10 +653,10 @@ public sealed partial class AiAssistantService
             };
 
             var metaPath = Path.Combine(HistoryDir, $"{id}.meta.json");
-            File.WriteAllText(metaPath, JsonSerializer.Serialize(meta, JsonOpts));
+            WriteJsonAtomic(metaPath, meta);
 
             var msgPath = Path.Combine(HistoryDir, $"{id}.messages.json");
-            File.WriteAllText(msgPath, JsonSerializer.Serialize(messages, JsonOpts));
+            WriteJsonAtomic(msgPath, messages);
         }
         catch { }
     }
@@ -669,7 +669,7 @@ public sealed partial class AiAssistantService
             if (items.Count == 0) return;
             Directory.CreateDirectory(HistoryDir);
             var path = Path.Combine(HistoryDir, $"{id}.display.json");
-            File.WriteAllText(path, JsonSerializer.Serialize(items, JsonOpts));
+            WriteJsonAtomic(path, items);
         }
         catch { }
     }
@@ -732,7 +732,7 @@ public sealed partial class AiAssistantService
     {
         try
         {
-            foreach (var suffix in new[] { ".meta.json", ".messages.json", ".display.json", ".memory.md" })
+            foreach (var suffix in new[] { ".meta.json", ".messages.json", ".display.json", ".skills.json", ".memory.md" })
             {
                 var path = Path.Combine(HistoryDir, $"{id}{suffix}");
                 if (File.Exists(path)) File.Delete(path);
@@ -760,6 +760,13 @@ public sealed partial class AiAssistantService
     }
 
     private static readonly JsonSerializerOptions JsonOpts = new() { WriteIndented = false };
+
+    private static void WriteJsonAtomic<T>(string path, T value)
+    {
+        var tempPath = path + ".tmp";
+        File.WriteAllText(tempPath, JsonSerializer.Serialize(value, JsonOpts));
+        File.Move(tempPath, path, true);
+    }
 
     public static bool TryLaunchTool(string toolName, out string message)
     {

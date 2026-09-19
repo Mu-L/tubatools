@@ -18,6 +18,15 @@ public sealed class ConversationDisplayItem
     /// <summary>text 项：消息内容。</summary>
     public string Content { get; set; } = "";
 
+    /// <summary>assistant text 项：与最终回答分开展示的模型思维过程。</summary>
+    public string ReasoningContent { get; set; } = "";
+
+    /// <summary>notice 项：error / cancelled / warning。</summary>
+    public string NoticeKind { get; set; } = "";
+
+    /// <summary>稳定展示项标识，便于增量更新与后续格式演进。</summary>
+    public string ItemId { get; set; } = "";
+
     /// <summary>steps 项：步骤行快照（按执行顺序）。</summary>
     public List<AgentStepSnapshot> Steps { get; set; } = [];
 

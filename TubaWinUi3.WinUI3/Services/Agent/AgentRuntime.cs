@@ -11,6 +11,9 @@ public sealed class AgentRunCallbacks
     /// <summary>流式文本增量。</summary>
     public Action<string>? OnTextChunk { get; init; }
 
+    /// <summary>流式思维过程增量，与最终回答分开呈现。</summary>
+    public Action<string>? OnReasoningChunk { get; init; }
+
     /// <summary>步骤开始（含等待确认）。</summary>
     public Action<AgentStep>? OnStepStarted { get; init; }
 
@@ -54,9 +57,9 @@ public sealed class AgentUsage
 /// </summary>
 public static class AgentRuntime
 {
-    public const int DefaultMaxRounds = 30;
-    public const int ContinueMaxRounds = 10;
-    public const float DefaultTemperature = 0.4f;
+    public const int DefaultMaxRounds = AgentRuntimeLimits.DefaultMaxRounds;
+    public const int ContinueMaxRounds = AgentRuntimeLimits.ContinueMaxRounds;
+    public const float DefaultTemperature = AgentRuntimeLimits.DefaultTemperature;
 
     /// <summary>
     /// 运行 Agent 循环。返回 true = 本轮完成；返回 false = 已暂停等待用户确认
@@ -103,7 +106,7 @@ public static class AgentRuntime
             // 思考链最大长度护栏（与新引擎 TubaChatProvider.MaxThinkingChars 一致）：
             // 单轮思考体积无上限是死循环放大环节之一（思考越滚越长 → 上下文越满 →
             // 模型越绕越深），逐段累积时即限流，回填历史时 TruncateThinking 双保险。
-            var reasoningRoom = TubaChatProvider.MaxThinkingChars;
+            var reasoningRoom = AgentRuntimeLimits.MaxReasoningChars;
             var callContents = new List<FunctionCallContent>();
             AgentUsage? usage = null;
 
@@ -111,7 +114,7 @@ public static class AgentRuntime
             {
                 // 单轮请求硬超时（防端点挂起导致界面"卡死"）
                 using var requestTimeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
-                requestTimeout.CancelAfter(TimeSpan.FromSeconds(120));
+                requestTimeout.CancelAfter(AgentRuntimeLimits.RequestTimeout);
 
                 // 传输层瞬时错误：指数退避重试（2s / 4s / 8s）
                 await AgentErrorPolicy.WithRetryAsync(async innerCt =>
@@ -135,13 +138,16 @@ public static class AgentRuntime
                             {
                                 reasoningSb.Append(t);
                                 reasoningRoom -= t.Length;
+                                cb.OnReasoningChunk?.Invoke(t);
                             }
                             else
                             {
                                 var cut = t[..reasoningRoom];
-                                if (char.IsHighSurrogate(cut[^1])) cut = cut[..^1];
+                                if (cut.Length > 0 && char.IsHighSurrogate(cut[^1])) cut = cut[..^1];
                                 reasoningSb.Append(cut);
                                 reasoningRoom = 0;
+                                if (cut.Length > 0) cb.OnReasoningChunk?.Invoke(cut);
+                                cb.OnReasoningChunk?.Invoke("\n\n[思维过程过长，已截断]");
                             }
                         }
 
@@ -213,7 +219,7 @@ public static class AgentRuntime
             var assistantMsg = new ChatMessage(ChatRole.Assistant, fullText.ToString());
             if (reasoningSb.Length > 0)
                 assistantMsg.Contents.Add(new TextReasoningContent(
-                    TubaChatProvider.TruncateThinking(reasoningSb.ToString()) ?? ""));
+                    AgentRuntimeLimits.TruncateReasoning(reasoningSb.ToString()) ?? ""));
             foreach (var c in calls)
                 assistantMsg.Contents.Add(new FunctionCallContent(
                     callId: c.Id,
@@ -442,7 +448,7 @@ public static class AgentRuntime
 
     /// <summary>
     /// 历史回传总量预算压缩（与新引擎 TubaChatProvider.TrimHistory 同语义）：
-    /// 估算总长超过 <see cref="TubaChatProvider.HistoryBudgetChars"/> 时从最旧丢弃，
+    /// 估算总长超过 <see cref="AgentRuntimeLimits.HistoryBudgetChars"/> 时从最旧丢弃，
     /// 保留首条 system（DeepSeek 网关要求 system 在前，且拒绝多条 system）。
     /// 30 轮工具循环中每轮回传思考(≤6000)+结果(≤6000)，无上限会撑爆 64K 上下文窗口——
     /// 这是死循环"烧穿上下文"的路径；预算只在超限时生效，正常会话完全无感知。
@@ -450,10 +456,10 @@ public static class AgentRuntime
     internal static void TrimHistory(List<ChatMessage> history)
     {
         var total = history.Sum(RoughLength);
-        if (total <= TubaChatProvider.HistoryBudgetChars) return;
+        if (total <= AgentRuntimeLimits.HistoryBudgetChars) return;
 
         // 从最旧丢弃；最新 user 位于尾部，正常不会先被丢
-        for (var i = 0; i < history.Count && total > TubaChatProvider.HistoryBudgetChars; i++)
+        for (var i = 0; i < history.Count && total > AgentRuntimeLimits.HistoryBudgetChars; i++)
         {
             if (i == 0 && history[i].Role == ChatRole.System) continue;
             total -= RoughLength(history[i]);

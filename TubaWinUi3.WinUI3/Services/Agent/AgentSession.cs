@@ -14,11 +14,13 @@ public sealed class AgentSession : IDisposable
     private readonly List<AgentStep> _groupSteps = [];
     private readonly List<ConversationDisplayItem> _displayItems = [];
     private readonly StringBuilder _textSb = new();
+    private readonly StringBuilder _reasoningSb = new();
     private readonly ConversationMemory _memory;
     private readonly HashSet<string> _activeSkillIds = [];
     private bool _skillTriggerActive;
     private CancellationTokenSource _cts = new();
     private bool _awaitingConfirmation;
+    private IReadOnlyList<AgentConfirmationRequest> _pendingConfirmations = [];
     private System.Diagnostics.Stopwatch? _groupTimer;
     private int _groupPromptTokens;
     private int _groupCompletionTokens;
@@ -45,6 +47,9 @@ public sealed class AgentSession : IDisposable
 
     /// <summary>流式文本增量。</summary>
     public event Action<string>? TextChunk;
+
+    /// <summary>流式思维过程增量，供界面独立折叠展示。</summary>
+    public event Action<string>? ReasoningChunk;
 
     /// <summary>步骤开始。</summary>
     public event Action<AgentStep>? StepStarted;
@@ -208,6 +213,7 @@ public sealed class AgentSession : IDisposable
 
         AgentDebugLog.Info($"ResumeConfirmations 开始，决策 {decisions.Count} 条");
         _awaitingConfirmation = false;
+        _pendingConfirmations = [];
         IsRunning = true;
         _cts = new CancellationTokenSource();
         var ct = _cts.Token;
@@ -232,8 +238,31 @@ public sealed class AgentSession : IDisposable
         }
     }
 
-    /// <summary>取消当前运行。</summary>
-    public void Cancel() => _cts.Cancel();
+    /// <summary>取消当前运行；等待确认时直接结算为已取消，不再继续请求模型。</summary>
+    public void Cancel()
+    {
+        if (_awaitingConfirmation)
+        {
+            foreach (var request in _pendingConfirmations)
+            {
+                if (request.Step is { } step)
+                {
+                    step.Status = AgentStepStatus.Cancelled;
+                    step.Result = "用户取消了待确认操作。";
+                    step.Duration = DateTime.Now - step.StartedAt;
+                    StepCompleted?.Invoke(step);
+                }
+                _history.Add(new ChatMessage(ChatRole.Tool,
+                    [new FunctionResultContent(request.CallId, "用户取消了待确认操作，任务已停止。") ]));
+            }
+            _pendingConfirmations = [];
+            _awaitingConfirmation = false;
+            CompleteGroup(raise: true);
+            Save();
+            return;
+        }
+        _cts.Cancel();
+    }
 
     /// <summary>
     /// 启用/禁用技能，立即重建系统提示词（技能开关即时生效）。
@@ -298,6 +327,11 @@ public sealed class AgentSession : IDisposable
             _textSb.Append(chunk);
             TextChunk?.Invoke(chunk);
         },
+        OnReasoningChunk = chunk =>
+        {
+            _reasoningSb.Append(chunk);
+            ReasoningChunk?.Invoke(chunk);
+        },
         OnRoundStarted = () =>
         {
             // 新一轮：若上一组已结算则重置统计（确认暂停期内保持打开，与新步骤同组）
@@ -328,6 +362,7 @@ public sealed class AgentSession : IDisposable
         OnConfirmationsRequested = requests =>
         {
             _awaitingConfirmation = true;
+            _pendingConfirmations = requests;
             // 暂停轮不结算：确认后的执行与暂停轮同属一组
             _groupCompleted = false;
             ConfirmationsRequested?.Invoke(requests);
@@ -396,14 +431,16 @@ public sealed class AgentSession : IDisposable
     /// <summary>定稿当前流式文本展示项（无文本则不产生条目）。</summary>
     private void FinalizeOpenTextItem()
     {
-        if (_textSb.Length == 0) return;
+        if (_textSb.Length == 0 && _reasoningSb.Length == 0) return;
         _displayItems.Add(new ConversationDisplayItem
         {
             Type = "text",
             Role = "assistant",
-            Content = _textSb.ToString()
+            Content = _textSb.ToString(),
+            ReasoningContent = _reasoningSb.ToString()
         });
         _textSb.Clear();
+        _reasoningSb.Clear();
     }
 
     private static string SkillsPath(string id) => Path.Combine(HistoryDir, $"{id}.skills.json");

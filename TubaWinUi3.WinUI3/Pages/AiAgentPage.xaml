@@ -5,114 +5,181 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:assist="using:FieldCure.AssistStudio.Controls"
     mc:Ignorable="d"
     Loaded="OnPageLoaded">
 
     <UserControl.Resources>
-        <!-- 技能开关菜单：勾选/取消的技能随会话保存，下一条消息生效 -->
         <Flyout x:Key="SkillsFlyout">
-            <StackPanel x:Name="SkillsPanel" Width="300" Spacing="4" Padding="4" />
+            <StackPanel x:Name="SkillsPanel" Width="320" Spacing="4" Padding="4" />
         </Flyout>
     </UserControl.Resources>
 
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Grid x:Name="RootLayout" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- 顶栏：会话、模型、权限、用量集中展示 -->
-        <Border Padding="20,14" Background="{ThemeResource LayerFillColorDefaultBrush}"
-                BorderThickness="0,0,0,1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+        <Border x:Name="HeaderBar" Padding="20,12"
+                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                BorderThickness="0,0,0,1"
+                BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}">
             <Grid ColumnSpacing="14">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                <Grid Width="42" Height="42" VerticalAlignment="Center">
+                    <Border CornerRadius="12" Background="{ThemeResource AccentFillColorDefaultBrush}">
+                        <FontIcon Glyph="&#xE946;" FontSize="18"
+                                  Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+                    </Border>
+                    <InfoBadge x:Name="StateBadge" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                               Background="{ThemeResource SystemFillColorSuccessBrush}">
+                        <InfoBadge.IconSource>
+                            <FontIconSource Glyph="&#xE73E;" />
+                        </InfoBadge.IconSource>
+                    </InfoBadge>
+                </Grid>
+
+                <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <TextBlock x:Name="TitleText" Text="新对话" FontSize="18"
-                                   FontWeight="Bold" TextTrimming="CharacterEllipsis" />
+                                   FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
                         <Border CornerRadius="10" Padding="8,3"
-                                Background="{ThemeResource SystemFillColorSuccessBackgroundBrush}">
-                            <TextBlock Text="Agent Workspace" FontSize="11"
-                                       Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                                Background="{ThemeResource ControlFillColorSecondaryBrush}">
+                            <TextBlock Text="本机智能代理" FontSize="11"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                         </Border>
                     </StackPanel>
-                    <StackPanel Orientation="Horizontal" Spacing="10">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
                         <TextBlock x:Name="ModelStatusText" FontSize="12"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                         <TextBlock Text="·" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                         <TextBlock x:Name="RunStateText" Text="就绪" FontSize="12"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBlock Text="·" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                        <TextBlock x:Name="HeaderTokenText" Text="0 tokens" FontSize="12"
+                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                     </StackPanel>
                 </StackPanel>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <!-- bloub 吉祥物（唯一实例）：顶栏原生区域 → WebView2 透明必然生效，不悬浮在
-                         消息区 WebView2 之上（那是平台穿不透的灰色块）。动画随顶栏操作触发：
-                         设置 swirl / 模型切换 notify / 完全访问 wide|exclaim / 新对话 play / 历史 comet。 -->
-                    <WebView2 x:Name="BotAvatar" Width="44" Height="44"
-                              DefaultBackgroundColor="Transparent"
-                              VerticalAlignment="Center"
-                              IsHitTestVisible="False"
-                              ToolTipService.ToolTip="AI 助手状态" />
-                    <Border x:Name="TokenUsageBubble" CornerRadius="12" Padding="10,7"
-                            Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                            VerticalAlignment="Center" Visibility="Collapsed"
-                            ToolTipService.ToolTip="本会话累计消耗的 tokens（多轮对话累加）">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE823;" FontSize="12"
-                                      Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                            <TextBlock x:Name="TokenUsageText" FontSize="12"
-                                       Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                        </StackPanel>
-                    </Border>
-                    <ComboBox x:Name="ProviderCombo" MinWidth="128" MaxWidth="168" Padding="10,5" FontSize="12"
-                              DisplayMemberPath="Name" VerticalAlignment="Center" SelectionChanged="ProviderCombo_SelectionChanged"
-                              ToolTipService.ToolTip="切换 AI 服务提供商（可在 设置 → AI 服务 中管理）" />
-                    <ComboBox x:Name="ModelCombo" MinWidth="150" MaxWidth="210" Padding="10,5" FontSize="12"
-                              DisplayMemberPath="DisplayText" VerticalAlignment="Center" SelectionChanged="ModelCombo_SelectionChanged"
-                              ToolTipService.ToolTip="切换当前提供商的模型（下一条消息生效）" />
+                <StackPanel x:Name="HeaderActions" Grid.Column="2" Orientation="Horizontal"
+                            Spacing="8" VerticalAlignment="Center">
+                    <ComboBox x:Name="ProviderCombo" MinWidth="118" MaxWidth="160" FontSize="12"
+                              DisplayMemberPath="Name" SelectionChanged="ProviderCombo_SelectionChanged"
+                              ToolTipService.ToolTip="AI 服务提供商" />
+                    <ComboBox x:Name="ModelCombo" MinWidth="140" MaxWidth="190" FontSize="12"
+                              DisplayMemberPath="DisplayText" SelectionChanged="ModelCombo_SelectionChanged"
+                              ToolTipService.ToolTip="当前模型，下一条消息生效" />
                     <ToggleSwitch x:Name="FullAccessToggle" MinWidth="0" Padding="0"
-                                  OnContent="完全访问" OffContent="受控执行"
-                                  FontSize="12" VerticalAlignment="Center"
-                                  ToolTipService.ToolTip="完全访问模式：AI 可直接执行命令、修改注册表等危险操作，无需逐项确认（谨慎使用）"
+                                  OnContent="完全访问" OffContent="受控执行" FontSize="12"
+                                  ToolTipService.ToolTip="危险操作在受控执行模式下需要逐项确认"
                                   Toggled="FullAccessToggle_Toggled" />
-                    <Button x:Name="SkillsButton" Padding="12,7" CornerRadius="8" Click="SkillsButton_Click"
-                            ToolTipService.ToolTip="已加载的技能（可随时开关，下一条消息生效）">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE7C0;" FontSize="12" />
-                            <TextBlock Text="技能" FontSize="12" />
-                        </StackPanel>
+                    <Button x:Name="SkillsButton" Width="36" Height="36" Padding="0"
+                            Click="SkillsButton_Click" ToolTipService.ToolTip="技能">
+                        <FontIcon Glyph="&#xE7C0;" FontSize="14" />
                     </Button>
-                    <Button x:Name="NewChatButton" Padding="12,7" CornerRadius="8" Click="NewChatButton_Click">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE710;" FontSize="12" />
-                            <TextBlock Text="新对话" FontSize="12" />
-                        </StackPanel>
+                    <Button x:Name="NewChatButton" Width="36" Height="36" Padding="0"
+                            Click="NewChatButton_Click" ToolTipService.ToolTip="新对话">
+                        <FontIcon Glyph="&#xE710;" FontSize="14" />
                     </Button>
-                    <Button x:Name="HistoryButton" Padding="12,7" CornerRadius="8" Click="HistoryButton_Click">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE81C;" FontSize="12" />
-                            <TextBlock Text="历史" FontSize="12" />
-                        </StackPanel>
+                    <Button x:Name="HistoryButton" Width="36" Height="36" Padding="0"
+                            Click="HistoryButton_Click" ToolTipService.ToolTip="历史对话">
+                        <FontIcon Glyph="&#xE81C;" FontSize="14" />
                     </Button>
-                    <Button x:Name="AiSettingsButton" Padding="12,7" CornerRadius="8" Click="AiSettingsButton_Click"
-                            ToolTipService.ToolTip="AI 服务设置（提供商 / API Key / 模型）">
+                    <Button x:Name="AiSettingsButton" Width="36" Height="36" Padding="0"
+                            Click="AiSettingsButton_Click" ToolTipService.ToolTip="AI 服务设置">
                         <FontIcon Glyph="&#xE713;" FontSize="14" />
                     </Button>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- FieldCure ChatPanel：消息流式渲染（WebView2 Markdown）、工具调用内联显示、
-             危险操作 ToolApprovalPanel 确认、输入控制台 —— 全部由组件库接管 -->
-        <assist:ChatPanel
-            x:Name="Chat"
-            Grid.Row="1"
-            Placeholder="描述目标，或直接要求助手诊断、执行命令、整理报告…（Enter 发送，Shift+Enter 换行）" />
+        <Grid Grid.Row="1">
+            <ScrollViewer x:Name="MsgScroll" VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollMode="Disabled" ViewChanged="MsgScroll_ViewChanged">
+                <StackPanel x:Name="MsgPanel" MaxWidth="960" HorizontalAlignment="Center"
+                            Padding="24,24,24,20" />
+            </ScrollViewer>
+            <Button x:Name="ScrollToBottomButton" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                    Margin="0,0,0,14" Padding="12,6" CornerRadius="16" Visibility="Collapsed"
+                    Click="ScrollToBottomButton_Click" ToolTipService.ToolTip="回到最新消息">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <FontIcon Glyph="&#xE74B;" FontSize="11" />
+                    <TextBlock Text="回到最新" FontSize="12" />
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <Border Grid.Row="2" Padding="20,10,20,16"
+                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                BorderThickness="0,1,0,0" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}">
+            <StackPanel MaxWidth="960" HorizontalAlignment="Center" Spacing="9">
+                <ScrollViewer HorizontalScrollBarVisibility="Hidden" HorizontalScrollMode="Enabled"
+                              VerticalScrollMode="Disabled">
+                    <StackPanel x:Name="QuickPillPanel" Orientation="Horizontal" Spacing="8" />
+                </ScrollViewer>
+                <Border CornerRadius="12" Padding="8"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="InputBox" MinHeight="44" MaxHeight="140"
+                                 PlaceholderText="描述目标，或直接要求助手诊断、执行操作…（Enter 发送，Shift+Enter 换行）"
+                                 AcceptsReturn="True" TextWrapping="Wrap"
+                                 BorderThickness="0" Background="Transparent"
+                                 Padding="6,8" KeyDown="InputBox_KeyDown"
+                                 AutomationProperties.Name="向 AI 助手发送消息" />
+                        <Border x:Name="TokenUsageBubble" Grid.Column="1" CornerRadius="10"
+                                Padding="9,6" Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                VerticalAlignment="Center" Visibility="Collapsed">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE823;" FontSize="11"
+                                          Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                <TextBlock x:Name="TokenUsageText" FontSize="11"
+                                           Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                            </StackPanel>
+                        </Border>
+                        <Button x:Name="SendButton" Grid.Column="2" Width="42" Height="42" Padding="0"
+                                CornerRadius="10" Click="SendButton_Click"
+                                Style="{StaticResource AccentButtonStyle}"
+                                AutomationProperties.Name="发送消息">
+                            <FontIcon Glyph="&#xE72A;" FontSize="15" />
+                        </Button>
+                        <Button x:Name="StopButton" Grid.Column="2" Width="42" Height="42" Padding="0"
+                                CornerRadius="10" Visibility="Collapsed" Click="StopButton_Click"
+                                AutomationProperties.Name="停止生成">
+                            <FontIcon Glyph="&#xE71A;" FontSize="14" />
+                        </Button>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </Border>
+
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup>
+                <VisualState x:Name="WideState">
+                    <VisualState.StateTriggers><AdaptiveTrigger MinWindowWidth="1000" /></VisualState.StateTriggers>
+                </VisualState>
+                <VisualState x:Name="CompactState">
+                    <VisualState.StateTriggers><AdaptiveTrigger MinWindowWidth="0" /></VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="ProviderCombo.Visibility" Value="Collapsed" />
+                        <Setter Target="ModelCombo.Visibility" Value="Collapsed" />
+                        <Setter Target="FullAccessToggle.Visibility" Value="Collapsed" />
+                        <Setter Target="HeaderBar.Padding" Value="14,10" />
+                        <Setter Target="MsgPanel.Padding" Value="14,18,14,16" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
     </Grid>
 </UserControl>
